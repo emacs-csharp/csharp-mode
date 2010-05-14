@@ -6,6 +6,7 @@
 ;; Modified:   April 2010
 ;; Version:    0.7.5
 ;; Keywords:   c# languages oop mode
+;; X-URL:      http://code.google.com/p/csharpmode/
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -73,7 +74,6 @@
 ;;   (add-hook  'csharp-mode-hook 'my-csharp-mode-fn t)
 ;;
 ;;
-
 
 ;;; Known Bugs:
 ;;
@@ -256,55 +256,79 @@
 ;; csharp-mode utility and feature defuns
 ;; ==================================================================
 
-;; Indention: csharp-mode follows normal indention rules except for
-;; when indenting the #region and #endregion blocks. This function
-;; defines a custom indention to indent the #region blocks properly
-;;
-
 
 (defun csharp-at-vsemi-p (&optional pos)
   "Determines if there is a virtual semicolon at POS or point.
 This is the C# version of the function.
 
 A vsemi is a cc-mode concept implying end-of-statement, without
-a semicolon or close-brace. This happens in C# with an
-attribute decorating a class, method, field, or property.
-Providing this function allows the indenting in csharp-mode
-to work properly with syntax items that follow attributes.
+a semicolon or close-brace. This happens in 2 cases in C#:
 
-Returns t if at the end of a attribute. Otherwise nil.
+ - after an attribute that decorates a class, method, field, or
+   property.
+
+ - after an ASPNET directive, that appears in a aspx/ashx/ascx file
+
+An example of the former is  [WebMethod] or [XmlElement].
+An example of the latter is something like this:
+
+    <%@ WebHandler Language=\"C#\" Class=\"Handler\" %>
+
+Providing this function allows the indenting in csharp-mode
+to work properly with code that includes attributes and ASPNET
+directives.
+
+Returns t if at a position where a virtual-semicolon is.
+Otherwise nil.
 "
+
   (save-excursion
     (let ((pos-or-point (progn (if pos (goto-char pos)) (point))))
 
-    (if (and (c-safe (backward-sexp) t)
-             (re-search-forward
-              (concat
-                  "\\(\\["
-                  "[ \t\n\r\f\v]*"
-                  "\\("
-                  "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
-                  "[A-Za-z_][[:alnum:]]*"
-                  "\\)"
-                  "[^]]*\\]\\)"
-                  )
-          (1+ pos-or-point) t))
+      (cond
 
-        (progn
-          (c-safe (backward-sexp))
-          (c-backward-syntactic-ws)
-          (cond
+       ;; put a vsemi after an ASPNET directive, like
+       ;; <%@ WebHandler Language="C#" Class="Handler" %>
+       ((looking-back (concat csharp-aspnet-directive-re "$") nil t)
+        t)
 
-           ((eq (char-before) 93)  ;; close sq brace
-            (csharp-at-vsemi-p (point)))
+       ;; put a vsemi after an attribute, as with
+       ;;   [XmlElement]
+       ((c-safe (backward-sexp) t)
+        (cond
+           ((re-search-forward
+             (concat
+              "\\(\\["
+              "[ \t\n\r\f\v]*"
+              "\\("
+              "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
+              "[A-Za-z_][[:alnum:]]*"
+              "\\)"
+              "[^]]*\\]\\)"
+              )
+             (1+ pos-or-point) t)
 
-           ((or
-             (eq (char-before) 59)  ;; semicolon
-             (eq (char-before) 123) ;; open curly
-             (eq (char-before) 125)) ;; close curly
-            t)
+             (c-safe (backward-sexp))
+             (c-backward-syntactic-ws)
+             (cond
 
-           (t nil)))))))
+              ((eq (char-before) 93) ;; close sq brace
+               (csharp-at-vsemi-p (point)))
+
+              ((or
+                (eq (char-before) 59) ;; semicolon
+                (eq (char-before) 123) ;; open curly
+                (eq (char-before) 125)) ;; close curly
+               t)
+
+              (t nil)))
+
+           (t nil)))
+
+        (t nil))
+      )))
+
+
 
 
 (defun csharp-lineup-region (langelem)
@@ -490,7 +514,9 @@ but I could not figure out how to do it.  So I wrote this alternative.
 ;;(error (byte-compile-dest-file))
 ;;(error (c-get-current-file))
 
-
+(defconst csharp-aspnet-directive-re
+  "<%@.+?%>"
+  "Regex for matching directive blocks in ASP.NET files (.aspx, .ashx, .ascx)")
 
 (defconst csharp-enum-decl-re
   (concat
@@ -510,7 +536,9 @@ but I could not figure out how to do it.  So I wrote this alternative.
 
 ;; X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+
 
-
+;; vsemi's allow proper indentation of code that includes inline
+;; attributes and ASPNET directives. These are c#-specific things that
+;; need custom treatment.
 (c-lang-defconst c-at-vsemi-p-fn
   csharp 'csharp-at-vsemi-p)
 
@@ -528,14 +556,14 @@ but I could not figure out how to do it.  So I wrote this alternative.
 
 
 ;; The matchers elements can be of many forms.  It gets pretty
-;; complicated.  do a describe-variable on font-lock-keywords to get a
+;; complicated.  Do a describe-variable on font-lock-keywords to get a
 ;; description.  (Why on font-lock-keywords? I don't know, but that's
 ;; where you get the help.)
 ;;
-;; Aside from documentation, the other option of course, is to use
-;; the source code. Look in the source to see what to do.  The
-;; source in cc-fonts uses a defun c-make-font-lock-search-function
-;; to produce most of the matchers.  Called this way:
+;; Aside from the provided documentation, the other option of course, is
+;; to look in the source code as an example for what to do.  The source
+;; in cc-fonts uses a defun c-make-font-lock-search-function to produce
+;; most of the matchers.  Called this way:
 ;;
 ;;   (c-make-font-lock-search-function  regexp '(A B c))
 ;;
@@ -556,14 +584,14 @@ but I could not figure out how to do it.  So I wrote this alternative.
 ;;        Prop1 = "foo"
 ;;     }
 ;;
-;; sharp-mode needs to fontify the properties in the
+;; csharp-mode needs to fontify the properties in the
 ;; initializer block in font-lock-variable-name-face. The key thing is
 ;; to set the text property on the open curly, using type c-type and
-;; value c-decl-id-start. This apparently allows parse-partial-sexp to
+;; value c-decl-id-start. This apparently allows `parse-partial-sexp' to
 ;; do the right thing, later.
 ;;
 ;; This simple case is easy to handle in a regex, using the basic
-;; c-make-font-lock-search-function form.  But the general syntax for a
+;; `c-make-font-lock-search-function' form.  But the general syntax for a
 ;; constructor + object initializer in C# is more complex:
 ;;
 ;;     new MyType(..arglist..) {
@@ -579,9 +607,9 @@ but I could not figure out how to do it.  So I wrote this alternative.
 ;; skip over the sexp defined by the parens, then set the text property on
 ;; the appropriate open-curly.
 ;;
-;; To make that happen I needed insight into what the matcher really
-;; ought to be doin.  The output of c-make-font-lock-search-function
-;; before byte-compiling, is:
+;; To make that happen, it's good to have insight into what the matcher
+;; really does.  The output of `c-make-font-lock-search-function' before
+;; byte-compiling, is:
 ;;
 ;; (lambda (limit)
 ;;   (let ((parse-sexp-lookup-properties
@@ -751,15 +779,47 @@ but I could not figure out how to do it.  So I wrote this alternative.
   csharp `(
 
            ;; option 1:
-           ;;            ,@(when t
+           ;;            ,@(when condition
            ;;                `((,(byte-compile
            ;;                     `(lambda (limit) ...
-
+           ;;
            ;; option 2:
            ;;            ,`((lambda (limit) ...
+           ;;
+           ;; I don't know how to avoid the (when condition ...) in the
+           ;; byte-compiled version.
+           ;;
+           ;; X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+
 
+           ;; Case 1: invocation of constructor + maybe an object
+           ;; initializer.  Some possible examples that satisfy:
+           ;;
+           ;;   new Foo ();
+           ;;
+           ;;   new Foo () { };
+           ;;
+           ;;   new Foo {  };
+           ;;
+           ;;   new Foo { Prop1= 7 };
+           ;;
+           ;;   new Foo {
+           ;;     Prop1= 7
+           ;;   };
+           ;;
+           ;;   new Foo {
+           ;;     Prop1= 7,
+           ;;     Prop2= "Fred"
+           ;;   };
+           ;;
+           ;;   new Foo {
+           ;;      Prop1= new Bar()
+           ;;   };
+           ;;
+           ;;   new Foo {
+           ;;      Prop1= new Bar { PropA = 5.6F }
+           ;;   };
+           ;;
 
-           ;; Case 1: invocation of constructor + maybe an object initializer
            ,@(when t
                `((,(byte-compile
                     `(lambda (limit)
@@ -869,7 +929,15 @@ but I could not figure out how to do it.  So I wrote this alternative.
                     )))
 
 
-           ;; Case 2: declaration of enum with or without an explicit base type
+           ;; Case 2: declaration of enum with or without an explicit
+           ;; base type.
+           ;;
+           ;; Examples:
+           ;;
+           ;;  public enum Foo { ... }
+           ;;
+           ;;  public enum Foo : uint { ... }
+           ;;
            ,@(when t
                `((,(byte-compile
                     `(lambda (limit)
@@ -905,6 +973,11 @@ but I could not figure out how to do it.  So I wrote this alternative.
 
 
            ;; Case 3: declaration of constructor
+           ;;
+           ;; Example:
+           ;;
+           ;; private Foo(...) {...}
+           ;;
            ,@(when t
                `((,(byte-compile
                     `(lambda (limit)
@@ -1061,6 +1134,51 @@ but I could not figure out how to do it.  So I wrote this alternative.
                               (c-put-font-lock-face b2 e2 'font-lock-type-face)))))
                     (goto-char (match-end 0))
                     ))
+                nil))
+
+
+           ;; Case 6: directive blocks for .aspx/.ashx/.ascx
+           ,`((lambda (limit)
+                (let ((parse-sexp-lookup-properties
+                       (cc-eval-when-compile
+                         (boundp 'parse-sexp-lookup-properties))))
+
+                  (while (re-search-forward csharp-aspnet-directive-re limit t)
+                    (csharp-log 3 "aspnet template? - %d limit(%d)" (match-beginning 1)
+                                limit)
+
+                    (unless
+                        (progn
+                          (goto-char (match-beginning 0))
+                          (c-skip-comments-and-strings limit))
+
+                        (save-match-data
+                          (let ((end-open (+ (match-beginning 0) 3))
+                                (beg-close (- (match-end 0) 2)))
+                            (c-put-font-lock-face (match-beginning 0)
+                                                  end-open
+                                                  'font-lock-preprocessor-face)
+
+                            (c-put-font-lock-face beg-close
+                                                  (match-end 0)
+                                                  'font-lock-preprocessor-face)
+
+                            ;; fontify within the directive
+                            (while (re-search-forward
+                                    ,(concat
+                                      "\\("
+                                      (c-lang-const c-symbol-key)
+                                      "\\)"
+                                      "=?"
+                                      )
+                                    beg-close t)
+
+                            (c-put-font-lock-face (match-beginning 1)
+                                                  (match-end 1)
+                                                  'font-lock-keyword-face)
+                            (c-skip-comments-and-strings beg-close))
+                            ))
+                        (goto-char (match-end 0)))))
                 nil))
 
 
@@ -2137,18 +2255,8 @@ The return value is meaningless, and is ignored by cc-mode.
 ;; ==================================================================
 
 
-;; There's never a need to check for C-style macro definitions in
-;; a C# buffer.
-(defadvice c-beginning-of-macro (around
-                                 csharp-mode-advice-1
-                                 compile activate)
-  (if (c-major-mode-is 'csharp-mode)
-      nil
-    ad-do-it)
-  )
 
-
-;; There's never a need to move over an Obj-C directive in csharp mode
+;; There's never a need to move over an Obj-C directive in csharp-mode.
 (defadvice c-forward-objc-directive (around
                                  csharp-mode-advice-2
                                  compile activate)
@@ -2556,8 +2664,9 @@ support C#.
 The hook `c-mode-common-hook' is run with no args at mode
 initialization, then `csharp-mode-hook'.
 
-This mode will automatically add a regexp to the `compilation-error-regexp-alist'
-for Csc.exe error and warning messages.
+This mode will automatically add a symbol and regexp to the
+`compilation-error-regexp-alist' and `compilation-error-regexp-alist-alist'
+respectively, for Csc.exe error and warning messages.
 
 Key bindings:
 \\{csharp-mode-map}"
@@ -2608,12 +2717,9 @@ Key bindings:
   ;; to allow next-error to work with csc.exe:
   (setq compilation-scroll-output t)
 
-  ;; allow fill-paragraph to work on xml code doc
-  (set (make-local-variable 'paragraph-separate)
-       "[ \t]*\\(//+\\|\\**\\)\\([ \t]+\\|[ \t]+<.+?>\\)$\\|^\f")
 
-
-  (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook)
+  (local-set-key (kbd "/") 'csharp-maybe-insert-codedoc)
+  (local-set-key (kbd "{") 'csharp-insert-open-brace)
 
 
   ;; Need the following for parse-partial-sexp to work properly with
@@ -2628,8 +2734,20 @@ Key bindings:
   ;; scan the entire buffer for verblit strings
   (csharp-scan-for-verbatim-literals-and-set-props nil nil)
 
-  (local-set-key (kbd "/") 'csharp-maybe-insert-codedoc)
-  (local-set-key (kbd "{") 'csharp-insert-open-brace)
+  (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook)
+
+  ;; Allow fill-paragraph to work on xml code doc
+  ;; This setting gets overwritten quietly by c-run-mode-hooks,
+  ;; so I put it afterwards to make it stick.
+  (make-local-variable 'paragraph-separate)
+  (setq paragraph-separate
+       "[ \t]*\\(//+\\|\\**\\)\\([ \t]+\\|[ \t]+<.+?>\\)$\\|^\f")
+
+  ;;(message "C#: set paragraph-separate")
+
+  ;; Speedbar handling
+  (if (fboundp 'speedbar-add-supported-extension)
+      (speedbar-add-supported-extension '(".cs"))) ;; idempotent
 
   (c-update-modeline))
 
