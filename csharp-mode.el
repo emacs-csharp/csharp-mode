@@ -1,13 +1,15 @@
 ;;; csharp-mode.el --- C# mode derived mode
 
-;; Author:     Dylan R. E. Moonfire (original)
-;; Maintainer: Dino Chiesa <dpchiesa@hotmail.com>
-;; Created:    Feburary 2005
-;; Modified:   April 2010
-;; Version:    0.7.5
-;; Keywords:   c# languages oop mode
-;; X-URL:      http://code.google.com/p/csharpmode/
+;; Author     : Dylan R. E. Moonfire (original)
+;; Maintainer : Dino Chiesa <dpchiesa@hotmail.com>
+;; Created    : Feburary 2005
+;; Modified   : April 2010
+;; Version    : 0.7.5
+;; Keywords   : c# languages oop mode
+;; X-URL      : http://code.google.com/p/csharpmode/
+;; Last-saved : <2010-May-24 15:34:26>
 
+;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2 of the License, or
@@ -370,30 +372,33 @@ Another option is to use `csharp-lineup-region'.
 
 (defun csharp-insert-open-brace ()
   "Intelligently insert a pair of curly braces. This fn is most
-often bound to the open-curly brace, with
+    often bound to the open-curly brace, with
 
-    (local-set-key (kbd \"{\") 'csharp-insert-open-brace)
+        (local-set-key (kbd \"{\") 'csharp-insert-open-brace)
 
-The default binding for an open curly brace in cc-modes is often
-`c-electric-brace' or `skeleton-pair-insert-maybe'.  The former
-can be configured to insert newlines around braces in various
-syntactic positions.  The latter inserts a pair of braces and
-then does not insert a newline, and does not indent.
+    The default binding for an open curly brace in cc-modes is often
+    `c-electric-brace' or `skeleton-pair-insert-maybe'.  The former
+    can be configured to insert newlines around braces in various
+    syntactic positions.  The latter inserts a pair of braces and
+    then does not insert a newline, and does not indent.
 
-This fn provides another option, with some additional
-intelligence for csharp-mode.  When you type an open curly, the
-appropriate pair of braces appears, with spacing and indent set
-in a context-sensitive manner.
+    This fn provides another option, with some additional
+    intelligence for csharp-mode.  When you type an open curly, the
+    appropriate pair of braces appears, with spacing and indent set
+    in a context-sensitive manner.
 
-Within a string literal, you just get a pair of braces, and point
-is set between them. Following an equals sign, you get a pair of
-braces, with a semincolon appended. Otherwise, you
-get the open brace on a new line, with the closing brace on the
-line following.
+    Within a string literal, you just get a pair of braces, and
+    point is set between them. Following an equals sign, you get
+    a pair of braces, with a semincolon appended. Otherwise, you
+    get the open brace on a new line, followed by an empty line
+    and the closing brace on the line following, with point on
+    the empty line.
 
-There may be another way to get this to happen appropriately just within emacs,
-but I could not figure out how to do it.  So I wrote this alternative.
-"
+    There may be another way to get this to happen appropriately just
+    within emacs, but I could not figure out how to do it.  So I
+    wrote this alternative.
+
+    "
   (interactive)
   (let
       (tpoint
@@ -401,7 +406,7 @@ but I could not figure out how to do it.  So I wrote this alternative.
        (preceding3
         (save-excursion
           (and
-           (skip-chars-backward " ")
+           (skip-chars-backward " \t")
            (> (- (point) 2) (point-min))
            (buffer-substring-no-properties (point) (- (point) 3)))))
        (one-word-back
@@ -2280,11 +2285,11 @@ The return value is meaningless, and is ignored by cc-mode.
 ;; c# - monkey-patching of basic parsing logic
 ;; ==================================================================
 ;;
-;; Here, the model redefines two defuns to add special cases for csharp
-;; mode.  These primarily deal with indentation of instance
-;; initializers, which are somewhat unique to C#.  I couldn't figure out
-;; how to get cc-mode to do what C# needs, without modifying these
-;; defuns.
+;; The following 2 defuns redefine functions from cc-mode, to add
+;; special cases for C#.  These primarily deal with indentation of
+;; instance initializers, which are somewhat unique to C#.  I couldn't
+;; figure out how to get cc-mode to do what C# needs, without modifying
+;; these defuns.
 ;;
 
 (defun c-looking-at-inexpr-block (lim containing-sexp &optional check-at-end)
