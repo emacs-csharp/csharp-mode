@@ -4,10 +4,10 @@
 ;; Maintainer : Dino Chiesa <dpchiesa@hotmail.com>
 ;; Created    : Feburary 2005
 ;; Modified   : April 2010
-;; Version    : 0.7.5
+;; Version    : 0.7.6
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : http://code.google.com/p/csharpmode/
-;; Last-saved : <2010-May-24 15:34:26>
+;; Last-saved : <2010-May-24 21:53:58>
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
