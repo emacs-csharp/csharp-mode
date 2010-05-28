@@ -1102,7 +1102,7 @@ returns nil.
           (cycle-count 0)
           (dot-count 0)
           m1
-          (regex "[-\\+\\*\\/%,;( })=\\.]")
+          (regex "[-\\+\\*\\/%,;( {})=\\.]")
           snip done
           (paren-depth 0)
           ;;           (skip-back '(lambda ()
@@ -1165,7 +1165,7 @@ returns nil.
 
            ((eq (char-after) ?.)
             (setq m1 (point)
-                  regex "[-\\+\\*\\/%,;( })=]"))
+                  regex "[-\\+\\*\\/%,;( {})=]"))
 
            (t
             (setq done t))))
@@ -1176,7 +1176,9 @@ returns nil.
         (incf cycle-count)) ;; count of steps backward
 
       (setq snip
-             (buffer-substring-no-properties (1+ (point)) opoint))
+            (cscomp-consolidate-whitespace
+             (buffer-substring-no-properties (1+ (point)) opoint)))
+
       (cscomp-log 2 "parse-expression-before-point: B snip(%s)" snip)
       (list (1+ (point)) (cscomp-split-by-dots snip)))
     ))
