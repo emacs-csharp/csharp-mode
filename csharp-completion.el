@@ -19,13 +19,14 @@
 ;;
 ;;    Out of Scope
 ;;
-;;    This module does not do type-ahead completion, font-lock,
-;;    indenting, debugging, compiling, profiling, or management of C#
-;;    project files. For other C# things, see these other modules:
+;;    This module does not do font-lock, indenting, compiling, flymake,
+;;    or imenu.  These C# things are provided by csharp-mode.el , which
+;;    is a pre-requisite for this module.
 ;;
-;;      csharp-mode.el - font-lock and indenting for C#.
+;;    This module also does not do type-ahead completion, debugging,
+;;    profiling, or management of C# project files.  Those are not
+;;    available anywhere, as far as I know.
 ;;
-;;      flymake-for-csharp.el - enhancement of flymake for C#.
 ;;
 ;; -----------------------------------------------------------------------------
 ;;
