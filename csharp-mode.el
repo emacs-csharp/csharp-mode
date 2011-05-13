@@ -7,7 +7,7 @@
 ;; Version    : 0.8.2
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : http://code.google.com/p/csharpmode/
-;; Last-saved : <2011-May-13 11:59:16>
+;; Last-saved : <2011-May-13 13:20:29>
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -110,7 +110,7 @@
 ;;  syntax of your csharp code, and highlight errors.  To do so, add a
 ;;  comment line like this to each .cs file that you use flymake with:
 ;;
-;;   //  flymake-command: c:\.net3.5\csc.exe /t:module /nologo /R:Foo.dll
+;;   //  flymake: c:\.net3.5\csc.exe /t:module /nologo /R:Foo.dll
 ;;
 ;;  That lines specifies a command "stub".  Flymake appends the name of
 ;;  the file to compile, and then runs the command to check
@@ -137,10 +137,10 @@
 ;;       the code depends on.
 ;;
 ;;  If you have no external dependencies, then you need not specify any
-;;  flymake-command at all. csharp-mode will implicitly act as ifyou had
+;;  flymake command at all. csharp-mode will implicitly act as ifyou had
 ;;  specified the command:
 ;;
-;;      // flymake-command: c:\.net3.5\csc.exe /t:module /nologo
+;;      // flymake: c:\.net3.5\csc.exe /t:module /nologo
 ;;
 ;;
 ;;  If you use csc.exe as the syntax check tool (as almost everyone
@@ -1775,11 +1775,11 @@ Flymake
 --------
 
 In the case of flymake, the command \"stub\" string must be
-prefixed with \"flymake-command:\".  For example,
+prefixed with \"flymake:\".  For example,
 
-  // flymake-command: DOTNETDIR\csc.exe /target:netmodule /r:foo.dll
+  // flymake: DOTNETDIR\csc.exe /target:netmodule /r:foo.dll
 
-In the case of flymake-command, the string should NOT
+In the case of flymake, the string should NOT
 include the name of the file for the buffer being checked.
 csharp-mode appends the name of the source file to compile, to
 this command \"stub\" before passing the command to flymake to
@@ -1802,7 +1802,7 @@ to include /R arguments to that csc.exe command.
 To be clear, this variable sets the number of lines to search for
 the command.  This cariable is an integer.
 
-If the marker string (either \"compile:\" or \"flymake-command:\"
+If the marker string (either \"compile:\" or \"flymake:\"
 is present in the given set of lines, csharp-mode will take
 anything after the marker string as the command to run.
 
@@ -2145,7 +2145,7 @@ Some notes on implementation:
 ;;
 ;; The fn looks in the buffer for a line that looks like:
 ;;
-;;   flymake-command: <command goes here>
+;;   flymake: <command goes here>
 ;;
 ;;   (It should be embedded into a comment)
 ;;
