@@ -1,24 +1,25 @@
 ;;; csharp-shell.el --- run PowerShell to assist with c# completion.
 ;;
-;; Author:     Dino Chiesa <dpchiesa@hotmail.com>
-;; Created:    10 Apr 2008
-;; Modified:   May 2010
-;; Version:    0.2
-;; Keywords:   powershell C# shell
-;; X-URL:      ??
+;; Author     : Dino Chiesa <dpchiesa@hotmail.com>
+;; Created    : 10 Apr 2008
+;; Modified   : February 2011
+;; Version    : 0.2
+;; Keywords   : powershell C# shell
+;; Last-saved : <2011-March-01 12:56:20>
+;; X-URL      : ??
 ;;
 
 ;;; Commentary:
 ;;
-;;   This is code that provides an emacs shell that supports C# code-completion.
-;;   It depends on Powershell.el.  It is part of cscomp.  (C# completion).
+;;   This is code that provides an emacs shell that supports C#
+;;   code-completion.  It depends on Powershell.el, which depends on
+;;   shell.el.  This module is part of cscomp, a C# completion package.
 ;;
-;;
-;;   csharp-shell.el is responsible for starting a
-;;   PowerShell shell, and loading a custom utility assembly into it.
-;;   The running shell can be used as a regular, interactive powershell shell, but its
-;;   primary purpose is to connect elisp to the .NET assembly that
-;;   performs reflection.
+;;   csharp-shell.el is responsible for starting a PowerShell shell, and
+;;   loading a utility assembly, also part of CsComp, into it.  The
+;;   running shell can be used as a regular, interactive powershell
+;;   shell, but its primary purpose is to connect elisp to the .NET
+;;   assembly that performs reflection.
 ;;
 ;;   When the user requests completion on a variable (etc), logic within
 ;;   csharp-completion.el sends a command to the CscompShell, and gets the
@@ -42,11 +43,14 @@
 ;;   never updated or maintained.  <URL:http://www.sourceforge.com/>.
 ;;
 ;;   Rather than start with "everything", I thought I'd start by
-;;   producing a module that did  one thing well: code completion.
-;;   This is known as Intellisense in Microsoft's Visual Studio.
+;;   producing a module that did one thing well: code completion.  This
+;;   is something like what is known as Intellisense in Microsoft's
+;;   Visual Studio.
 ;;
 ;;   To do this, I didn't keep any of the old CSDE code. I kept only the
-;;   *idea* of code completion, relying on the use of a shell.
+;;   idea of code completion, as well as the idea of using an external
+;;   shell to aid in dynamic type and symbol resolution.  This is all
+;;   new code.
 ;;
 ;;   ------------
 ;;
@@ -55,6 +59,7 @@
 ;;
 
 
+(require 'cscomp-base)
 (require 'powershell)
 
 (defcustom csharp-shell-location-of-util-dll  nil
@@ -63,9 +68,10 @@ Set this to nil, to load the DLL named CscompUtilities.dll from
 the same directory where csharp-shell.el is located.
 
 Otherwise, set it to a fully-qualified path of a directory that contains
-the file cscompUtilities.dll.  For example,
+the file cscompUtilities.dll.  It should use fwd-slashes and should include
+the trailing slash.  For example,
 
-      \"c:\\users\\fred\\elisp\\cscomp\"
+      \"c:/users/fred/elisp/cscomp/\"
 
 "
   :group 'cscomp
@@ -78,7 +84,7 @@ on Shell startup."
   :group 'cscomp
   :type 'integer)
 
-(defcustom csharp-shell-exec-timeout 9
+(defcustom csharp-shell-exec-timeout 5
   "*Length of time in seconds to wait for the CscompShell to respond to commands
 before giving up and signaling an error.  This isn't the total timeout; it's
 the time to wait between chunks of response. "
@@ -95,49 +101,6 @@ the time to wait between chunks of response. "
   "The prompt string used for csharp-shell.  It is also used as a regex, so this string must contain no regex-sensitive sequences. Best to just leave it alone.")
 
 
-(defvar cscomp-log-level 0
-  "The current log level for C# completion operations.  0 = NONE, 1 = Info, 2 = VERBOSE, 3 = DEBUG. ")
-
-
-(defun cscomp-log (level text &rest args)
-  "Log a message at level LEVEL.
-If LEVEL is higher than `cscomp-log-level', the message is
-ignored.  Otherwise, it is printed using `message'.
-TEXT is a format control string, and the remaining arguments ARGS
-are the string substitutions (see `format')."
-  (if (<= level cscomp-log-level)
-      (let* ((msg (apply 'format text args)))
-        (message "%s" msg)
-        )))
-
-
-(defun csharp-shell ()
-  "Starts CsharpShell, which is an instance of Powershell that loads
-a custom assembly dedicated to supporting C# code completion in emacs.
-"
-  (interactive)
-  (csharp-shell--internal nil)
-  )
-
-
-
-(defun csharp-shell--internal (&optional display-buffer)
-  (if (not (comint-check-proc csharp-shell-buffer-name))
-      ;; then
-      (let (version)
-        (message "Starting CscompShell...")
-        (setq version (csharp-shell--start))
-        (message "CscompShell v%s is now running..." version)
-       )
-    ;; else
-    (when display-buffer
-      (message "CscompShell is already running."))
-    )
-  )
-
-
-;; (defvar csharp-shell--reply nil
-;;   "Internal use only.")
 
 
 
@@ -164,31 +127,38 @@ return value is the collected text.
         (let (reply tmp)
 
           (with-current-buffer csharp-shell-buffer-name
-            (cscomp-log 2 "csharp-shell-exec: Sending: %s" expr)
+            (cscomp-log 3 "csharp-shell-exec: Sending: %s" expr)
             (setq reply
                   (powershell-invoke-command-silently proc expr csharp-shell-exec-timeout)))
 
 
-          (if (or (null reply)
-                  (string-match "// Error:" reply))
-              (progn
-                (cscomp-log 1
+          (cond ((null reply)
+                 (with-current-buffer csharp-shell-buffer-name
+                   (cscomp-log 3 "csharp-shell-exec: Sending newline" expr)
+                   (setq reply
+                         (powershell-invoke-command-silently proc "\n" csharp-shell-exec-timeout)))))
+
+
+          (cond
+           ((string-match "// Error:" reply)
+            (progn
+              (cscomp-log 0
                           "csharp-shell-exec: CscompShell command error.\n  Expression: %s\n  Error: %s"
                           expr reply)
-                (error "CscompShell eval error. See messages buffer for details.")))
+              (error "CscompShell eval error. See messages buffer for details."))))
 
 
           (if eval-return
               (if (and reply (not (string= reply "")))
                   (progn
-                    (cscomp-log 2 "csharp-shell-exec: evaluating reply: '%s'" reply)
+                    (cscomp-log 3 "csharp-shell-exec: evaluating reply: '%s'" reply)
 
                     (setq tmp (read reply)) ;; get one s-exp
                     (if (not (eq tmp "CscompShell")) ;; means no response at all
 
                         (progn
                           (setq tmp (eval tmp))
-                          (cscomp-log 2 "csharp-shell-exec: eval result(%s)" (prin1-to-string tmp)) ;; can be nil
+                          (cscomp-log 3 "csharp-shell-exec: eval result(%s)" (prin1-to-string tmp)) ;; can be nil
                           tmp)
                       nil))
 
@@ -210,8 +180,10 @@ return value is the collected text.
 (defun csharp-shell-exec-and-eval-result (psh-statement)
   "Convenience function for evaluating Powershell statements
 that return Lisp expressions as output. This function
-invokes csharp-shell-exec with the evaluate-return option set to
-t."
+invokes `csharp-shell-exec-and-maybe-eval-result' with the
+evaluate-return option set to t.
+"
+
   (csharp-shell-exec-and-maybe-eval-result psh-statement t))
 
 
@@ -283,71 +255,153 @@ t."
 "
 
   (let* ((cscompshell-buffer (powershell
-                            csharp-shell-buffer-name
-                            csharp-shell-prompt-string))
+                              csharp-shell-buffer-name
+                              csharp-shell-prompt-string))
          (proc (get-buffer-process cscompshell-buffer))
          (dll-location (concat
                         (or
                          csharp-shell-location-of-util-dll
-                         "idontknow" )
-                         "\\CscompUtilities.dll" ))
+                         "idontknow/" )
+                        "CscompUtilities.dll" ))
          result
          version)
 
-    (if proc
-        (progn
-          ;; Don't need to call save-excursion here, because
-          ;; powershell has already called pop-to-buffer .
-          ;; The CscompShell is the current buffer, and all
-          ;; the buffer-local variables are available.
+    ;; xxxx
 
-          ;; load the CscompUtilities DLL .
+    (cond
+     (proc
+      (progn
+        ;; Don't need to call save-excursion here, because
+        ;; powershell has already called pop-to-buffer .
+        ;; The CscompShell is the current buffer, and all
+        ;; the buffer-local variables are available.
 
-          (setq result
-                (powershell-invoke-command-silently
-                 proc
-                 (concat "[System.Reflection.Assembly]::LoadFrom('" dll-location "')")
-                 6.5))
+        ;; load the CscompUtilities DLL .
 
-          (if (string-match "^Exception .*: \"\\(.+\\)\"" result)
-              (let ((message (substring result (match-beginning 1) (match-end 1))))
+        (cscomp-log 2 "CscompShell: the powershell process is running...")
+
+        (setq result
+              (powershell-invoke-command-silently
+               proc
+               (concat "[System.Reflection.Assembly]::LoadFrom('" dll-location "')")
+               6.5))
+
+        (cscomp-log 2 "CscompShell: load dll result: %s" result)
+
+        (if (string-match "^Exception .*: \"\\(.+\\)\"" result)
+            (let ((message (substring result (match-beginning 1) (match-end 1))))
               (error (concat "error: " message))))
 
+        ;; get the version number
+        (setq version
+              (powershell-invoke-command-silently
+               proc
+               "[Ionic.Cscomp.Utilities]::Version()"
+               2.9))
 
-          ;; get the version number
-          (setq version
-                (powershell-invoke-command-silently
-                 proc
-                 "[Ionic.Cscomp.Utilities]::Version()"
-                 2.9))
+        (cscomp-log 2 "CscompShell: util dll version: %s" version)
 
-          (if version
-              (setq version (substring version 1 -1)))
+        (if version
+            (setq version (substring version 1 -1)))
 
-          ;; If the user exits, we won't ask whether he wants to kill the CscompShell.
-          (set-process-query-on-exit-flag proc nil)
+        ;; If the user exits, we won't ask whether he wants to kill the CscompShell.
+        (set-process-query-on-exit-flag proc nil)
 
-          ;;(comint-simple-send proc "prompt\n") ;; shouldn't need this
+        ;;(comint-simple-send proc "prompt\n") ;; shouldn't need this
 
-          ;; Send an initial carriage-return.  The effect is to make the
-          ;; prompt appear. I don't know why this is necessary here.
-          ;; It's called in the powershell function, but somehow it has
-          ;; no effect, when powershell is invoked from csharp-shell, so I
-          ;; also call it here.
-          (comint-send-input)
-          (accept-process-output proc)
+        ;; Send an initial carriage-return.  The effect is to make the
+        ;; prompt appear. I don't know why this is necessary here.
+        ;; It's called in the powershell function, but somehow it has
+        ;; no effect, when powershell is invoked from csharp-shell, so I
+        ;; also call it here.
+        (comint-send-input)
+        (accept-process-output proc)
 
-          ;; Remove the window for the shell.
-          ;; shell.el automatically pops to the shell buffer, but we
-          ;; don't want that in this case.  For Cscomp, the shell runs unseen,
-          ;; in the background. User can pop to it, if he likes.
-          (delete-window)
-
-          )
+        ;; Remove the window for the shell.
+        ;; shell.el automatically pops to the shell buffer, but we
+        ;; don't want that in this case.  For Cscomp, the shell runs unseen,
+        ;; in the background. User can pop to it, if he likes.
+        (delete-window)))
+     (t
+      (cscomp-log 2 "CscompShell: load dll result: %s" result)
       )
+     )
 
     ;; return the version of the CscompUtilities.dll
     version))
+
+
+
+
+(defun csharp-shell--internal (&optional display-buffer)
+  (if (not (comint-check-proc csharp-shell-buffer-name))
+      (let (version)
+        (cscomp-log 0 "Starting CscompShell...")
+        (setq version (csharp-shell--start))
+        (cscomp-log 0 "CscompShell v%s is now running..." version))
+
+    (when display-buffer
+      (cscomp-log 0 "CscompShell is already running."))))
+
+
+(defun csharp-shell ()
+  "Starts CsharpShell, which is an instance of Powershell that loads
+a custom assembly dedicated to supporting C# code completion in emacs.
+"
+  (interactive)
+  (csharp-shell--internal nil)
+  )
+
+
+
+
+
+(defun csharp-shell-do-shell-fn (command-string)
+    "sends a string to *CscompShell*, and returns the eval'd
+result. This fn is mostly a thin wrapper around
+`csharp-shell-exec-and-eval-result' that is used for tracing
+purposes."
+    (let ((result (csharp-shell-exec-and-eval-result
+                 (concat command-string "\n"))))
+    (cscomp-log 3 "exec-and-eval (%s) result(%s)"
+                command-string (prin1-to-string  result))
+    ;;(if (and result (listp result)) result nil)
+    result
+    ))
+
+
+(defun csharp-shell-escape-string-for-powershell (arg)
+  "Powershell uses the backquote for an escape char.  This fn
+escapes the backquote for a string that will eventually be sent
+to powershell (CscompShell).
+
+I think this is only necessary when the arg is submitted to
+powershell within double-quotes. If the arg is within single
+quotes, backquotes do not need to be escaped.
+
+I'm not really sure why I wouldn't just use single quotes in
+all cases, to avoid this entirely.
+
+"
+  (let ((matcho (string-match "\\(.+\\)`\\(.+\\)" arg)))
+    (if matcho
+        (concat
+         (substring arg (match-beginning 1) (match-end 1))
+         "``"
+         (substring arg (match-beginning 2) (match-end 2)))
+      arg)))
+
+
+
+(defun csharp-shell-invoke-shell-fn (fn arg)
+  "invokes a 1-arg CscompShell function, returns the result."
+
+  ;; need to use single-quotes here around the arg, because in
+  ;; some cases the arg can have double-quotes in it.
+
+  (let* ((escaped-arg (csharp-shell-escape-string-for-powershell arg)))
+    (csharp-shell-do-shell-fn (concat "[Ionic.Cscomp.Utilities]::" fn "(\'" escaped-arg "\')"))))
+
 
 
 ;; Set the default DLL location at load time,

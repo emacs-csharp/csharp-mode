@@ -1,9 +1,13 @@
 Created Mon, 24 May 2010  17:21
 Updated Fri, 13 May 2011  13:02
 
+x-URL: http://code.google.com/p/csharpmode/
+
 This is the readme for csharp-mode.
 
-You can use csharp-mode alone.  To do so,
+=======================================================
+
+You can use csharp-mode just as it is.  To do so,
 
  put this in your .emacs:
 
@@ -28,10 +32,13 @@ You can use csharp-mode alone.  To do so,
 
 =======================================================
 
-The c# code completion is undergoing  some changes.
-For now, don't use it.
+The c# code completion is experimental. It depends on
+ICSharpCode.NRefactory.dll,  as well as powershell.el and
+a few other .el modules.
+
+Use it and let me know how it goes for you.
+
 
 =======================================================
 
-x-URL: http://code.google.com/p/csharpmode/
 

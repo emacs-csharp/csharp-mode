@@ -3,66 +3,220 @@
 ;; Author:     Dino Chiesa <dpchiesa@hotmail.com>
 ;; Maintainer: Dino Chiesa <dpchiesa@hotmail.com>
 ;; Created:    April 2010
-;; Modified:   April 2010
-;; Version:    0.1.5
+;; Modified:   January 2011
+;; Version:    0.2
 ;; Keywords:   c# languages oop mode
 ;; X-URL:      http://code.google.com/p/csharpmode/
 ;;
 ;;
 ;;; Commentary:
 ;;
-;;    This is a code-completion or "intellisense" package for C#.  The
-;;    scope of this module is much smaller that a full "development
-;;    envvironment".  It does smart code completion for C#, in
-;;    emacs. It does not do font-lock, indenting, debugging,
-;;    compiling, profiling, and so on.
+;;    Purpose
 ;;
-;;    To use it, place the cursor after a partially-completed
-;;    statement, and invoke `cscomp-complete-at-point'.  Normally this
-;;    would be bound to a particular keystroke, like M-.  This module
-;;    will insert the first completion that matches. If multiple
-;;    completions are possible, calling the completion function again
-;;    will cycle through the possibilities, similar to the way
-;;    dabbrev-mode works.
+;;    This is a package that performs code-completion or "intellisense"
+;;    for C# within emacs buffers.  It works on GNU Emacs running on
+;;    Windows and relies on Windows PowerShell in order to work.
 ;;
-;;    You can also call `cscomp-complete-at-point-menu', and get a popup
-;;    menu of the completion choices.
+;;    Out of Scope
 ;;
-;;    There are 2 complementary sources of information for the
-;;    completions: introspection into compiled .NET class libraries
-;;    (like the base class library), and parse analysis from the
-;;    semantic.el package, which is part of CEDET. In the typical
-;;    case, this module uses both of those sources of information,
-;;    together.
+;;    This module does not do type-ahead completion, font-lock,
+;;    indenting, debugging, compiling, profiling, or management of C#
+;;    project files. For other C# things, see these other modules:
 ;;
-;;    The reflection is done by an inferior powershell shell running
-;;    within emacs, that has loaded a custom .NET assembly.  The
-;;    library exposes static methods that perform type reflection,
-;;    using the capabilities of the System.Reflection namespace. These
-;;    methods then return strings which are lisp s-expressions that
-;;    can be eval'd, resulting in structures containing information
-;;    for a given type - including the available methods, fields and
-;;    properties, and the attributes on same.  This piece of the
-;;    puzzle is called the "CscompShell".
+;;      csharp-mode.el - font-lock and indenting for C#.
 ;;
-;;    As an example, suppose your code has a local variable of type
-;;    System.Xml.XmlDocument, named doc.  Suppose the user asks for
-;;    completion on that variable.  The module uses the semantic parse
-;;    data to identify the name and type of the local variable.  It then
-;;    sends a "GetTypeInfo" command to the CscompShell, passing
-;;    System.Xml.XmlDocument. The CscompShell returns an s-expression
-;;    enumerating the fields, methods and properties for that type.
-;;    This s-expression is then used to populate the completion list.
+;;      flymake-for-csharp.el - enhancement of flymake for C#.
+;;
+;; -----------------------------------------------------------------------------
+;;
+;;    Packaging:
+;;
+;;    csharp-completion is delivered as a set of files:
+;;
+;;        CscompUtilities.dll - a .NET assembly that performs work in
+;;          support of code completion. For example it can enumerate the
+;;          set of types in a namespace imported by a using
+;;          statement. It can also perform type inference of var types,
+;;          aiding in completion for such types. Return values are
+;;          delivered in the form of lisp s-expressions. The DLL is
+;;          implemented in C#, and is provided with this source code,
+;;          licensed under the same terms.
+;;
+;;        cscomp-base.el - base function, provides cscomp-log function,
+;;          which is used by all other elisp modules in this
+;;          package. cscomp-log is useful primarily for diagnostic
+;;          purposes.
+;;
+;;        csharp-shell.el - runs the Powershell that loads
+;;          CscompUtilities.dll and manages input to and output from the
+;;          shell.
+;;
+;;        csharp-analysis.el - provides code analysis functions, for
+;;          example the ability to enumerate all the methods in the type
+;;          being defined in the current buffer; or to enumerate all the
+;;          local variables that are in scope at a given point in a
+;;          source code file.
+;;
+;;        csharp-completion.el - this module, which provides executive
+;;          management of the code-completion function.  It provides the
+;;          two main elisp defuns that perform code completion, as well
+;;          as supporting functions for doing things like parsing the
+;;          local code fragment in the buffer to determine what is being
+;;          requested, popping up menus containing the list of completions,
+;;          and so on.
+;;
+;; -----------------------------------------------------------------------------
+;;
+;;    External Dependencies
+;;
+;;    ICSharpCode.NRefactory.dll -
+;;    a .NET assembly that provides sourcecode-analysis capabilities,
+;;    shipped as part of SharpDevelop.  This DLL is used by
+;;    CsCompUtilities.dll to do syntax analysis.
+;;
+;;    Windows XP, Vista, or 7
+;;
+;;    PowerShell 2.0 - this is included in Windows 7, free download
+;;        for prior versions of Windows.
+;;
+;;    GNU Emacs v23.2 or later
+;;
+;;    cc-mode 5.31.? or later - included in Emacs 23.2
+;;
+;;    (optionally)  yasnippet, for snippet insertion.  If emacs has
+;;    yasnippet loaded, then this completion module will insert
+;;    a snippet (template) when the user selects a Method from the
+;;    completion list menu.  The method snippet will have all the
+;;    method parameters as placeholders; the developer then types over
+;;    those placeholders to supply the actual method parameters.
+;;    If yasnippet is not loaded, then the completion is just
+;;    the method name, and the developer has to fill in the
+;;    param-list himself. I highly recommend ya-snippet.
+;;
+;; -----------------------------------------------------------------------------
+;;
+;;    Set up
+;;
+;;    To set up csharp-completion:
+;;
+;;    1. put all the elisp files into a directory, and put that
+;;       directory on your load path.
+;;
+;;    2. put this in your .emacs:
+;;
+;;       (eval-after-load "csharp-completion"
+;;        '(progn
+;;           (setq cscomp-assembly-search-paths
+;;             (list "c:\\.net3.5ra"    ;; <<- locations of reference assemblies
+;;                   "c:\\.net3.0ra"    ;; <<-
+;;                     ...              ;; <<- other assembly directories you use
+;;                   "c:\\.net2.0"      ;; <<- location of .NET Framework assemblies
+;;                   "c:\\.net3.5"      ;; <<- ditto
+;;           ))))
+;;
+;;       The `cscomp-assembly-search-paths' should hold a list of
+;;       directories to search for assemblies that get referenced via using
+;;       clauses in the modules you edit.  This will try default to
+;;       something reasonable, including the "typical" .NET 2.0 and 3.5
+;;       directories, as well as the default locations for reference
+;;       assemblies.  If you have non-default locations for these things,
+;;       you should set them here. Also, if you have other libraries (for
+;;       example, the WCF Rest Starter kit, or the Windows Automation
+;;       assemblies) that you reference within your code, you can include
+;;       the appropriate directory in this list.
+;;
+;;    3. put this into your csharp-mode-hook:
+;;
+;;         ;; C# code completion
+;;         (require 'csharp-completion)
+;;         (csharp-analysis-mode 1)
+;;         (local-set-key "\M-\\"   'cscomp-complete-at-point)
+;;         (local-set-key "\M-\."   'cscomp-complete-at-point-menu)
 ;;
 ;;
-;; Here's a survey of the situations in which this module can offer
-;; completions:
+;;
+;; -----------------------------------------------------------------------------
+;;
+;;    Usage
+;;
+;;    To use code completion, open a buffer on a C# source file.  Place
+;;    the cursor after a partially-completed statement, and invoke
+;;    `cscomp-complete-at-point'. (Normally you would bind that fn to a
+;;    particular keystroke, like M-. or M-\.) Uppn invoking that fn,
+;;    this module will insert the first completion that matches. If
+;;    multiple completions are possible, calling the completion function
+;;    again (or pressing the bound key again) will cycle through the
+;;    possibilities, similar to the way dabbrev-mode works.
+;;
+;;    You can alternatively call `cscomp-complete-at-point-menu', to get
+;;    a popup menu of the completion choices.
+;;
+;; -----------------------------------------------------------------------------
+;;
+;;    How it Works
+;;
+;;    There are 2 complementary sources of information used to generate the
+;;    completion options: introspection into compiled .NET class libraries
+;;    (like the base class library), and source code analysis of the
+;;    currently-being-edited buffer.  Both sources are facilitated by an
+;;    inferior powershell shell running within emacs.  The csharp-completion
+;;    module will start a powershell if it is not already running, then load
+;;    into that powershell instance a custom library called CscompUtilities.
+;;    (The powershell instance with the custom library loaded into it, is
+;;    referred to as the CscompShell within this module.)
+;;
+;;    An example: if you ask for completions on the fragment "System.D",
+;;    this elisp module will then call into the CscompUtilities library,
+;;    by sending a command-line to the CscompShell that invokes a static
+;;    method on the library, to ask the library for possible completions
+;;    on the fragment.  The library builds a list of all available types
+;;    from the set of referenced assemblies.  It then searches the list
+;;    of types to find all possible completions for the given fragment,
+;;    and prints the search result, as a string formatted as a lisp
+;;    s-expression, on its output.  This elisp module then gathers the
+;;    s-expression and evals it, resulting in a structure containing
+;;    completion options for the given fragment.
+;;
+;;    In this example, starting from "System.D", the list of options
+;;    returned will include the namespace System.Diagnostics as well as
+;;    the type System.DateTime; this module will offer those and the
+;;    other options as possible completions.
+;;
+;;    The latter source of information - source code analysis of the
+;;    currently-being-edited buffer - is generated via the NRefactory
+;;    library, which ships as part of the open-source SharpDevelop tool.
+;;
+;;    In the typical case, this module uses both of those sources of
+;;    information, together, to generate suggestions for completions.
+;;
+;;    To illustrate how, consider another example: suppose your code has
+;;    a local variable of type System.Xml.XmlDocument, named doc.
+;;    Suppose the user asks for completion on the fragment "doc.L",
+;;    implying that the user wants to reference a property, method or
+;;    field on the doc variable, that begins with the letter L.  The
+;;    module uses the source code analysis to identify the name and type
+;;    of the local variable.  It then sends a "GetTypeInfo" command to
+;;    the CscompShell, passing System.Xml.XmlDocument. The CscompShell
+;;    returns a lisp s-expression enumerating the fields, methods and
+;;    properties for that type.  This module then filters the
+;;    s-expression for members that begin with L, and this filtered list
+;;    is then used to populate the completion list, which is either
+;;    displayed in a popup menu, or used to cycle the completion
+;;    possibilities. The list includes LastChild, LoadXml, the four
+;;    Load() overloads and LocalName.
+;;
+;;
+;; -----------------------------------------------------------------------------
+;;
+;;    Here's a summary of the situations in which this module can offer
+;;    completions:
 ;;
 ;;    a. names of local variables, instance variables, and method arguments.
 ;;
-;;         void Method1(String longArgumentName)
+;;         int lengthOfList;
+;;         void Method1(String lengthyArgumentName)
 ;;         {
-;;            long?
+;;            leng?
 ;;         }
 ;;
 ;;    b. Methods, fields and properties (m/f/p) on a local variable
@@ -77,35 +231,36 @@
 ;;         var x = "this is a string";
 ;;         x.?
 ;;
-;;    d. Cascading local variable declarations of var type:
+;;    d. M/f/p on local variable declarations with dependencies on var types:
 ;;
 ;;         var s = "This is a string";
 ;;         var length = s.Length;
 ;;         var radix = length.?
 ;;
-;;    e. completion on generic types:
-;;
-;;         var x = new List<String>();
-;;         x.?
-;;
-;;    f. completion on local variables that are initialized
+;;    e. M/f/p on local variables that are initialized
 ;;       from instance methods and variables.
 ;;
 ;;         void method1()
 ;;         {
-;;           var length = this.InstanceMethod();
-;;           length.?
+;;             var length = this.InstanceMethod();
+;;             length.?
 ;;         }
+;;
+;;    f. M/f/p on generic types:
+;;
+;;         var x = new List<String>();
+;;         x.?
 ;;
 ;;    g. constructor completion, provide template when completing
 ;;
 ;;         var x = new System.String(?
 ;;
 ;;    h. constructor completion as above, with unqualified type.
+;;       This mode does a search in the namespaces from using clauses.
 ;;
 ;;         var x = new TimeSpan(?
 ;;
-;;    i. finding constructors among qualified and unqualified types
+;;    i. finding types and namespaces:
 ;;
 ;;         var x = new TimeS?
 ;;
@@ -127,80 +282,64 @@
 ;;
 ;;         Path.GetRandomFileName().Normalize().?
 ;;
+;; -----------------------------------------------------------------------------
 ;;
+;; things that need to be tested or fixed:
 ;;
-;; =======================================================
+;;      return new XmlS?
 ;;
-;; Dependencies:
+;;      The module does not do completion on anonymous (var) types in
+;;      for loops.
 ;;
-;;   cc-mode 5.31.?
+;;      detection of presence of ya-snippet.el - how to correctly and
+;;      dynamically check if ya-snippet is available, and load it if
+;;      necessary?
 ;;
-;;   semantic.el 1.0pre7
-;;
-;;   optionally, yasnippet, for snippet insertion.  If the user has
-;;     yasnippet loaded, then this completion module will insert
-;;     a snippet (template) when the user selects a Method from the
-;;     completion list menu.  The method snippet will have all the
-;;     method parameters as placeholders; the developer then types over
-;;     those placeholders to supply the actual method parameters.
-;;     If yasnippet is not loaded, then the completion is just
-;;     the method name, and the developer has to fill in the
-;;     param-list himself.
-;;
-;;   PowerShell, and a separate DLL that must run in Powershell.  That
-;;     DLL is implemented in C#.
-;;
-;;
+;; -----------------------------------------------------------------------------
 ;;
 ;;
 ;; Known bugs/problems :
-;;
-;;    1. The module does not do completion on anonymous (var) types in
-;;       for loops.
-;;
 ;;
 ;;
 ;; TODO :
 ;;
 ;;    make an installer.
 ;;
-;; Please send any comments, bugs, or upgrade requests to
-;; Dino Chiesa (dpchiesa@hotmail.com)
+;; Please send any comments, bugs, enhancements, or suggestions or
+;; requests for upgrades to Dino Chiesa (dpchiesa@hotmail.com)
 ;;
 
-
-(require 'csharp-shell)
-
-(require 'semantic-idle)  ;; for ... reparsing a buffer
-
-
-;; Design notes:
-;;
-;; Tue, 04 May 2010  10:47
-;;
-;; This completion depends on the semantic package for parsing a C#
-;; buffer.  That gives the module a way to interrogate the names and
-;; types of local and instance variables, in order to do completion on
-;; them.
-;;
-;; Semantic also provides the list of using statements for a C# module,
-;; which tells us which assemblies we need to search in, for
-;; completions.  These are then loaded into CscompShell for interrogation.
-;;
+(require 'cscomp-base)   ;; cscomp-log, etc.  basic stuff.
+(require 'csharp-shell)  ;; for CscompShell, which does code introspection
+(require 'csharp-analysis)  ;; for csharp-analysis-* fns
 
 
+(defvar cscomp-current-p1 nil
+  "The first part (before any dot) of the current completion.
+This is used to determine if re-using previous results is ok.
+See also `cscomp-current-list'. ")
+(defvar cscomp-current-p2 nil
+  "The second part (after any dot) of the current completion.
+This is used to determine if re-using previous results is ok.
+See also `cscomp-current-list'. ")
+(defvar cscomp-current-flavor nil
+  "The second part (after any dot) of the current completion.
+This is used to determine if re-using previous results is ok.
+See also `cscomp-current-list'. ")
 
 (defvar cscomp-current-list nil
-  "The list of all the completion. Each element of the list is
-either a string, or a list which the car is the possible completion,
-and the cadr is an additional information about this completion.")
+  "The list of all the completions for the current request. Each
+element of the list is either a string, or a list, in which the car
+is the possible completion, and the cadr is an additional
+information about this completion.")
 
 (defvar cscomp-current-list-index nil
   "An index to an element in cscomp-current-list. This is used to
 cycle the list.")
 
 (defvar cscomp-current-fragment nil
-  "The current fragment we're trying to complete. This is used to trim the thing that gets inserted.")
+  "The current fragment we're trying to complete. This is used to
+  trim the thing that gets inserted.")
 
 (defvar cscomp-current-beginning (make-marker)
   "The beginning of the region where the last completion was inserted.")
@@ -215,414 +354,180 @@ cycle the list.")
   :group 'cscomp
   :type 'integer)
 
+(defcustom cscomp-assembly-search-paths nil
+  "a list of strings, each one a directory in which to search for assemblies."
+  :group 'cscomp
+  :type 'list)
+
+(defconst cscomp--new-regexp
+  "^\\([ \t\n\r\f\v]*new[ \t\n\r\f\v]+\\)\\(.+\\)$")
 
 
-(defun cscomp-referenced-assemblies-list ()
-  "Return the list of .NET namespaces referenced in the
-current buffer via using statements. It uses the semantic parser
-table to find the 'using' statements. "
+(defun cscomp-referenced-assemblies ()
+  "Return the list of .NET namespaces, each encoded as a string,
+referenced in the current buffer via using statements. The result
+is something like this:
+
+ (\"System\"  \"System.Collections\"  \"System.Collections.Generic\"  \"System.Reflection\")
+
+"
   (interactive)
-  (if (not (semantic-active-p)) (semantic-new-buffer-fcn))
-  (let* ((tokens  (semantic-fetch-tags))
-         ;;(usings (semantic-find-nonterminal-by-token (quote include) tokens))
-         (usings (semantic-brute-find-tag-by-class 'include tokens)))
-    (cscomp-log 3 "cscomp-referenced-assemblies-list: found using statements: '%s'" usings)
-    (mapcar 'car usings)))
+  (let ((result
+         (csharp-analysis-get-tagnames "import")))
+    (if (called-interactively-p 'any)
+        (message "result: %s" (prin1-to-string result)))
+    result))
 
 
 
-(defun cscomp-instance-vars ()
-  "Return the list of instance variables in a C# module.
-This uses the semantic parser table to find the variable
-declarations.
-
-The return value is a list of semantic tags.  Looks like:
-
-\((\"flavor\" variable
-             (:type \"int\")
-             (reparse-symbol class_member_declaration) #<overlay from 580 to 595 in a.cs>)
- (\"flicky\" variable
-             (:type \"String\")
-             (reparse-symbol class_member_declaration) #<overlay from 604 to 636 in a.cs>)
- (\"label\" variable
-            (:type \"String\")
-            (reparse-symbol class_member_declaration) #<overlay from 645 to 669 in a.cs>))
-
-"
-
-  (if (not (semantic-active-p)) (semantic-new-buffer-fcn))
-  (semantic-fetch-tags)
-  (let* ((class  (cscomp-find-enclosing-csharp-class))        ;; the enclosing class
-         (tokens (semantic-tag-type-members class))                  ;; the members of that class
-         (vars (semantic-brute-find-tag-by-class 'variable tokens))) ;; the members that are variables
-    (cscomp-log 3 "cscomp-instance-vars: found instance vars: '%s'" vars)
-    vars))
+(defun cscomp--capitalize (word)
+  "Capitalize WORD in place, and return it."
+  (let ((first-char (aref word 0))
+        result)
+    (if (> first-char 96)
+        (format "%c%s" (- first-char 32) (substring word 1))
+      word)))
 
 
 
-
-(defun cscomp-instance-members ()
-  "Return the list of instance members in a C# module.
-This uses the semantic parser table to find the memebr
-declarations.
-
-The return value is a list of semantic tags.  Looks like:
-
-\((\"flavor\" variable
-             (:type \"int\")
-             (reparse-symbol class_member_declaration) #<overlay from 580 to 595 in a.cs>)
- (\"Hello\" function
-             (:type \"String\")
-             (reparse-symbol class_member_declaration) #<overlay from 604 to 636 in a.cs>)
- (\"label\" variable
-            (:type \"String\")
-            (reparse-symbol class_member_declaration) #<overlay from 645 to 669 in a.cs>))
-
-"
-
-  (if (not (semantic-active-p)) (semantic-new-buffer-fcn))
-  (semantic-fetch-tags)
-  (let ((class  (cscomp-find-enclosing-csharp-class))) ;; the enclosing class
-    (semantic-tag-type-members class)))                       ;; the members of that class
-
-
-
-
-(defun cscomp--find-matching-tags (name-fragment tagset &optional local)
+(defun cscomp--find-matching-tags (name-fragment nodeset &optional local)
   "Return the list of tags from a given set, that
 match NAME-FRAGMENT.  This is used by `cscomp-matching-local-vars',
-`cscomp-matching-instance-vars',
+`cscomp-matching-instance-vars', and
 `cscomp-matching-instance-members'.
+
 "
-    (let ((var-label (if local "(Variable) " "(Field) " ))
-           result)
+  (let ((var-label (if local "(Variable) " "(Field/Prop) " ))
+        result)
 
-    (if tagset
+    (if nodeset
         (progn
-        (while tagset
-          (let* ((tag (car tagset))
-                 (member-name  (semantic-tag-name tag))
-                 (member-type  (semantic-tag-type tag))
-                 (member-clazz (semantic-tag-class tag))
-                 )
+          (while nodeset
+            (let ((tag (car nodeset)))
+              (if tag
+                  (let
+                      ((member-name  (csharp-analysis-tag-name tag))
+                       (member-type  (csharp-analysis-tag-type tag))
+                       (member-flavor (csharp-analysis-tag-flavor tag)))
 
-            (if (eq 0 (string-match name-fragment member-name))
-                (let ((descrip
-                       (cond
-                        ((string= member-clazz "variable")
-                         (concat var-label member-type))
+              (if (eq 0 (string-match name-fragment member-name))
+                  (let ((descrip
+                         (cond
+                          ((string= member-flavor "var")
+                           (concat var-label member-type))
 
-                        ((string= member-clazz "function")
-                         (let* ((arglist (semantic-tag-get-attribute tag :arguments))
-                                (modifiers (semantic-tag-modifiers tag))
-                                (arg-descrip
-                                 (if (> (length arglist) 0)
-                                     (concat "("
-                                             (mapconcat
-                                              '(lambda (x) (concat (semantic-tag-type x)
-                                                                   " "
-                                                                   (semantic-tag-name x)))
-                                              arglist  ", ")
-                                             ")")
-                                   "()")))
+                          ((or (string= member-flavor "property")
+                               (string= member-flavor "field"))
+                           (concat "(" (cscomp--capitalize member-flavor) ") " member-type))
 
-                           (concat "(Method) "
-                                   " " (mapconcat 'identity modifiers " ") " "
-                                   arg-descrip
-                                   "  returns "
-                                   member-type)))
+                          ((string= member-flavor "method")
+                           (let* ((arglist (csharp-analysis-method-params tag))
+                                  (modifiers (csharp-analysis-tag-modifiers tag))
+                                  (arg-descrip
+                                   (if (> (length arglist) 0)
+                                       (concat "("
+                                               (mapconcat
+                                                '(lambda (x) (concat (caddr x)
+                                                                     " "
+                                                                     (cadr x)))
+                                                arglist  ", ")
+                                               ")")
+                                     "()")))
 
-                        (t ""))))
+                             (concat "(Method) "
+                                     " " modifiers
+                                     " " arg-descrip
+                                     "  returns "
+                                     member-type)))
 
+                          (t ""))))
 
-                  (cscomp-log 2 "cscomp-matching-tags: found %s (%s)"
-                           member-name member-type)
+                    (cscomp-log 2 "tags: found %s (%s)"
+                                member-name member-type)
 
-                  (setq result (cons (list member-name descrip) result)))))
-
-            (setq tagset (cdr tagset)))
-        (cscomp-sort-completion-list result))
+                    (setq result (cons (list member-name descrip) result)))))))
+            (setq nodeset (cdr nodeset)))
+          (cscomp-sort-completion-list result))
       nil)))
 
 
-
-
 (defun cscomp-matching-instance-vars (name-fragment)
-  "Return the list of instance variables in a C# module, that
+  "Return the list of instance variables in scope, that
 match NAME-FRAGMENT.  See also, `cscomp-matching-local-vars'.
 
 "
-  (cscomp--find-matching-tags name-fragment (cscomp-instance-vars)))
+  (interactive "sName fragment: ")
+  (let ((result
+         (cscomp--find-matching-tags name-fragment (csharp-analysis-instance-variables))))
+    (if (called-interactively-p 'any)
+        (message "result: %s" (prin1-to-string result)))
+    result))
 
 
 
 
 (defun cscomp-matching-instance-members (name-fragment)
-  "Return the list of instance memebrs in a C# module, that
+  "Return the list of instance memebrs in scope in a C# module, that
 match NAME-FRAGMENT.
 
 See also, `cscomp-matching-local-vars',
 `cscomp-matching-instance-vars'.
 
 "
-  (cscomp--find-matching-tags name-fragment (cscomp-instance-members)))
+  (interactive "sName fragment: ")
+  (let ((result
+         (cscomp--find-matching-tags name-fragment (csharp-analysis-instance-members))))
+    (if (called-interactively-p 'any)
+        (message "result: %s" (prin1-to-string result)))
+    result))
 
 
 
 (defun cscomp-matching-local-vars (name-fragment)
-  "Use the semantic lex/analysis results to find local variables
-that match the given NAME-FRAGMENT.
+  "Find the local variables currently in scope that match the given
+NAME-FRAGMENT.
+
+For the purposes of this fn, the set of \"local variables\"
+includes any parameters for the method, ctor, or setter block.
 
 See also, `cscomp-matching-instance-members',
 `cscomp-matching-instance-vars'.
 
 "
-  (cscomp-start-stripped-semantic)
-  (cscomp--find-matching-tags name-fragment (semantic-get-all-local-variables) t))
+  (interactive "sName fragment: ")
 
-
-
-(defun cscomp-find-enclosing-csharp-class (&optional posn)
-  "returns a tag of type 'type (in other words, a c# class or struct) that
-encloses POSN, or point if POSN is nil.  If there is no enclosing 'type,
-then return nil.
-"
-;; This isn't quite correct. At this time, the C# namespace defn gets
-;; parsed as a type. I couldn't figure how to get namespace to get
-;; parsed as a new 'namespace tag.  Therefore, this fn can sometimes
-;; return a tag corresponding to a namespace, as opposed to a tag
-;; corresponding to a bonafide type.
-
-(let ((nar (semantic-current-tag-of-class 'type)))
-    nar))
-
-
-
-;; (defun cscomp-find-semantic-things (tag-class)
-;;   "Search for tags in semantic parse state."
-;;   (interactive "sTag type: ")
-;;   (if (not (semantic-active-p)) (semantic-new-buffer-fcn))
-;;   (let* ((tokens  (semantic-fetch-tags))
-;;          (matches (cscomp-find-by-class tag-class tokens t)))
-;;     (if matches
-;;         (while matches
-;;           (let ((one (car matches)))
-;;             (setq matches (cdr matches))))
-;;       nil
-;;     )))
-
-
-
-(defun cscomp-find-by-class (cls streamorbuffer &optional search-parts search-includes)
-  "Find all tags with class CLS within STREAMORBUFFER.
-CLS is a string which is the name of the class of the tags returned, such as
-include, variable, type.
-See `semantic-tag-class'.
-Optional argument SEARCH-PARTS and SEARCH-INCLUDES are passed to
-`semantic-brute-find-tag-by-function'."
-  (semantic-brute-find-tag-by-function
-   (lambda (tag)
-     (let ((class (semantic-tag-class tag)))
-       (string= class cls)))
-   streamorbuffer search-parts search-includes))
-
-
-
-;;    (lambda (tag)
-;;      (let ((class (semantic-tag-class tag)))
-;;        (if (and (listp ts)
-;;                 (or (= (length ts) 1)
-;;                     (string= (semantic-tag-class ts) type)))
-;;
-;;            (setq ts (semantic-tag-name ts)))
-;;        (equal type ts)))
-;;    streamorbuffer search-parts search-includes))
-
-
-
-(defun cscomp-debugonly-list-all-local-variables ()
-  "fiddle with local variables and semantic."
-  (interactive)
-  (cscomp-start-stripped-semantic)
-  (semantic-lex (point-min) (point-max) 100)
-  (let ((locals (semantic-get-all-local-variables)))
-    (mapcar '(lambda (x)
-               (cscomp-log 3 "local var: name(%s) type(%s) pos(%s)"
-                        (car x) (cadr (nth 2 x))
-                        (nth 4 x)))
-            locals)))
-
-
-
-;; (defun cscomp-variables-in-scope ()
-;;   "Return the list of variables currently in scope.
-;; It uses the semantic parser table to find them."
-;;   (interactive)
-;;   (if (not (semantic-active-p)) (semantic-new-buffer-fcn))
-;;   (let* ((tokens (semantic-fetch-tags))
-;;          (vars (semantic-brute-find-tag-by-class 'variable tokens)))
-;;     (cscomp-log 3 "cscomp-variables-in-scope: found variables: '%s'" vars)
-;;     (mapcar 'car vars)))
-
-
-;; (defun cscomp-valid-csharp-declaration-at (point varname)
-;;   "Verify that a POINT starts a valid csharp declaration
-;; for the VARNAME variable."
-;;   (save-excursion
-;;     (goto-char point)
-;;     (if (looking-at
-;;          (concat "\\([A-Za-z0-9_.\177-\377]+\\)[ \t\n\r]+"
-;;                  (cscomp-double-backquotes varname)
-;;                  "[ \t\n\r]*[;=]"))
-;;         (match-string 1)
-;;       nil)))
-
-
-
-
-;; (defun cscomp-double-backslashes (varname)
-;;   "Build a new string identical to VARNAME, except that every backslash
-;; `\' is doubled, so that it can be used in a regex expression.
-;; "
-;;   (let (result (idx 0) (len (length varname)) curcar)
-;;     (while (< idx len)
-;;       (setq curcar (elt varname idx))
-;;       (setq result (concat result (if (eq curcar ?\\)
-;;                                       "\\\\"
-;;                                     (make-string 1 curcar))))
-;;       (setq idx (1+ idx)))
-;;     result))
-
-
-
-
-;; (defun cscomp-declared-type-of (name)
-;;   "Find in the current buffer the csharp type of the variable NAME.  The
-;; function returns a string containing the name of the class, or nil
-;; otherwise. This function does not give the fully-qualified csharp class
-;; name, it just returns the type as it is declared."
-;;   (save-excursion
-;;     (let (found res pos orgpt resname)
-;;       (while (and (not found)
-;;                   (search-backward name nil t))
-;;         (setq pos (point))
-;;         (backward-word 1)
-;;         (setq resname (cscomp-valid-csharp-declaration-at (point) name))
-;;         (goto-char pos)
-;;         (forward-char -1)
-;;         (if resname
-;;             (progn (setq res resname)
-;;                    (setq found t))))
-;;       res)))
-
-
-;; (defun cscomp-filter-fqn (importlist)
-;;   "Filter all the fully-qualified classnames in the import list. It uses
-;; the knowledge that those classnames are at the beginning of the list,
-;; so that it can stops at the first package import (with a star `*' at
-;; the end of the declaration)."
-;;   (if importlist
-;;       (if (string= "*" (car (cdr (car importlist))))
-;;           importlist
-;;         (cscomp-filter-fqn (cdr importlist)))))
-
-
-
-(defun cscomp-escape-string-for-powershell (arg)
-  "Powershell uses the backquote for an escape char.  This fn
-escapes the backquote for a string that will eventually be sent
-to powershell (CscompShell).
-
-I think this is only necessary when the arg is submitted to
-powershell within double-quotes. If the arg is within single
-quotes, backquotes do not need to be escaped.
-
-"
-  (let ((matcho (string-match "\\(.+\\)`\\(.+\\)" arg)))
-    (if matcho
-        (concat
-         (substring arg (match-beginning 1) (match-end 1))
-         "``"
-         (substring arg (match-beginning 2) (match-end 2)))
-      arg)))
-
-
-
-
-
-(defun cscomp-send-string-to-shell (command-string)
-  "sends a string to cscompshell function, returns the result."
-  (let ((result (csharp-shell-exec-and-eval-result command-string)))
-    (cscomp-log 2 "send-string-to-shell (%s) result(%s)" command-string (prin1-to-string  result))
-    ;;(if (and result (listp result)) result nil)
-    result
-    ))
-
-
-
-(defun cscomp-invoke-shell-fn (fn arg)
-  "invokes a 1-arg CscompShell function, returns the result."
-
-  ;; need to use single-quotes here around the arg, because in
-  ;; some cases the arg can have double-quotes in it.
-
-  (let* ((escaped-arg (cscomp-escape-string-for-powershell arg)))
-    (cscomp-send-string-to-shell (concat "[Ionic.Cscomp.Utilities]::" fn "(\'" escaped-arg "\')"))))
-
-
+  (let* ((all-vars
+          (append (csharp-analysis-local-variables) ;; maybe nil
+                  (csharp-analysis-local-arguments))) ;; maybe nil
+         (result
+          (cscomp--find-matching-tags name-fragment all-vars t)))
+    (if (called-interactively-p 'any)
+        (message "result: %s" (prin1-to-string result)))
+    result))
 
 
 (defun cscomp-type-exists (typename)
-  "Determines if the given type is known by the CscompShell.  You can provide a short type name, or a fully-qualified name.  You must have loaded the assembly into the shell, for it to be known.  See `cscomp-load-assembly'."
+  "Determines if the type named by TYPENAME is known by the
+CscompShell.  You can provide a short type name, or a
+fully-qualified name.  The CscompShell must have previously
+loaded the containing assembly, for it to be known.  See
+`cscomp-load-one-assembly'.
+"
   (interactive "sType name: ")
-  (cscomp-invoke-shell-fn "QualifyType" typename))
+  (csharp-shell-invoke-shell-fn "QualifyType" typename))
 
 
 
-(defun cscomp-get-members-of-class (semantic-tag)
-  "Gets the members of the class denoted by the SEMANTIC-TAG.
-If SEMANTIC-TAG is nil, then this function gets the closest type
-containing point, and gets the members of that.
-
-"
-  (if (null semantic-tag) (setq semantic-tag (cscomp-get-current-class)))
-  (if (eq (cadr semantic-tag) 'type)
-      (semantic-tag-type-members semantic-tag)
-    nil))
-
-
-
-
-(defun cscomp-get-current-class (&optional posn)
-  "Return the semantic tag for the current class or type in scope at POSN.
-"
-  (interactive)
-  (save-excursion
-    (if posn (goto-char posn))
-    (semantic-fetch-tags)
-    (let ((containing-type (semantic-current-tag-of-class 'type)))
-      containing-type)))
-
-
-(defun cscomp-produce-csharp-arglist-block-from-dbrecord (arglist)
-  "Produces an argument list block, suitable for framing within parens
-in a method declaration, from ARGLIST, a list of local arguments obtained from
-`semantic-get-local-arguments'.
+(defun cscomp-produce-csharp-arglist-block-from-tag (arglist)
+  "Produces an argument list block, suitable for framing within
+parens in a method declaration, from ARGLIST, a list of local
+arguments obtained from
+`csharp-analysis-local-arguments'.
 
 When the format of ARGLIST is like this:
 
-   ((\"count\"
-      variable
-      (:type \"int\")
-      (:filename \"c:/dinoch/dev/dotnet/CsharpCompletion.cs\"
-                 reparse-symbol formal_parameters)
-      [621 630])
-    (\"melvin\"
-      variable
-      (:type \"string\")
-      (:filename \"c:/dinoch/dev/dotnet/CsharpCompletion.cs\"
-                 reparse-symbol formal_parameters)
-      [631 645]))
+  ((var \"x\" \"System.Int32\" (location (16 29) (16 33)) (id 6))
+   (var \"enabled\" \"System.Boolean\" (location (16 36) (16 41)) (id 7)))
 
 The return value is like this:
 
@@ -630,13 +535,12 @@ The return value is like this:
 
 When the arglist is empty, the return value is a string of zero length.
 
-
 "
   (let ((fragment ""))
     (while arglist
       (let* ((x (car arglist))
-             (var-name (car x))
-             (var-type (cadr (nth 2 x))))
+             (var-name (cadr x))
+             (var-type (caddr x)))
 
         (setq fragment (concat fragment var-type " " var-name)
               arglist (cdr arglist))
@@ -648,10 +552,16 @@ When the arglist is empty, the return value is a string of zero length.
 
 
 (defun cscomp-produce-instance-member-code-fragment (member-list)
-  "Produce a C# fragment that defines placeholder instance members,
-to be inserted into a class template which is then compiled, so that
-Cscomp can inspect the resulting IL to determine the type of a local var
-on which the user is asking for completion.
+
+"Generate a fragment of C# source code that can be compiled to
+produce IL, which can then be inspected to determine the type of
+the var for which the user is asking completion.
+
+This fn generates dummy code that includes placeholders for all
+instance members, method arguments, and local variables. The
+generated code is then compiled, so that Cscomp can inspect the
+resulting IL to determine the type of a local var on which the
+user is asking for completion.
 
 Cscomp uses the compiler to determine the type of the var. It
 dynamically generates and compiles a class with the same variable
@@ -664,28 +574,27 @@ generates C# code to provide those instance members.
 
 For input that looks like this:
 
-  ((\"staticField1\" variable
-     (:typemodifiers (\"private\" \"static\") :type \"int\")
-     (reparse-symbol class_member_declaration)
-     #<overlay from 605 to 642 in CsharpCompletion.cs>)
-   (\"InstanceMethod1\" function
-     (:arguments (...) :type \"string\")
-     (reparse-symbol class_member_declaration)
-     #<overlay from 652 to 741 in CsharpCompletion.cs>)
-   (\"Run\" function
-     (:typemodifiers (\"public\") :arguments (...) :type \"void\")
-     (reparse-symbol class_member_declaration)
-     #<overlay from 752 to 1487 in CsharpCompletion.cs>)
-   (\"Main\" function
-     (:typemodifiers (\"public\" \"static\") :arguments (...) :type \"void\")
-     (reparse-symbol class_member_declaration)
-     #<overlay from 1497 to 1806 in CsharpCompletion.cs>)
+  ((var \"staticField1\" \"System.Int32\"
+     (modifier \"private static\")
+     (location (14 9) (14 20)) (id 17))
+
+   (method \"InstanceMethod1\" \"System.String\"
+     (modifier \"public\")
+     (params
+       (var \"x\" \"System.Int32\" (location (16 29) (16 33)) (id 6))
+       (var \"enabled\" \"System.Boolean\" (location (16 36) (16 41)) (id 7)))
+     (block ...)
+     (location (16 9) (18 10)) (id 9))
+    ...
    )
 
 The output will look like this:
 
-    private static int staticField1 = default(int);
-    string InstanceMethid(...) { return default(string); }
+    class foo {
+      private static int staticField1 = default(int);
+      string InstanceMethod1(...) { return default(string); }
+      ...
+    }
 
 Any void methods will not be emitted because they cannot affect the
 types of local variables declared in methods.
@@ -695,56 +604,43 @@ types of local variables declared in methods.
 
     (while member-list
       (let* ((x (car member-list))
-             (member-name (car x))
-             (member-flavor (cadr x))
-             (member-type (semantic-tag-get-attribute x :type))
-             (member-modifiers (semantic-tag-get-attribute x :typemodifiers))
-             one-frag
-             )
-        ;;          (message "n(%s) f(%s) t(%s)"
-        ;;                   member-name
-        ;;                   member-flavor
-        ;;                   member-type)
+             (member-name   (csharp-analysis-tag-name x))
+             (member-flavor (csharp-analysis-tag-flavor x))
+             (member-type   (csharp-analysis-tag-type x))
+             (member-modifiers (csharp-analysis-tag-modifiers x))
+             one-frag )
 
         (setq one-frag
               (cond
 
-               ((string= member-type "void") ;; the member is a void type
+               ((or
+                (string= member-type "void") ;; the member is a void type
+                (string= member-type "System.Void"))
                 "")                          ;; emit nothing, don't need it.
-               ;; it's possible we might need it, in which case,
+
+               ;; if it turns out I was wrong, and the fn is necessary,
                ;; we can just emit an empty fn.
 
-               ((eq member-flavor 'function) ;; it's a method
-                (concat
-                 (mapconcat 'identity member-modifiers " ")
-                 " "
-                 member-type
-                 " "
-                 member-name
-                 "("
-                 (cscomp-produce-csharp-arglist-block-from-dbrecord
-                  (semantic-tag-get-attribute x :arguments))
-                 ") {"
-                 (if member-type
-                     (concat
-                      " return default("
-                      member-type
-                      ");")
-                   "")
-                 "} "))
+               ((string= member-flavor "method") ;; it's a method
+                (concat member-modifiers " " member-type " "
+                        member-name "(" (cscomp-produce-csharp-arglist-block-from-tag
+                                         (csharp-analysis-method-params x))
+                        ") {"
+                        (if member-type
+                            (concat
+                             " return default("
+                             member-type
+                             ");")
+                          "")
+                        "} "))
 
-
-               ((eq member-flavor 'variable) ;; it's an instance variable
+               ((or
+                (string= member-flavor "field") ;; it's an instance field
+                (string= member-flavor "property")) ;; it's an instance property
 
                 (concat
-                 (mapconcat 'identity member-modifiers " ")
-                 " "
-                 member-type
-                 " "
-                 member-name
-                 " = default("
-                 member-type
-                 "); "))
+                 member-modifiers " " member-type " "
+                 member-name " = default(" member-type "); "))
 
                (t
                 "")))
@@ -776,26 +672,25 @@ to a single space.
   "Escape single-quotes in the given string S.  This is for use within
 powershell.
 "
-  ;; escape single-quotes
-  (while (string-match "\\(.+\\)'\\(.+\\)" s)
-    (setq s
-          (concat
-           (substring s 0 (match-beginning 1))
-           "`'"
-           (substring s (match-end 1)))))
+  (let ((start-pos 0))
+
+    (while (string-match "\\([^']*\\)'\\(.*\\)" s start-pos)
+      (setq s (concat
+               (substring s 0 start-pos)
+               (substring s start-pos (match-end 1))
+               "''"
+               (substring s (+ 1 (match-end 1))))
+            start-pos (+ 2 (match-end 1)))))
   s)
 
 
-;;(setq cscomp-log-level 2)
-
-
-(defun cscomp-get-var-type-given-decl (var-declaration
-                                              var-index
-                                              classname
-                                              arglist
-                                              instance-members)
+(defun cscomp--infer-type-given-decl (var-declaration
+                                       var-index
+                                       classname
+                                       arglist
+                                       instance-members)
   "Determines the type of the var declared in the given declaration.
-VAR-DECLARATION is  the C# code that declares all the local vars up to
+VAR-DECLARATION is the C# code that declares all the local vars up to
 and including the local var of interest.
 
 VAR-INDEX is the zero-based index of the local arg in that list,
@@ -816,10 +711,16 @@ synthetic class.  This will satisfy dependencies on instance members in
 the initializer for the var, if any.
 
 "
+
+  (let ((pathlist
+         (mapconcat 'identity cscomp-assembly-search-paths ",")))
+    (csharp-shell-invoke-shell-fn "SetAssemblySearchPaths" pathlist))
+
+
   (let* ((massaged-decl
           (cscomp-escape-single-quotes
            (cscomp-consolidate-whitespace var-declaration)))
-         (namespaces (mapconcat 'identity (cscomp-referenced-assemblies-list) ","))
+         (namespaces (mapconcat 'identity (cscomp-referenced-assemblies) ","))
          (command-string
           (concat "[Ionic.Cscomp.Utilities]::GetTypeGivenVarDecl('"
                   massaged-decl
@@ -835,7 +736,7 @@ the initializer for the var, if any.
                   "','"
                   (cscomp-consolidate-whitespace instance-members)
                   "')" )))
-    (cscomp-send-string-to-shell command-string)))
+    (csharp-shell-do-shell-fn command-string)))
 
 
 
@@ -844,9 +745,27 @@ the initializer for the var, if any.
   "Gets a list of known completions (types and child namespaces)
 for the given namespace. You must have loaded an assembly containing
 types from the namespace, into the shell, for it to be known.
-See `cscomp-load-assembly'."
+See `cscomp-load-one-assembly'."
   (interactive "sNamespace: ")
-  (cscomp-invoke-shell-fn "GetCompletionsForNamespace" ns))
+  (csharp-shell-invoke-shell-fn "GetCompletionsForNamespace" ns))
+
+
+
+(defun cscomp-qualify-type-name (type-name)
+  "returns fully-qualified type name for a given short TYPE-NAME.
+
+Return value is a string, or nil if the type-name is unknown.
+
+Example:  (cscomp-qualify-type-name \"XmlAttribute\")
+returns   \"System.Xml.XmlAttribute\"
+
+"
+  (let ((result (cscomp-qualify-name type-name)))
+    (cond
+     ((string= (nth 0 result) "type")
+      (nth 1 result))
+     (t
+      nil))))
 
 
 
@@ -868,41 +787,57 @@ Result is
 "
 
   (interactive "sname to qualify: ")
-  (cscomp-invoke-shell-fn "QualifyName" name))
+  (csharp-shell-invoke-shell-fn "QualifyName" name))
 
 
-(defun cscomp-get-matches (fragment)
+(defun cscomp-get-all-known-matches (fragment)
   "returns a list of all possible matches on a given partial name.
 The return value is like this:
 
-   (list (list \"type\"  \"fullNameOfType\")
-         (list \"namespace\"  \"FullNameOfNamespace\"))
+   ((\"type\"  \"fullNameOfType\")
+    (\"namespace\"  \"FullNameOfNamespace\")
+    (\"method\"  \"NameOfMethod\")
+    (\"variable\"    \"woof\" \"(local) System.Int32\"))
 
 "
   (interactive "sfragment to match on: ")
 
-  (let ((namespaces (mapconcat 'identity (cscomp-referenced-assemblies-list) ",")))
+  (let* ((fixup-varlist
+          (lambda (item)
+            (list "variable" (car item) (cadr item))))
+         (fixup-instancelist
+          (lambda (item)
+            (list "instance" (car item) (cadr item))))
+         (instance-vars (mapcar fixup-instancelist
+                                (cscomp-matching-instance-vars fragment)))
+         (locals (mapcar fixup-varlist
+                         (cscomp-matching-local-vars fragment)))
+         (namespaces (mapconcat 'identity (cscomp-referenced-assemblies) ","))
+         (matches (csharp-shell-do-shell-fn
+                   (concat "[Ionic.Cscomp.Utilities]::GetMatches('"
+                           fragment
+                           "','"
+                           namespaces
+                           "')"))))
+    (append instance-vars locals matches)))
 
-    (cscomp-send-string-to-shell
-     (concat "[Ionic.Cscomp.Utilities]::GetMatches('"
-             fragment
-             "','"
-             namespaces
-             "')"))))
 
-
-
-(defun cscomp-load-additional-assemblies (lib-list)
-"Loads a set of assemblies into the csharp-shell, which then allows Cscomp
-to do completion (etc) on the types in those libraries."
-  (mapcar 'cscomp-load-assembly lib-list))
-
-
-(defun cscomp-load-assembly (lib)
-  "Loads a assembly into the csharp-shell, which then allows Cscomp
-to do completion (etc) on the types in that library."
+(defun cscomp-load-one-assembly (lib)
+  "Loads a assembly into the csharp-shell, which then allows
+Cscomp to do completion (etc) on the types in that library. The
+assembly should be a namespace of an assy that is in the GAC, or
+the full path of the assembly file (usually a DLL).
+"
   (interactive "sLibrary: ")
-  (cscomp-invoke-shell-fn "LoadOneAssembly" lib))
+  (csharp-shell-invoke-shell-fn "LoadOneAssembly" lib))
+
+
+
+
+(defun cscomp-load-imported-namespaces ()
+  "Loads assemblies for the imported namespaces into the CscompShell."
+  (mapcar 'cscomp-load-one-assembly
+          (cscomp-referenced-assemblies)))
 
 
 
@@ -911,57 +846,36 @@ to do completion (etc) on the types in that library."
 list of referenced assemblies. It returns a string if the fqn
 was found, or null otherwise."
   (interactive "sType name: ")
-  (cscomp-log 1 "get-qualified-name (%s)" name)
+  (cscomp-log 2 "get-qualified-name (%s)" name)
   (let ((result (cscomp-type-exists name)))
     (if result result
       ;; else
-      (let ((usinglist (cscomp-referenced-assemblies-list))
+      (let ((usinglist (cscomp-referenced-assemblies))
             fullname namespace )
 
         ;; usinglist is like this:
-        ;; ("System"  "System.Collections"  "System.Collections.Generic"  "System.Reflection")
+        ;; ("System"  "System.Collections"  "System.Collections.Generic" ...)
 
         (setq result nil)
         (while usinglist
           (setq namespace (car usinglist))
-          (cscomp-load-assembly namespace)
+          (cscomp-load-one-assembly namespace)
           (setq fullname (concat namespace "." name))
           (cscomp-log 2 "checking this type: '%s'" fullname)
           (if (cscomp-type-exists fullname)
               (setq result fullname
-                    usinglist nil)
-            (setq usinglist (cdr usinglist))))
+                    usinglist nil)  ;; end the loop
+            (setq usinglist (cdr usinglist)))))
 
-        (cscomp-log 1 "get-qualified-name rtns: '%s'" result)
+        (cscomp-log 2 "get-qualified-name (%s): '%s'" name result)
 
-        result))))
+        result)))
 
 
-
-;; (defun cscomp-flush-typeinfo-cache ()
-;;   "Flushes all entries in the completion cache"
-;;   (interactive)
-;;   (setq cscomp-typeinfo-cache nil))
-;;
-;;
-;; (defun cscomp-flush-classes-in-cache (class-list)
-;;   "Flushes all the classes in CLASS-LIST as entries of cache."
-;;   (let ((temp (nth 0 cscomp-typeinfo-cache))
-;;         (index -1)
-;;         (found nil)
-;;         (class (car class-list)))
-;;     (while class
-;;       (while (and temp (not found))
-;;         (setq index (1+ index))
-;;         (setq temp (nth index cscomp-typeinfo-cache))
-;;         (if (string= (car temp) class)
-;;             (setq found t)))
-;;       (if found
-;;           (setq cscomp-typeinfo-cache
-;;                 (nthcdr (1+ index) cscomp-typeinfo-cache)))
-;;       (setq class-list (cdr class-list))
-;;       (setq class (car class-list))
-;;       (setq found nil))))
+(defun cscomp-reset-typeinfo-cache ()
+  "Clears all entries in the type information cache."
+  (interactive)
+  (setq cscomp-typeinfo-cache nil))
 
 
 (defun cscomp-add-to-typeinfo-cache (name typeinfo)
@@ -972,29 +886,36 @@ was found, or null otherwise."
           (setq new-list (list new-entry nil))
           (setcdr new-list (cdr cscomp-typeinfo-cache))
           (setq cscomp-typeinfo-cache new-list)
-          (cscomp-log 1 "cache is full")   )
+          (cscomp-log 1 "typeinfo cache is full"))
       ;;else
+      ;; nconc?
       (setq cscomp-typeinfo-cache
             (append
              cscomp-typeinfo-cache
              (list (list name typeinfo)))))))
 
 
-(defun cscomp-get-typeinfo-from-cache (name)
-  (let ((temp (nth 0 cscomp-typeinfo-cache)) (index -1) (found nil))
-    (while (and temp (not found))
-      (setq index (1+ index))
-      (cscomp-log 2 "looking at cache item %d" index)
-      (setq temp (nth index cscomp-typeinfo-cache))
-      (if (string= (car temp) name)
-          (setq found t)))
-    (if found
-        (progn
-          (cscomp-log 3 "cscomp-get-typeinfo-from-cache: HIT name(%s) r(%s)"
-                    name (prin1-to-string (nth 1 temp)))
-          (nth 1 temp))
-      (cscomp-log 1 "cscomp-get-typeinfo-from-cache: MISS name(%s)" name)
-      nil)))
+(defun cscomp--get-typeinfo-from-cache (name usinglist)
+  "Gets type information for the type with NAME, from the cache."
+  (if (string= name "var")
+      nil ;; unknown
+    (let ((temp (nth 0 cscomp-typeinfo-cache))
+          (index -1)
+          (found nil))
+      (while (and temp (not found))
+        (incf index)
+        (cscomp-log 4 "looking at cache item %d" index)
+        (setq temp (nth index cscomp-typeinfo-cache))
+        (if (string= (car temp) name)
+            (setq found t)))
+      (if found
+          (progn
+            (cscomp-log 3 "-get-typeinfo-from-cache: HIT name(%s) r(%s)"
+                        name (prin1-to-string (nth 1 temp)))
+            (nth 1 temp))
+        (cscomp-log 3 "-get-typeinfo-from-cache: MISS name(%s)" name)
+        nil))))
+
 
 
 (defun cscomp-get-typeinfo (name)
@@ -1007,49 +928,59 @@ informations on the completion - the property type, or the param
 list and return type for a method, etc."
   (interactive "sTypename: ")
 
-  (cscomp-log 2 "cscomp-get-typeinfo name(%s)...trying cache..." name)
+  (if (string= name "var")
+      (progn
+        (cscomp-log 2 "ENTER get-typeinfo name(%s)...result:nil" name)
+        nil) ;; unknown
 
-  (let ((type-info (cscomp-get-typeinfo-from-cache name))
-        (usinglist (cscomp-referenced-assemblies-list))
-        namespace
-        qualified-type )
+    (cscomp-log 2 "ENTER get-typeinfo name(%s)...trying cache..." name)
 
-    ;; load all the assemblies mentioned in the using clauses
-    (while usinglist
-      (setq namespace (car usinglist))
-      (cscomp-load-assembly namespace)
-      (setq usinglist (cdr usinglist)))
+    (let* ((usinglist (cscomp-referenced-assemblies))
+           (type-info (cscomp--get-typeinfo-from-cache name usinglist))
+           (ulist  (mapconcat 'identity usinglist ", "))
+           namespace
+           qualified-type )
 
-    (if (null type-info)
-        (progn
-          (setq qualified-type
-                (csharp-shell-exec-and-eval-result (concat
-                                    "[Ionic.Cscomp.Utilities]::QualifyType('"
-                                    ;;(cscomp-escape-string-for-powershell name)
-                                    ;; dont need to escape if using single quotes
-                                     name
-                                    "')")))
+      ;; load all the assemblies mentioned in the using clauses
+      (while usinglist
+        (setq namespace (car usinglist))
+        (cscomp-load-one-assembly namespace)
+        (setq usinglist (cdr usinglist)))
 
-          (cscomp-log 1 "cscomp-get-typeinfo...(%s)..." (prin1-to-string qualified-type))
+      (if (null type-info)
+          (progn
+            (setq qualified-type
+                  (csharp-shell-exec-and-eval-result
+                   (concat
+                    "[Ionic.Cscomp.Utilities]::QualifyType('"
+                    ;;(cscomp-escape-string-for-powershell name)
+                    ;; dont need to escape if using single quotes
+                    name
+                    "','"
+                    ulist
+                    "')")))
 
-          (if qualified-type
-              (setq type-info
-                    (csharp-shell-exec-and-eval-result (concat "[Ionic.Cscomp.Utilities]::GetTypeInfo('"
-                                                (car qualified-type) ; type name
-                                               "', '"
-                                               (cadr qualified-type) ; assembly name
-                                               "')" ))))
-          (if type-info
-              (cscomp-add-to-typeinfo-cache name type-info))))
+            (cscomp-log 2 "get-typeinfo...(%s)..." (prin1-to-string qualified-type))
 
-    type-info))
+            (if qualified-type
+                (setq type-info
+                      (csharp-shell-exec-and-eval-result
+                       (concat "[Ionic.Cscomp.Utilities]::GetTypeInfo('"
+                               (car qualified-type) ; type name
+                               "', '"
+                               (cadr qualified-type) ; assembly name
+                               "')" ))))
+            (if type-info
+                (cscomp-add-to-typeinfo-cache name type-info))))
+
+      type-info)))
 
 
 (defun cscomp-get-type-ctors (type-name)
   "Retrieve constructors from CscompShell for the type named by TYPE-NAME.
 "
   (interactive "sType name: ")
-  (cscomp-invoke-shell-fn "GetConstructors" type-name))
+  (csharp-shell-invoke-shell-fn "GetConstructors" type-name))
 
 
 
@@ -1064,10 +995,10 @@ When the string does not contain a dot, this fn returns a
 element is the entire string.
 
 "
-  (cscomp-log 2 "cscomp-split-by-dots: s[%s]" s)
+  (cscomp-log 2 "split-by-dots: s[%s]" s)
   (if (string-match "\\(.*\\)\\.\\(.*\\)" s)
       (let ((result (list (match-string 1 s) (match-string 2 s))))
-        (cscomp-log 2 "cscomp-split-by-dots: %s" (prin1-to-string result))
+        (cscomp-log 2 "split-by-dots: %s" (prin1-to-string result))
         result)
     (list nil s))) ;; it's a single atom
 
@@ -1076,40 +1007,63 @@ element is the entire string.
 
 (defun cscomp-parse-csharp-expression-before-point ()
   "Parses the text at point, and returns the results.
+ Side effect: sets markers to the beginning
+ (cscomp-current-beginning) and end (cscomp-current-end)
+ of the parsed expression.
 
-The retval is a list (POSN (TOKEN1 TOKEN2)) , where POSN is the position
-in the buffer of the beginning of TOKEN1 and TOKEN1 and TOKEN2
-are the two tokens surrounding the prior dot.
+The return value is a list (POSN (TOKEN1 TOKEN2)) , where POSN is
+the position in the buffer of the beginning of TOKEN1 and TOKEN1
+and TOKEN2 are the two tokens surrounding the prior dot.
 
-For example, suppose System.Diagnostics.D were the name at
+Some examples.
+
+#1
+Suppose System.Diagnostics.D is the text that appears prior to
 point. This function would return the list
 
     (888 (\"System.Diagnostics\" \"D\"))
 
 ...if 888 was the position of the beginning of the word System.
 
-It's just an exercise in syntactically-aware string parsing.
+
+#2
+Suppose new System.DateTime the text that appears prior to
+point. This function would return the list
+
+    (721 (nil \"new System.DateTime\"))
+
+...if 721 is the position of the beginning of the word \"new\".
+
+---
+
+It's just an exercise in syntactically-aware string parsing.  It
+uses some cc-mode magic to do some of that.
 
 If the text preceding point doesn't look like two tokens, this fn
-returns nil.
+returns nil, and does not set the markers.
 
 "
+  (interactive)
+
   (cscomp-log 2 "parse-csharp-expression-before-point: point(%d)" (point))
 
-  (interactive)
   (save-excursion
     (let ((opoint (point))
           (cycle-count 0)
           (dot-count 0)
-          m1
-          (regex "[-\\+\\*\\/%,;( {})=\\.]")
-          snip done
+          (regex "[-\\+\\*\\/%,;|( {})=\\.]")
+          snip done m1
           (paren-depth 0)
-          ;;           (skip-back '(lambda ()
-          ;;                         (skip-chars-backward "\t ")
-          ;;                         (backward-char)))
-          )
+          result)
 
+      ;; Repeatedly step backward, over whitespace and c# source tokens.
+      ;; The regex above defines what we skip back TO.  The first cycle
+      ;; through, we skip back to any of the set of
+      ;; syntactically-relevant symbols including + - * / % , ; | ( ) {
+      ;; } = or dot (.).  If the first step backwards finds a dot, we change the
+      ;; regex to find anything in that list EXCEPT the dot.
+      ;; Stepping backwards twice gives us a pair of tokens, which we can then
+      ;; use to perform completion on .
 
       (while (not done)
 
@@ -1157,15 +1111,17 @@ returns nil.
             ;;(funcall skip-back))
             t)
 
-
            ((or
              (eq (char-after) 32)   ;; space
              (eq (char-after) ?\t)) ;; tab
-            t)                      ;; do nothing
+            (if (not m1) (setq m1 (point)))
+            t)                      ;; do nothing else
 
+           ;; The char after is a dot.  Ergo, change the regex.
+           ;; The next step back will not stop on dot.
            ((eq (char-after) ?.)
-            (setq m1 (point)
-                  regex "[-\\+\\*\\/%,;( {})=]"))
+            (setq m1 (point))
+            (setq regex "[-\\+\\*\\/%,;|( {})=]"))
 
            (t
             (setq done t))))
@@ -1175,146 +1131,308 @@ returns nil.
 
         (incf cycle-count)) ;; count of steps backward
 
+      ;; set markers, before consolidating whitespace
+      (let ((beg (1+ (or m1 (point)))))
+
+        (cscomp-log 2 "parse-csharp-expression-before-point: reset begin,end to (%d,%d)"
+                    beg opoint)
+
+        ;; beginning: right after the dot (if there is one)
+        (set-marker cscomp-current-beginning beg)
+        (set-marker cscomp-current-end opoint ))
+
       (setq snip
             (cscomp-consolidate-whitespace
              (buffer-substring-no-properties (1+ (point)) opoint)))
 
-      (cscomp-log 2 "parse-expression-before-point: B snip(%s)" snip)
-      (list (1+ (point)) (cscomp-split-by-dots snip)))
-    ))
+      (cscomp-log 2 "parse-csharp-expression-before-point: B snip(%s)" snip)
+      (setq result (list (1+ (point))
+                         (if (eq 0 (string-match "new " snip))
+                             (list nil snip)
+                         (cscomp-split-by-dots snip))))
+
+      (if (called-interactively-p 'any)
+          ;; If called interactively, show the result at
+          ;; the bottom of the screen.
+          (message "result: %s" (prin1-to-string result)))
+
+      result)))
 
 
 
 
-(defun cscomp-qualify-local-var (symbol opoint)
-  "Use the semantic lex/analysis results to classify the
-name as a local variable. Returns a list, 1st elt is the
-variable type, and the second elt is a vector, containing
-the position of its definition.
+(defun cscomp--random-symbol-name ()
+  (random t)
+  (loop
+   for i below 10
+   collect (+ (if (= (random 2) 0) 65 97) (random 26)) into auth
+   finally return (concat auth)))
 
-See also `cscomp-qualify-instance-var'.
+(defun cscomp-last-char-in-string (s)
+  (let ((ix (length s)))
+    (elt s (- ix 1))))
+
+
+
+(defun cscomp--infer-type-of-symbol (symbol initializers args)
+  "A helper fn. This infers the type of a given SYMBOL, assuming
+the provided variable initializers (INITIALIZERS) and method
+arguments (ARGS) that may be used to initialize the named symbol.
+
+The return value is a list (VAR-TYPE VAR-POSN) , where VAR-TYPE
+is a string, a typename, and VAR-POSN is a list of (START FINISH)
+that describes where in the buffer the variable was declared.  In
+the case of contrived variables, which are used to infer the type
+of arbitrary expressions, the VAR-POSN is not valid.
+
 "
-  (cscomp-start-stripped-semantic)
-  ;;(semantic-lex (point-min) (point-max) 100)
-  (let ((locals (semantic-get-local-variables))
-        (args (semantic-get-local-arguments))
-        (result nil)
+  (let* ((result nil)
         (decl-count 0)
-        (prior-var-decls ""))
+        (brace-count 0)
+        (prior-var-decls "")
+        (containing-type (csharp-analysis-current-class)))
 
-    (while (and locals (not result))
-      (let* ((x (car locals))
-             (var-name (car x))
-             (var-type (cadr (nth 2 x)))
-             (var-pos (nth 4 x)))  ;; pair: start and end of var decl
-
-        ;; The simple string= test will give a false positive if there's
-        ;; a foreach loop variable in a prior
-        ;; foreach loop with the same name as the one the user
-        ;; wants completion on.
-        ;;
-        ;; This is only an issue with two or more foreach loops, each of
-        ;; which create a separate naming scope, and which have the same
-        ;; variable name.  All those foreach variables will be reported
-        ;; as "local variables" by semantic. But, not all of them are in
-        ;; scope for the completion we're performing right now.
-        ;;
-        ;; This needs to do something more intelligent with
-        ;; the declaration. If I had a way to interrogate the scope of
-        ;; the variable decl, that would help. But right now I don't have
-        ;; that.
-
-        ;; I think I need a better understanding of the semantic.el
-        ;; package.
-        ;; =======================================================
+    ;; look at local args first
+    (loop
+     for x in args do
+     (if (not result)
+         (progn
+           (cscomp-log 3 "infer-type-of-symbol: looking at arg (%s)"
+                       (prin1-to-string x))
+           (let ((var-name (cadr x)))
+             ;; If this arg decl is the same name as the one
+             ;; we want, things are simple. We know the type.
+             (if (string= var-name symbol)
+                 (let
+                     ((var-type (caddr x))
+                      (var-posn          ;; pair: start and end of var decl
+                       (mapcar 'cscomp-pos-at-line-col
+                               (cdr (csharp-analysis-tag-location x)))))
+                   (cscomp-log 3 "infer-type-of-symbol: found arg %s (%s)"
+                               symbol var-type)
+                   (setq result (list var-type var-posn))))))))
 
 
-        ;; if this decl ends *before* the point at which the user is
-        ;; asking for completion.
-        (if (<  (elt var-pos 1) opoint)
+    ;; now look at local variables
+    (while (and initializers (not result))
+      (let* ((x (car initializers))
+             (var-name (cadr x))
+             (var-id   (csharp-analysis-tag-id x))
+             (var-type (caddr x))
+             (var-posn          ;; pair: start and end of var decl
+              (mapcar 'cscomp-pos-at-line-col
+                      (cdr (csharp-analysis-tag-location x)))))
 
-            ;; If this var decl is the same name as the one
-            ;; we want.
-            (if (string= var-name symbol)
+        (cscomp-log 3 "infer-type-of-symbol: looking at var (%s)"
+                    (prin1-to-string x))
+
+        ;; If this var decl is the same name as the one
+        ;; we want.
+        (if (string= var-name symbol)
+            (progn
+              ;; Handle var types - need to determine the actual type.
+              ;;
+              ;; To do that, compile the var declaration, then inspect the IL
+              ;; to determine the var types.
+              ;;
+              ;; This engine will determine the var type, in some portion of
+              ;; the cases.
+              ;;
+              ;; It will handle:
+              ;;
+              ;;  - simple var declarations that have no dependencies on other vars
+              ;;  - cascaded var decls that depend on other local vars.
+              ;;  - var whose initializaiton depends on a method argument
+              ;;  - var whose initialization depends on an instance var
+              ;;  - var decls in foreach loops
+              ;;  - var decls in using blocks
+              ;;
+
+              ;; if the type of the variable is "var"
+              (if (string= var-type "var")
+                  (progn
+                    (let* ((member-list (csharp-analysis-class-members containing-type))
+                           (name-of-containing-type  (cadr containing-type))
+                           (parent-tag
+                            (csharp-analysis-find-parent-tag-by-id-from-ast (list containing-type) var-id))
+                           (parent-flavor (and parent-tag (csharp-analysis-tag-flavor parent-tag)))
+                           (var-init   (assoc 'initialvalue x))
+                           (this-decl
+                            (cond
+                             ((string= parent-flavor "foreach")
+                                (concat
+                                 "foreach (var "
+                                 var-name
+                                 " in "
+                                 (buffer-substring-no-properties (elt var-posn 0) (elt var-posn 1))
+                                 ") {}"))  ;; handle foreach
+
+                             (var-init ;; for contrived variables
+                                (concat
+                                 "var " var-name " = " (cadr var-init) ";"))
+
+                              (t
+                               (cscomp-log 3 "not a foreach loop.")
+                               (let ((frag
+                                      (buffer-substring-no-properties
+                                       (elt var-posn 0) (elt var-posn 1))))
+                                 (if (not (string-match ";[ \t]*$" frag))
+                                     (progn
+                                       (message "appending semi to frag: %s" frag)
+                                       (concat frag ";"))
+                                   (progn
+                                       (message "var decl (no semi needed): %s" frag)
+                                       frag))))))
+                           inferred-type)
+
+                      ;; append close-braces for any open for or foreach loops
+                      (while (> brace-count 0)
+                        (setq brace-count (- brace-count 1)
+                              this-decl (concat this-decl "}")))
+
+                      ;; Infer the type. This generates C# code, compiles it,
+                      ;; and then inspects the IL to determine the type.
+                      (setq inferred-type
+                            (cscomp--infer-type-given-decl
+                             (concat prior-var-decls " " this-decl)
+                             decl-count
+                             name-of-containing-type
+                             (cscomp-produce-csharp-arglist-block-from-tag args)
+                             (cscomp-produce-instance-member-code-fragment member-list)))
+
+                      (if (and inferred-type (string= (car inferred-type) "type"))
+                          (setq var-type (cadr inferred-type))
+                        (message "%s" (prin1-to-string inferred-type))
+                        ))))
+
+              (cscomp-log 2 "infer-type-of-symbol: result %s.GetType() = (%s)"
+                          symbol var-type)
+              (setq result (list var-type var-posn)))
+
+          ;; else (it's not the variable we want)
+          ;; Remember it. It may be necessary to initialize our var of interest.
+          (let ((this-var-decl
+                 (buffer-substring-no-properties (elt var-posn 0) (elt var-posn 1)))
+                emitted)
+
+            (if (string= var-type "var")
+                (let* ((containing-type (csharp-analysis-current-class))
+                       (parent-tag
+                        (csharp-analysis-find-parent-tag-by-id-from-ast
+                         (list containing-type)
+                         var-id))
+                       (parent-flavor (and parent-tag (csharp-analysis-tag-flavor parent-tag))))
+
+                  (if (string= parent-flavor "foreach")
+                      ;; its a var in a foreach
+                      (setq brace-count (1+ brace-count)
+                            emitted t
+                            prior-var-decls (concat prior-var-decls
+                                                    " foreach (var "
+                                                    var-name
+                                                    " in "
+                                                    this-var-decl
+                                                    ") {\n")))))
+            (if (not emitted)
+                ;; include this decl in the set of prior decls
                 (progn
-
-                  ;; Handle var types - need to determine the actual type.
-                  ;;
-                  ;; To do that, compile the var declaration, then inspect the IL
-                  ;; to determine the var types.
-                  ;;
-                  ;; This engine will determine the var type, in some portion% of
-                  ;; the cases.
-                  ;;
-                  ;; It will handle:
-                  ;;
-                  ;;  - simple var declarations that have no dependencies on other vars
-                  ;;  - cascaded var decls that depend on other local vars.
-                  ;;
-                  ;; For now, it will not handle:
-                  ;;
-                  ;;  - var that depends on a method argument
-                  ;;  - var whose initialization depends on an instance var
-                  ;;  - var decls in foreach loops
-                  ;;
-
-                  ;; if the type of the variable is "var"
-                  (if (string= var-type "var")
-                      (let* ((this-decl
-                              (buffer-substring-no-properties (elt var-pos 0) (elt var-pos 1)))
-
-                             (containing-type (cscomp-get-current-class))
-                             (member-list (cscomp-get-members-of-class containing-type))
-                             (name-of-containing-type  (car containing-type))
-
-                             (inferred-type
-                              (cscomp-get-var-type-given-decl
-                               (concat prior-var-decls " " this-decl)
-                               decl-count
-                               name-of-containing-type
-                               (cscomp-produce-csharp-arglist-block-from-dbrecord args)
-                               (cscomp-produce-instance-member-code-fragment member-list)
-                               )))
-
-                        (if (and inferred-type (string= (car inferred-type) "type"))
-                            (setq var-type (cadr inferred-type))
-                          (message "%s" (prin1-to-string inferred-type))
-                          )))
-
-                  (cscomp-log 2 "cscomp-qualify-local-var: found %s (%s)"
-                            symbol var-type)
-                  (setq result (list var-type var-pos)))
-
-              ;; else - remember it. We may need it later
-              (let* ((this-var-decl
-                      (buffer-substring-no-properties (elt var-pos 0) (elt var-pos 1)))
-                     (tokens (split-string this-var-decl "[ \t]" t)))
-
-                ;; include decl in prior decls if not "foreach(var foo in X)"
-                (if (or (< (length tokens) 4)
-                        (not (string= (nth 3 tokens) "in")))
-                    (setq prior-var-decls (concat prior-var-decls " " this-var-decl)
-                          decl-count (1+ decl-count))
-
-                  ;; else - it's a foreach loop
-
-                  ;; If performing completion on a var within the loop that
-                  ;; depends on the loop variable, then we need to infer
-                  ;; the type of the foreach loop variable here.
-                  ;;
-                  ;; But, I'm punting.
-
+                  (setq prior-var-decls (concat prior-var-decls " " this-var-decl)
+                        decl-count (1+ decl-count))
+                  ;; add a semicolon if necessary. This happens in
+                  ;; case of a using clause, for example.
+                  (if (/= (cscomp-last-char-in-string this-var-decl) 59)
+                      (setq prior-var-decls (concat prior-var-decls ";")))
                   )))))
-      (setq locals (cdr locals)))
+
+      (setq initializers (cdr initializers)))
 
     result))
 
 
 
 
+(defun cscomp-infer-type-of-expression (expr)
+  "Use the sourcecode analysis results to infer the type of the
+given expression, EXPR, which must be a string. Returns a
+typename, or nil if unknown.
+
+To infer the type, this fn generates C# source code that includes
+the expression in question, compiles that code, and inspects the
+IL to determine the type of the expression.
+
+The return value is the ???
+
+See also `cscomp-qualify-local-var'.
+"
+
+  ;; To generate compilable code, we need to include all relevant
+  ;; variables and arguments, that the expression in question may depend
+  ;; upon. So, iterate through arguments and local variables, inject all
+  ;; of them into a compilable source fragment, then pass that fragment
+  ;; off to the CscompUtilities assembly to compile it and inspect the
+  ;; result.
+  ;;
+
+  (cscomp-log 3 "ENTER infer-type-of-expr: (%s)" (or expr "--"))
+
+  (let* ((contrived-name (cscomp--random-symbol-name))
+         (contrived-var
+          (list 'var contrived-name "var"
+                (list 'initialvalue expr) ;; the infererence logic will use this
+                '(location (1 1) (1 2))   ;; dummy
+                '(id 0)))
+         (initializers
+          (append (csharp-analysis-local-variables) (list contrived-var)))
+        (args (csharp-analysis-local-arguments)))
+    (cscomp--infer-type-of-symbol contrived-name initializers args)))
+
+
+
+
+(defun cscomp-qualify-local-var (symbol)
+  "Use the sourcecode analysis results to classify the
+SYMBOL as a local variable.
+
+If the symbol is a local variable, this fn returns a list, 1st
+elt is the variable type, and the second elt is a vector,
+containing the position of its definition.
+
+If the symbol is not recognized as a local variable, this fn
+returns nil.
+
+See also `cscomp-qualify-instance-var'.
+"
+  (cscomp-log 3 "ENTER qualify-local-var: (%s)" (or symbol "--"))
+  (if (or
+       (null symbol)
+       (eq 0 (string-match cscomp--new-regexp symbol)))
+      (progn
+        (cscomp-log 3 "EXIT qualify-local-var: (%s)" (or symbol "--"))
+        nil)
+  (let ((locals (csharp-analysis-local-variables))
+        (args (csharp-analysis-local-arguments)))
+    (cscomp--infer-type-of-symbol symbol locals args))))
+
+
+
+
+(defun cscomp-pos-at-line-col (position)
+  "Return the char position at the given line/column POSITION,
+which is of the form (LINE . COLUMN).
+
+"
+  (let ((line (nth 0 position))
+        (column (nth 1 position)))
+    (save-excursion
+      (goto-char (point-min))
+      (forward-line (- line 1))
+      (+ (point) (- column 1)))))
+
+
+
 
 (defun cscomp-qualify-instance-var (symbol)
-  "Use the semantic lex/analysis results to classify the
+  "Use the csharp source analysis results to classify the
 name as an instance variable. Returns a list, 1st elt is the
 variable type, and the second elt is a vector, containing
 the position of its definition.
@@ -1322,143 +1440,32 @@ the position of its definition.
 See also `cscomp-qualify-local-var'.
 
 "
-  (cscomp-start-stripped-semantic)
-  ;;(semantic-lex (point-min) (point-max) 100)
-  (let ((ivars (cscomp-instance-vars))
+  (if (or
+       (null symbol)
+       (eq 0 (string-match cscomp--new-regexp symbol)))
+      nil
+  (let ((ivars (csharp-analysis-instance-variables))
         (result nil))
     (while (and ivars (not result))
       (let* ((x (car ivars))
-             (var-name (car x))
-             (var-type (cadr (nth 2 x)))
-             (var-pos (nth 4 x)))
+             (var-name (cadr x))
+             (var-type (caddr x))
+             (var-posn          ;; pair: start and end of var decl
+              (mapcar 'cscomp-pos-at-line-col
+                      (cdr (csharp-analysis-tag-location x)))))
+
         (if (string= var-name symbol)
             (progn
-              (cscomp-log 2 "cscomp-qualify-instance-var: found %s (%s)"
+              (cscomp-log 2 "qualify-instance-var: found %s (%s)"
                        symbol var-type)
-            (setq result (list var-type var-pos))))
+            (setq result (list var-type var-posn))))
       (setq ivars (cdr ivars))))
-    result))
+    result)))
 
 
 
 
-(defun cscomp-start-stripped-semantic ()
-  "Enable a stripped-down semantic for usage with csharp-completion.
-Semantic is very ambitious and tries to do many things, including
-predictive completion, modified code formatting, and other
-things.  We don't want all that for this simple completion
-module. So this method starts a stripped-down version of
-semantic.
-
-"
-  (interactive)
-
-  (if (null semantic-load-system-cache-loaded)
-      (progn
-        ;;(semantic-lex (point-min) (point-max) 100)
-        (semantic-fetch-tags)
-        (global-semantic-idle-scheduler-mode 1)
-        ;;(global-semanticdb-minor-mode 1)
-        ;; This loads any created system databases which get linked into
-        ;; any searches performed.
-        (setq semantic-load-system-cache-loaded t)
-        )))
-
-
-
-
-
-;;     (let (start
-;;           varname
-;;           (curcar (char-before))
-;;           found
-;;           (original-point (point))
-;;           intermediate-point
-;;           beg-point
-;;           first-part
-;;           second-part
-;;           (bracket-count 0)
-;;           (paren-count 0))
-;;
-;;
-;;       (while (null found)
-;;         (cond
-;;
-;;          ;; car is a-z, A-Z 0-9 or greater than 127, or slash or underscore
-;;          ((or (and (>= curcar ?a) (<= curcar ?z))
-;;               (and (>= curcar ?A) (<= curcar ?Z))
-;;               (and (>= curcar ?0) (<= curcar ?9))
-;;               (>= curcar 127)
-;;               (member curcar '(?_ ?\\ )))
-;;           ;; back up!
-;;           (forward-char -1))
-;;
-;;          ;; curchar is a dot
-;;          ((eq ?. curcar)
-;;           (setq found (point)))
-;;
-;;          ;; else
-;;          (t
-;;           (setq found t)))
-;;
-;;
-;;         (setq curcar (char-before)))
-;;
-;;       ;; we've backed-up to...the nearest dot or non- alphanumeric char.
-;;
-;;
-;;       ;; ??
-;;       (setq intermediate-point (point))
-;;
-;;
-;;       (if (not (eq t found))  ;; not t means we found a dot
-;;           (progn
-;;
-;;             ;; get the char before
-;;             (setq curcar (char-before))
-;;             (while (or (and (>= curcar ?a) (<= curcar ?z))
-;;                        (and (>= curcar ?A) (<= curcar ?Z))
-;;                        (and (>= curcar ?0) (<= curcar ?9))
-;;                        (>= curcar 127)
-;;                        (and (eq curcar ? ) (or (< 0 paren-count) (< 0 bracket-count)))
-;;                        (member curcar '(?\. ?\_ ?\\ ?\( ?\) ?\, ?\[ ?\])))
-;;               (cond
-;;                ((eq curcar ?\) )
-;;                 (setq paren-count (1+ paren-count)))
-;;                ((eq curcar ?\( )
-;;                 (setq paren-count (1- paren-count)))
-;;                ((eq curcar ?\] )
-;;                 (setq paren-count (1+ bracket-count)))
-;;                ((eq curcar ?\[ )
-;;                 (setq paren-count (1- bracket-count))))
-;;               (forward-char -1)
-;;
-;;               (setq curcar (char-before)))
-;;
-;;
-;;             (setq beg-point (point))
-;;
-;;             (set-marker cscomp-current-beginning intermediate-point)
-;;
-;;             (set-marker cscomp-current-end original-point)
-;;
-;;             (setq first-part (buffer-substring-no-properties beg-point (- intermediate-point 1)))
-;;
-;;             (setq first-part (cscomp-isolate-to-complete first-part))
-;;
-;;             (string-match " *\\(.*\\)" first-part)
-;;
-;;             (setq first-part (substring first-part (match-beginning 1) (match-end 1)))
-;;
-;;             (setq second-part (buffer-substring-no-properties intermediate-point original-point))
-;;
-;;             (list first-part second-part))
-;;
-;;         nil))))
-
-
-
-(defun cscomp-build-clist-for-ns (nsinfo)
+(defun cscomp-completion-list-for-ns (nsinfo)
   "Build a completion list from the NSINFO list, as returned by the
 Ionic.Cscomp.Utilities.GetCompletionsForNamespace function.
 
@@ -1482,8 +1489,10 @@ Then the return value is like this:
    \"Comparer<T1> | (type)\"
    \"Dictionary<T1,T2> | (type)\"
    \"EqualityComparer<T1> | (type)\"
-   \"Something1 | (type)\"
-   \"Something2`2 | (type)\")
+   \"Something1 | (namespace)\"
+   \"Something2`2 | (namespace)\")
+
+It's just a transformation from one data format to another.
 
 "
   (let* ((typelist (cadr (cadr nsinfo)))
@@ -1563,7 +1572,7 @@ modified.
           (setf (nth n clist) new-name))
       ;; the following will affect the string in the list
       (string-replace-char cur-elt ?+ ?.)
-      (setq n (1+ n))))
+      (incf n)))
   clist)
 
 
@@ -1585,7 +1594,7 @@ to  (Method) public (System.Converter<T,TOutput> converter) returns List<TOutput
 
 
 
-(defun cscomp-build-clist-for-type (typeinfo)
+(defun cscomp-completion-list-for-type (typeinfo)
   "Build a completion list from the TYPEINFO list, as returned by the
 Ionic.Cscomp.Utilities.GetTypeinfo function in the CscompShell. The list
 is used when performing completions on an instance of a given type.
@@ -1622,7 +1631,7 @@ The output looks like this:
         (fields  (caddr (cddr typeinfo)))
         modifiers)
 
-    (cscomp-log 2 "cscomp-build-clist-for-type: typename(%s)" tname)
+    (cscomp-log 3 "completion-list-for-type: typename(%s)" tname)
 
     (while props
       (let ((one-prop (car props) ) )
@@ -1694,14 +1703,14 @@ The output looks like this:
       (setq fields (cdr fields)))
 
 
-    (cscomp-log 3 "cscomp-build-clist-for-type: result: "
+    (cscomp-log 2 "completion-list-for-type: result: "
               (prin1-to-string result))
     ;;(print result (get-buffer "*Messages*"))
     result))
 
 
 
-(defun cscomp-build-clist-for-ctors (ctor-info)
+(defun cscomp-completion-list-for-ctors (ctor-info)
   "Build a completion list from the CTOR-INFO list, as returned by the
 Ionic.Cscomp.Utilities.GetConstructors function in the CscompShell. The list
 is used when performing completions on a constructor for a given type.
@@ -1730,12 +1739,10 @@ for use in a popup menu.
 
 "
   (let (result
-        (tname   (car ctor-info))
-        (ctors   (cadr (caddr ctor-info)))
-        ;;(methods (cadddr typeinfo))
-        )
+        (tname (car ctor-info))
+        (ctors (cadr (caddr ctor-info))))
 
-    (cscomp-log 2 "cscomp-build-clist-for-ctor: typename(%s)" tname)
+    (cscomp-log 2 "completion-list-for-ctors: typename(%s)" tname)
 
     (while ctors
       (let* ((one-ctor (car ctors))
@@ -1755,35 +1762,19 @@ for use in a popup menu.
                 "()" )))
         (setq result
               (append (list
-                       (list
-                        tname  ;; name of the ctor
-
-                        ;; description for this ctor
-                        (concat "(Constructor) "
-                                modifiers  ;; modifiers on this prop
-                                " "
-                                params
-                                )))
+                       (list tname  ;; name of the ctor
+                             ;; description for this ctor
+                             (concat "(Constructor) "
+                                     modifiers  ;; modifiers on this prop
+                                     " "
+                                     params
+                                     )))
                       result)))
       (setq ctors (cdr ctors)))
 
-    (cscomp-log 3 "cscomp-build-clist-for-ctors: result: "
-              (prin1-to-string result))
+    (cscomp-log 3 "completion-list-for-ctors: result: "
+                (prin1-to-string result))
     result))
-
-
-
-;; (defun cscomp-build-information-for-completion (lst)
-;;   (let ((result (concat (car (cdr lst)) " " (car lst) "(")))
-;;     (setq lst (cdr (cdr lst)))
-;;     (while lst
-;;       (setq result (concat result (car lst)))
-;;       (setq lst (cdr lst))
-;;       (if lst
-;;           (setq result (concat result ", "))))
-;;     (setq result (concat result ")"))
-;;     result))
-
 
 
 
@@ -1830,24 +1821,11 @@ for use in a popup menu.
              (string< e1 e2)))))
 
 
-;; (defun cscomp-sort-completion-list (lst)
-;;  ;;  "sort LST in place."
-;;   (sort lst
-;;         '(lambda (e1 e2)
-;;            (if (consp e1) ;; is the list elt a consp?
-;;                ;; yes, we're completing on a type. Sort on the car of that list
-;;                (string< (car e1) (car e2))
-;;              ;; no, we're completing on a namespace or local var.
-;;              ;; The element should be a string.  Sort on it directly.
-;;              (string< e1 e2)
-;;              ))))
-
-
 
 (defun cscomp-find-all-ns-completions (fragment lst &optional exact-match )
   "Find all completions for FRAGMENT in LST.  If EXACT-MATCH is true,
 then...?  LST is a simple list of strings, as obtained from
-`cscomp-build-clist-for-ns'.
+`cscomp-completion-list-for-ns'.
 "
   (let ((result nil))
     (while lst
@@ -1879,7 +1857,7 @@ FRAGMENT is a string containing the characters following the last
 dot.  Eg, if the user typed System.IO.Dir, then FRAGMENT would be
 \"Dir\".
 
-LST is a list obtained from `cscomp-build-clist-for-type'.
+LST is a list obtained from `cscomp-completion-list-for-type'.
 
 If STATIC is non-nil, then match only non-static props/fields/methods.
 Otherwise, match only static fields/props/methods.
@@ -1888,6 +1866,8 @@ If EXACT-MATCH is true, then only the completions that match the
 FRAGMENT exactly are returned.  Normally, EXACT-MATCH is not
 true, and in thi case, the completions that start with the
 FRAGMENT are returned.
+
+The result is...a simple list of strings.
 
 "
 
@@ -1922,7 +1902,7 @@ FRAGMENT are returned.
                              (string= fragment member-name)
                            (equal 0 (string-match fragment member-name))))))
 
-        (cscomp-log 3 "cscomp-find-all-type-completions, looking at %s %s"
+        (cscomp-log 4 "find-all-type-completions, looking at %s %s"
                   (prin1-to-string candidate)
                   (if is-match "MATCH" ""))
 
@@ -1931,15 +1911,12 @@ FRAGMENT are returned.
 
       (setq lst (cdr lst)))
 
-    (cscomp-log 3 "cscomp-find-all-type-completions, result: %s"
+    (cscomp-log 3 "find-all-type-completions, result: %s"
                 (prin1-to-string result))
       ;;(print result (get-buffer "*Messages*"))
 
     (setq cscomp-current-fragment fragment)
-    (cscomp-sort-completion-list result)
-    ))
-
-
+    (cscomp-sort-completion-list result)))
 
 
 
@@ -1966,57 +1943,86 @@ FRAGMENT are returned.
 
 
 (defun cscomp-map-primitive-type (type)
-"Maps the type to the expanded name of the  type, and returns that
-expanded name. For example, bool => System.Boolean
-If type is not a primitive type, the result is nil."
-  (if (member type (mapcar 'car cscomp-primitive-types))
-    (let ((result nil)
-          (lst cscomp-primitive-types)
-          item )
-    (while lst
-      (setq item (car lst))
-      (if (string= type (car item))
-          (and
-           (setq result (cadr item))
-           (setq lst nil))
-        ;else
-        (setq lst (cdr lst))))
-    result )
-    nil ))
+  "Maps the primitive type \"short name\" to the expanded name of
+the type, and returns that expanded name. For example, \"bool\"
+maps to \"System.Boolean\" .
 
-
-
-
-
-(defun cscomp-find-completion-for-split (split opoint beginning-of-token1)
-
-  "SPLIT is a list of (TOKEN1 TOKEN2), as returned from
-`cscomp-split-by-dots'.
-
-OPOINT is the point at which the user has requested completion.
-
-If the user has typed something followed by a dot, followed by an
-optional fragment after the dot, then TOKEN1 may be a C#
-namespace or class, or a variable name, or explicitly, \"this\" .
-TOKEN2 may be the empty string, or a fragment of a name.  The
-goal is to find a completion for these two things.
-
-Example: if SPLIT is (\"System\" \"Diag\") then the returned
-completion list will contain \"Diagnostics\".
-
-If the completion being requested is on a type, OPOINT is used to
-determine whether to present type names, or actual constructors.
-Do the latter if the new keyword precedes the
-thing-to-be-completed.
-
+If type is not a primitive type, the result is nil.
 "
 
-  (cscomp-log 2 "cscomp-find-completion-for-split: A: '%s' '%s'"
+  (if (member type (mapcar 'car cscomp-primitive-types))
+      (let ((result nil)
+            (lst cscomp-primitive-types)
+            item )
+        (while lst
+          (setq item (car lst))
+          (if (string= type (car item))
+              (and
+               (setq result (cadr item))
+               (setq lst nil))
+            ;;else
+            (setq lst (cdr lst))))
+        result )
+    ;;else
+    nil ))
+
+(defun cscomp-find-completion-for-split (split beginning-of-token1 &optional reuse-results)
+"Find the possible completions for a given string, which has
+been previously parsed. This is where the main work of the module
+is performed.
+
+SPLIT is a list of (TOKEN1 TOKEN2), as returned from
+`cscomp-split-by-dots'.
+
+If the user has typed something followed by a dot, optionally
+followed by an fragment after the dot, and then asked for
+completions via `cscomp-complete-at-point-menu' or
+`cscomp-complete-at-point', then this function gets invoked, with
+TOKEN1 containing what precedes the dot, and TOKEN2 containing
+what follows the dot. For example, TOKEN1 may be a C# namespace,
+a class name, a variable name (local variable or a method or
+property or field name on the current class), or explicitly,
+\"this\" .  TOKEN2 may be the empty string, or a fragment of a
+name, corresponding to a method property or field belonging to
+the thing represented by the first token.  The goal is to find a
+completion for the second token, given the context of the first
+token.
+
+The return value is a list. For example, if the user types the
+name of an int variable, then a dot, then asks for completions,
+the return value is:
+
+  ((\"CompareTo\" \"(Method) sealed public  (System.Int32 value)  returns System.Int32\")
+   (\"CompareTo\" \"(Method) sealed public  (System.Object value)  returns System.Int32\")
+   (\"Equals\" \"(Method) sealed public  (System.Int32 obj)  returns System.Boolean\")
+   (\"Equals\" \"(Method) public  (System.Object obj)  returns System.Boolean\")
+   (\"GetHashCode\" \"(Method) public  ()  returns System.Int32\")
+   (\"GetType\" \"(Method) public  ()  returns System.Type\")
+   (\"GetTypeCode\" \"(Method) sealed public  ()  returns System.TypeCode\")
+   (\"ToString\" \"(Method) sealed public  (System.String format, System.IFormatProvider provider)  returns System.String\")
+   (\"ToString\" \"(Method) sealed public  (System.IFormatProvider provider)  returns System.String\")
+   (\"ToString\" \"(Method) public  ()  returns System.String\")
+   (\"ToString\" \"(Method) public  (System.String format)  returns System.String\"))
+
+
+Another Example: if the user types System.Diag and asks for completions,
+then SPLIT will be (\"System\" \"Diag\") and the returned completion
+list will contain \"Diagnostics\".
+
+If the user has simply typed a string, and asked for completions,
+then TOKEN1 will be nil and TOKEN2 will contain the string.
+This fn then finds possible completions for that single string.
+
+"
+  (cscomp-log 2 "find-completion-for-split: A: '%s' '%s'"
             (car split) (cadr split))
 
-  ;;
-  ;; p1 is what precedes the final dot, p2 is what follows.
-  ;; When there is no dot, p1 is nil.
+
+  ;; In most cases, p1 is what precedes the final dot, p2 is what
+  ;; follows.  When there is no dot, p1 is nil.  when this is an
+  ;; invocation of a constructor, even if the typename contains a dot,
+  ;; then p1 is nil and p2 contains "new ZZZ" where ZZZ is the typename,
+  ;; with any qualifying namespace.
   ;;
   ;;
   ;; Possibilities:
@@ -2034,242 +2040,330 @@ thing-to-be-completed.
   ;;
   ;; 4. p1 is nil, and p2 is the partial name of a local variable.
   ;;    In this case, complete with the name of a local field, prop, or method
-  ;;    that matches
+  ;;    that matches.
   ;;
-  ;; 5. p1 is the name of a type, like System.Console, and p2 is something.
+  ;; 5. p1 is nil, and p2 is "new ZZZ", where ZZZ is the partial name of a type.
+  ;;    In this case, complete with the name of a type or namespace
+  ;;    that matches the ZZZ portion of p2.
+  ;;
+  ;; 6. p1 is the name of a type, like System.Console, and p2 is something.
   ;;    In this case, complete with static field, prop, and methods on
   ;;    that type.
   ;;
-  ;; 6. p1 is the name of a primitive type, like byte or int.
+  ;; 7. p1 is the name of a primitive type, like byte or int.
   ;;    In this case, replace it with the expanded type, and complete as
   ;;    in case 5.
   ;;
-  ;; 7. others?
+  ;; 8. others?
   ;;
   ;; =============================================
   ;;
   ;; There are two sources for completion possibilities.  For known types,
   ;; the possibilities come from introspection, done through the CscompShell.
   ;; So, for System.Xml.XmlDocument, we send a message to the shell and get back
-  ;; all the known fields/props/methods of that .NET type.
+  ;; all the known fields/props/methods of that .NET type. For System.Xml.X, we
+  ;; send a message to the CscompShell and get back a list of types and namespaces
+  ;; that match.
   ;;
   ;; For unknown types - currently the only "unknown" qualifier is "this." -
-  ;; use the parse results from semantic to find fields/props/methods.
+  ;; use the source code analysis results to find fields/props/methods.
   ;;
 
-  (let* ((p1 (car split))
-         (p2 (cadr split))
+  (let* ((p1 (car split))  ;; part 1 - usually what precedes the dot
+         (p2 (cadr split)) ;; part 2 - what comes after the dot (if anything)
          (is-primitive    (cscomp-map-primitive-type p1))
-         (is-local-var    (cscomp-qualify-local-var p1 opoint))
-         (is-instance-var (cscomp-qualify-instance-var p1))
-         (is-func         (string-match "($" p2))  ;; open-paren
-         (is-ctor         (and                     ;; constructor
-                           (null p1)
-                           (string-match "^\\([ \t\n\r\f\v]*new[ \t\n\r\f\v]+\\)\\(.+\\)$" p2)))
-         p1-flavor
-         p1-type
-         is-static
-         r)
-
-    (if is-ctor
-        ;; reset the beginning marker
-        (progn
-          (set-marker cscomp-current-beginning
-                      (+ cscomp-current-beginning
-                         (match-end 1)))
-
-          ;;(string-match "^\\([ \t]*new[ \t]+\\)\\(.+\\)$" p2)
-          ;; rely on most recent string-match context being for is-ctor
-          (setq p2 (substring p2 (match-beginning 2)))))
-
-
+         (is-local-var    (and (not is-primitive) (cscomp-qualify-local-var p1)))
+         (is-instance-var (and (not is-primitive)
+                               (not is-local-var)
+                               (cscomp-qualify-instance-var p1)))
+         (is-func         (string-match "($" p2))  ;; p2 ends in open-paren
+         (is-ctor         (and                     ;; constructor of bare type?
+                            (null p1)
+                            (eq 0 (string-match cscomp--new-regexp p2))))
+         cflavor p1-type is-static r)
 
 
     ;; figure out what we're completing on.
 
     (cond
+     (is-ctor
+      (cscomp-log 3 "find-completion-for-split: is-ctor")
+      ;; user may be asking for completions on:
+      ;;    - a namespace name
+      ;;    - a type name within a namespace
+      ;;    - a constructor.  This is sort of like a type name except,
+      ;;      the p2 token ends in an open-paren.
+      (setq cflavor (if is-func "ctors" "namespace")
+            p2 (substring p2 (match-beginning 2)) ;; trim the "new"
+            split (cscomp-split-by-dots p2)
+            p1 (car split)
+            p2 (cadr split)))
+
      (is-primitive
-      ;; A static method/prop/field on a byte, int, char, etc.
-      (cscomp-log 3 "cscomp-find-completion-for-split: is-primitive")
-      (setq p1-flavor "type"
+      ;; A method/prop/field on a byte, int, char, etc.
+      (cscomp-log 3 "find-completion-for-split: is-primitive")
+      (setq cflavor "type"
             p1-type is-primitive
             is-static t)) ;; get static methods/props/fields on System.Byte, etc
 
      (is-local-var
-      ;; method, property, or field on  a local variable.
-      (cscomp-log 3 "cscomp-find-completion-for-split: is-local-var")
-      (setq p1-flavor "type"
+      ;; looking for a completion (method, property, or field) on a local variable.
+      (cscomp-log 3 "find-completion-for-split: is-local-var %s" (prin1-to-string is-local-var))
+      (setq cflavor "type"
             p1-type (or (cscomp-map-primitive-type (car is-local-var))
                         (car is-local-var))))
 
      (is-instance-var
       ;; it's an instance variable.
-      (cscomp-log 3 "cscomp-find-completion-for-split: is-instance-var")
-      (setq p1-flavor "type"
+      (cscomp-log 3 "find-completion-for-split: is-instance-var")
+      (setq cflavor "type"
             p1-type (or (cscomp-map-primitive-type (car is-instance-var))
                         (car is-instance-var))))
 
      ((string= "this" p1)
       ;; complete on instance field/prop/method
-      (setq p1-flavor "this"))
+      (setq cflavor "this"))
 
+     ;;; this can never happen.
+     ;;;
+     ;; ((and (null p1) ;; no prefix.
+     ;;       is-func) ;; open paren is the last char, eg  "new TimeSpan(?"
+     ;;  (setq r (cscomp-qualify-name (substring p2 0 -1)))
+     ;;  (cond ((listp r)
+     ;;         (if (string= (car r) "type")
+     ;;             (setq cflavor "namespace" ;; TODO: verify correctness
+     ;;                   p1-type (and
+     ;;                            (string-match "^\\(.+\\)\\..+$" (cadr r))
+     ;;                            (match-string 1 (cadr r)))
+     ;;                   p1 p1-type)
+     ;;           (setq cflavor "local")))
+     ;;        (t
+     ;;         (setq cflavor "local"))))
 
-     ((and (null p1) ;; no prefix.
-           is-func) ;; open paren is the last char, eg  "new TimeSpan(?"
-      (setq r (cscomp-qualify-name (substring p2 0 -1)))
-      (cond ((listp r)
-             (if (string= (car r) "type")
-                 (setq p1-flavor "namespace"
-                       p1-type (and
-                                (string-match "^\\(.+\\)\\..+$" (cadr r))
-                                (match-string 1 (cadr r)))
-                       p1 p1-type)
-               (setq p1-flavor "local")))
-            (t
-             (setq p1-flavor "local"))))
-
-
-     (is-ctor
-      (setq p1-flavor "mixed")
-      (if (null p1)
-          (setq p1 p2)))
-
-
-;;     ((and (null p1)   ;; no prefix.
-;;        (t
-;;         ;; It's not a ctor or static method.
-;;         ;; Maybe it's completion on a known typename or namespace.
-;;         (setq p1-flavor "mixed"))))
+     ((null p1) ;; no prefix
+      (cond
+       (is-func
+        (error "not sure what to do here."))
+       (t
+        (setq cflavor (if (or (not p2) (string= p2 ""))
+                          "nothing" ;; nothing to do
+                        "mixed")))))
 
      (t
       (setq r (cscomp-qualify-name p1))
-      (cond ((listp r)
-             (progn
-               (setq p1-flavor (car r))
-
-               (if (string= p1-flavor "unknown")
-                 ;; assume p1 is an expression.  Try to infer it's type.
-                   (let ((inferred-type
-                         (cscomp-get-var-type-given-decl (concat "var x = " p1 ";")
-                                                          0
-                                                          "NoMatter"
-                                                          ""
-                                                          "")))
-                         (if (string= (car inferred-type) "type")
-                             (setq p1-type (cadr inferred-type)
-                                   p1-flavor "type")))
-
-
-               ;; name qualification was successful
-               (setq p1-type p1
-                     is-static t)))) ;; if it's a type, we want static f/m/p only
-
-            (t
-             (error "qualify-name returns invalid results.")))))
-
-
-
-    (cscomp-log 2 "cscomp-find-completion-for-split: B: p1(%s,%s) p2(%s) flav(%s)"
-              p1 (if p1 p1-type "--")  (prin1-to-string p2) p1-flavor)
-
-
-    ;; now collect completion options depending on the "flavor" of p1:
-    ;; type == completing on m/f/p for a type, possibly with a fragment.
-    ;;         p1 holds the typename from the buffer, could be partially qualified.
-    ;;         p1-type holds the fully qualified type name. p2 holds the fragment.
-    ;; namespace == completing on a  namespace.  The result can be a child
-    ;;         namespace or a type within a namespace.
-    ;; this == completing on a m/f/p of the local instance
-    ;; local == completing on a m/f/p of local variables or method args
-    ;; mixed == could be either a typename or a namespace name. This is
-    ;;         the case when p1 is partial, and there is no dot.
-
-
-    (cond
-
-     ((string= p1-flavor "type")
-      (let* ((type-info (cscomp-get-typeinfo p1-type))
-            (full-list (cscomp-build-clist-for-type type-info)))
       (cond
+       ((listp r)
+        (progn
+          (setq cflavor (car r))
 
-       (is-func ;; it's a specific function on a type. Get the list of overloads.
-          (setq cscomp-current-list
-                (cscomp-find-all-type-completions (substring p2 0 -1) full-list is-static))
-          (cscomp-log 3 "cscomp-find-completion-for-split: [%s]"
-                    (prin1-to-string cscomp-current-list)))
-       (t ;; could be anything: method, prop, field. Build the list.
-          (setq cscomp-current-list
-                (cscomp-find-all-type-completions p2 full-list is-static))
+          (if (string= cflavor "unknown")
+              ;; assume p1 is an expression.  Try to infer the type.
+              (let ((inferred-type-info
+                     (cscomp-infer-type-of-expression p1)))
 
-          (cscomp-log 3 "cscomp-find-completion-for-split: [%s]"
-                    (prin1-to-string cscomp-current-list))))))
+                (if inferred-type-info
+                    (setq p1-type
+                          (or (cscomp-map-primitive-type (car inferred-type-info))
+                              (car inferred-type-info))
+                          cflavor "type")))
+
+            ;; name qualification was successful
+            (setq p1-type p1
+                  is-static t)))) ;; if it's a type, we want static f/m/p only
+
+       (t
+        (error "qualify-name returns invalid results.")))))
 
 
-     ((string= p1-flavor "namespace")
-      (cscomp-log 2 "cscomp-find-completion-for-split, is-func(%s) bot(%d)"
-                is-func beginning-of-token1)
-      (cond
-       (is-func ;; it's a function on a type - see if a constructor
+    (cscomp-log 2 "find-completion-for-split: B: p1(%s,%s) p2(%s) flav(%s)"
+              p1 (if p1 p1-type "--")  (prin1-to-string p2) cflavor)
+
+    (if (and reuse-results
+             cscomp-current-list
+             (and cscomp-current-flavor (string= cflavor cscomp-current-flavor))
+             (and cscomp-current-p1 (string= p1 cscomp-current-p1))
+             (and cscomp-current-p2 (cheeso-string-starts-with p2 cscomp-current-p2)))
+        (progn
+          (setq cscomp-current-p2 p2)
+          (cscomp-log 2 "find-completion-for-split: re-using previous result (%s %s)"
+                      p1 p2)
+          cscomp-current-list)
+
+      (progn
+        ;; store these for future use
+        (setq cscomp-current-p1 p1
+              cscomp-current-p2 p2
+              cscomp-current-flavor cflavor)
+
+        ;; now collect completion options depending on the "flavor" of
+        ;; completion request:
+        ;;
+        ;; type - completing on m/f/p for a type, possibly with a fragment.
+        ;;   p1 holds the typename from the buffer, could be partially
+        ;;   qualified, in other words it might include a namespace.
+        ;;   p1-type holds the fully qualified type name. p2 holds the
+        ;;   fragment that will be completed.
+        ;;
+        ;; namespace - completing on a namespace.  The result can be a child
+        ;;   namespace or a type within a namespace.  When this is the case,
+        ;;   p1 holds the qualifying namespace if any, and p2 holds the type
+        ;;   or ns name fragment to complete on.
+        ;;
+        ;; ctors - completing on type constructors.  p1 holds any qualifying
+        ;;   ns, and p2 holds the typename (or ctor name, which is the same
+        ;;   thing).
+        ;;
+        ;; this - completing on a m/f/p of the local instance
+        ;;
+        ;; local - completing on a m/f/p of local variables or method args
+        ;;
+
+        ;; Reset the completion list - the thing that is used
+        ;; when the "no menu" version of complete-at-pont is used.
+        (setq cscomp-current-list nil)
+
+        (cscomp-log 2 "find-completion-for-split, flav(%s)" cflavor)
+
         (cond
-         ((save-excursion
-            (goto-char beginning-of-token1)
-            (re-search-backward "\\<new[ \t\n\f\v]+" nil t))
-          ;; it's a constructor
-          (let* ((type-name (concat p1 "." (substring p2 0 -1)))
+
+         ((string= cflavor "type")
+          (let* ((type-info (cscomp-get-typeinfo p1-type))
+                 (full-list (cscomp-completion-list-for-type type-info)))
+            (cond
+
+             (is-func ;; it's a specific function on a type. Get the list of overloads.
+              (setq cscomp-current-list
+                    (cscomp-find-all-type-completions (substring p2 0 -1) full-list is-static))
+              (cscomp-log 3 "find-completion-for-split: [%s]"
+                          (prin1-to-string cscomp-current-list)))
+             (t ;; could be anything: method, prop, field. Build the list.
+              (setq cscomp-current-list
+                    (cscomp-find-all-type-completions p2 full-list is-static))
+
+              (cscomp-log 3 "find-completion-for-split: [%s]"
+                          (prin1-to-string cscomp-current-list))))))
+
+
+         ((string= cflavor "namespace")
+          (cscomp-log 2 "find-completion-for-split is-func(%s) bot(%d)"
+                      is-func beginning-of-token1)
+
+          ;;(if is-ctor
+              ;; provide type names, or child namespaces
+              (let ((namespaces-to-scan
+                     (if (null p1)
+                         ;; search for completions in any of the implicit
+                         ;; namespaces: any imported via using clauses, plus
+                         ;; the ambient namespace.
+                         ;;
+                         ;; TODO: add types and child ns for the ambient
+                         ;; namespace.
+                         (cscomp-referenced-assemblies)
+                       ;; else, search only in the explicitly
+                       ;; provided ns.
+                       (list p1))))
+
+                (loop
+                 for x in namespaces-to-scan do
+                 (progn
+                   (cscomp-load-one-assembly x)
+                   (let* ((nsinfo
+                           (cscomp-get-completions-for-namespace x))
+                          (full-list
+                           (cscomp-completion-list-for-ns nsinfo)))
+
+                     (setq cscomp-current-list
+                           (append cscomp-current-list
+                                   (cscomp-find-all-ns-completions p2 full-list))))))
+
+                (cscomp-log 3 "ctors: [%s]"
+                            (prin1-to-string cscomp-current-list)))
+
+              ;;(error "find-completion-for-split: bad state"))
+            )
+
+
+         ((string= cflavor "ctors")
+          (let* ((short-name (substring p2 0 -1))
+                 (type-name (if (stringp p1)
+                                (concat p1 "." short-name)
+                              (cscomp-qualify-type-name short-name)))
                  (ctor-info (cscomp-get-type-ctors type-name))
-                 (full-list (cscomp-build-clist-for-ctors ctor-info)))
+                 (full-list (cscomp-completion-list-for-ctors ctor-info)))
 
             ;; present all constructors
             (setq cscomp-current-list full-list)))
 
-         (t
-          ;; not a constructor.  Must be some other function.
-          (error "completion on static functions is not (yet?) supported."))))
 
-       (t ;; complete on a type name, or child namespace
-        (let* ((type-list (cscomp-get-completions-for-namespace p1))
-               (full-list (cscomp-build-clist-for-ns type-list)))
+         ;; (cond
+         ;;  (is-func ;; it's a function on a type - see if a constructor
+         ;;   (cond
+         ;;    ((save-excursion
+         ;;       (goto-char beginning-of-token1)
+         ;;       (re-search-backward "\\<new[ \t\n\f\v]+" nil t))
+         ;;     ;; it's a constructor
+         ;;     (let* ((type-name (concat p1 "." (substring p2 0 -1)))
+         ;;            (ctor-info (cscomp-get-type-ctors type-name))
+         ;;            (full-list (cscomp-completion-list-for-ctors ctor-info)))
+         ;;
+         ;;       ;; present all constructors
+         ;;       (setq cscomp-current-list full-list)))
+         ;;
+         ;;    (t
+         ;;     ;; not a constructor.  Must be some other function.
+         ;;     (error "completion on static functions is not (yet?) supported."))))
+         ;;
+         ;;  (t
 
-          (setq cscomp-current-list
-                (cscomp-find-all-ns-completions p2 full-list))
-          (cscomp-log 3 "cscomp-find-completion-for-split: [%s]"
-                    (prin1-to-string cscomp-current-list))))))
+         ;; $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-
-     ((string= p1-flavor "local")
-      (let ((instance-vars (cscomp-matching-instance-vars p2))
-            (locals (cscomp-matching-local-vars p2)))
-        (setq cscomp-current-list
+         ((string= cflavor "local")
+          (let ((instance-vars (cscomp-matching-instance-vars p2))
+                (locals (cscomp-matching-local-vars p2)))
+            (setq cscomp-current-list
                   (nconc instance-vars locals))))
 
-     ((string= p1-flavor "this")
-        (setq cscomp-current-list
-              (cscomp-matching-instance-members p2)))
-
-
-     ((string= p1-flavor "mixed")
-      (setq r (cscomp-get-matches p2))
-      (if (listp r)
+         ((string= cflavor "this")
           (setq cscomp-current-list
-                (mapcar '(lambda (listitem)
-                           (list
-                            ;; the thing to insert
-                            (if (and p1 (string-match (concat "^" p1)
-                                                      (cadr listitem)))
-                                (cadr listitem)
-                              (string-match (concat "\\.\\(" p2 ".*\\)") (cadr listitem))
-                              (match-string 1 (cadr listitem)))
+                (cscomp-matching-instance-members p2)))
 
-                            ;; the description that will be visible in the menu
-                            (concat (cadr listitem) " | (" (car listitem) ")")
-                            ))
-                        r))
-        (error "Cannot complete.")))
+         ((string= cflavor "mixed")
+          (setq r (cscomp-get-all-known-matches p2))
+          (if (listp r)
+              (setq cscomp-current-list
+                    (mapcar '(lambda (listitem)
+                               (list
+                                ;; the thing to return when this menu item is selected
+                                (cond
+                                 ((string= "type" (car listitem))
+                                  (if (and p1 (string-match (concat "^" p1)
+                                                            (cadr listitem)))
+                                      (cadr listitem)
+                                    (string-match (concat "\\.\\(" p2 ".*\\)") (cadr listitem))
+                                    (match-string 1 (cadr listitem))))
 
-     (t
-      (cscomp-log 1 "cscomp-find-completion-for-split, unknown flavor (%s)"
-                p1-flavor)
-      (error "Cannot complete.")))))
+                                 (t
+                                  ;;(string-match (concat "\\.\\(" p2 ".*\\)") (cadr listitem))
+                                  (string-match (concat "^\\(" p2 ".*\\)") (cadr listitem))
+                                  (match-string 1 (cadr listitem))))
+
+                                ;; the description that will be visible in the menu
+                                ;; for this menu item.
+                                (if (eq (length listitem) 3)
+                                    (nth 2 listitem)
+                                  (concat (cadr listitem) " | (" (car listitem) ")"))))
+                            r))
+
+            (error "Cannot complete.")))
+
+         ((string= cflavor "nothing")
+          (message "Nothing to complete."))
+
+         (t
+          (cscomp-log 1 "find-completion-for-split, unknown flavor (%s)"
+                      cflavor)
+          (error "Cannot complete.")))))))
+
 
 
 
@@ -2357,8 +2451,8 @@ to that function.
 (defun cscomp-get-menu-item-for-clist-item (clist-item)
   "Produce a menu item for the item on the completion list.
 
-The incoming CLIST-ITEM is either a (NAME DESCRIP) pair, or
-a simple NAME.
+The incoming CLIST-ITEM is one item from the completion list; it
+is either a (NAME DESCRIP) pair, or a simple NAME.
 
 The return value is a menu item - a thing suitable for use within
 a popup menu.  It is a 2-member cons cell, the first member is a
@@ -2372,11 +2466,11 @@ string is inserted. If the return value is a list, as with
 ya-snippet, the list is eval'd and the result is inserted.
 
 This fn simply transforms the simple (NAME DESCRIP) pair into
-potentially something more interesting.
+something suitable for use within a menu.
 
 "
   (if (consp clist-item)
-      (let ((meth-or-prop-name (car clist-item))
+      (let ((mpfv-name (car clist-item)) ;; name of method, prop, field, variable
             (descrip (cscomp-fix-generics-in-descrip-line (cadr clist-item))))
 
         (cond
@@ -2395,13 +2489,13 @@ potentially something more interesting.
                                                         (match-beginning 1)
                                                         (match-end 1))
                                              "Constructor")
-                                    (if (string-match ".+\\." meth-or-prop-name)
-                                        (substring meth-or-prop-name
+                                    (if (string-match ".+\\." mpfv-name)
+                                        (substring mpfv-name
                                                         (match-end 0))
-                                      meth-or-prop-name)
-                                  meth-or-prop-name)))
+                                      mpfv-name)
+                                  mpfv-name)))
 
-            (cons (concat meth-or-prop-name " | " descrip)
+            (cons (concat mpfv-name " | " descrip)
                   (if (fboundp 'yas/expand-snippet)
                       (cscomp-yasnippet-for-arglist name-to-insert arglist)
                     (concat name-to-insert arglist)))))
@@ -2409,8 +2503,8 @@ potentially something more interesting.
          (t
           ;; The completion is not a method - just
           ;; insert the name of the field/prop as a string.
-          (cons (concat meth-or-prop-name " | " descrip)
-                meth-or-prop-name))))
+          (cons (concat mpfv-name " | " descrip)
+                mpfv-name))))
 
     (cons clist-item clist-item)))
 
@@ -2433,7 +2527,8 @@ in `cscomp-current-list' .
   ;; is the name of the method/prop/field, and DESCRIP is a string
   ;; description.
   ;;
-  ;; For a namespace, the clist is a list of strings.
+  ;; For a namespace, the clist is a list of strings, names
+  ;; of types or child namespaces. (I think this is still true)
   ;;
   ;; In each case we want to sort the list alphabetically.
   ;;
@@ -2441,14 +2536,13 @@ in `cscomp-current-list' .
   (let* ((menu-map (cons "ignored"
                          (mapcar 'cscomp-get-menu-item-for-clist-item
                                  cscomp-current-list)))
-         (menu-result (cscomp-popup-menu
+         (menu-result (cscomp--popup-menu
                        (list (or title "Completions...") menu-map))))
 
-    (cscomp-log 1 "menu-result:  %s" (prin1-to-string menu-result))
+    (cscomp-log 1 "menu-result: %s" (prin1-to-string menu-result))
 
     ;; now, handle the selection
     (cond
-
      ((consp menu-result)
       (delete-region cscomp-current-beginning cscomp-current-end)
       (eval menu-result) ;; maybe a snippet expansion
@@ -2483,6 +2577,7 @@ in `cscomp-current-list' .
       (selected-frame)
     (selected-window)))
 
+
 (defun cscomp-current-row ()
   "Return current row number in current frame."
   (if (fboundp 'window-edges)
@@ -2497,10 +2592,14 @@ in `cscomp-current-list' .
         (ret        nil))
     (if (car (cdr mouse-pos))
         (progn
+          ;; set mouse position
           (set-mouse-position (cscomp-selected-frame) (current-column) (cscomp-current-row))
+          ;; inquire mouse position
           (setq pixel-pos (mouse-pixel-position))
+          ;; restore mouse position
           (set-mouse-position (car mouse-pos) (car (cdr mouse-pos)) (cdr (cdr mouse-pos)))
-          (setq ret (list (car (cdr pixel-pos)) (cdr (cdr pixel-pos)))))
+
+          (setq ret (list (+ (cadr pixel-pos) 40) (cdr (cdr pixel-pos)))))
       (progn
         (setq ret '(0 0))))
     (cscomp-log 3 "mouse pos is %s" ret)
@@ -2533,21 +2632,21 @@ DX and DY specify optional offsets from the top left of the glyph."
     (list 'mouse-1 pos)))
 
 
-(defun cscomp-popup-menu (menu-data)
+(defun cscomp--popup-menu (menu-data)
   "Pop up the completion menu at point, using the data MENU-DATA.
 MENU-DATA is a list of error and warning messages returned by
 `cscomp-make-err-menu-data'."
   (if (featurep 'xemacs)
-      (let* ((pos         (cscomp-get-point-pixel-pos))
-             (x-pos       (nth 0 pos))
-             (y-pos       (nth 1 pos))
-             (fake-event-props  '(button 1 x 1 y 1)))
-        (setq fake-event-props (plist-put fake-event-props 'x x-pos))
-        (setq fake-event-props (plist-put fake-event-props 'y y-pos))
+      (let* ((pos          (cscomp-get-point-pixel-pos))
+             (x-pos        (nth 0 pos))
+             (y-pos        (nth 1 pos))
+             (event-props  '(button 1 x 1 y 1)))
+        (setq event-props (plist-put event-props 'x x-pos))
+        (setq event-props (plist-put event-props 'y y-pos))
         (popup-menu (cscomp-make-xemacs-menu menu-data)
-                    (make-event 'button-press fake-event-props)))
+                    (make-event 'button-press event-props)))
     (x-popup-menu (if (eval-when-compile (fboundp 'posn-at-point))
-                      (cscomp-posn-at-point-as-event nil nil 2 20)
+                      (cscomp-posn-at-point-as-event nil nil 42 20)
                     (list (cscomp-get-point-pixel-pos) (selected-window)))
                    menu-data)))
 
@@ -2579,7 +2678,7 @@ deletes the text between the markers, before inserting the completion.
 
 "
   (let (elem)
-    (setq cscomp-current-list-index (1+ cscomp-current-list-index))
+    (incf cscomp-current-list-index)
     (cscomp-log 3 "list index: %d" cscomp-current-list-index)
     (if (>= cscomp-current-list-index (length cscomp-current-list))
         (setq cscomp-current-list-index 0)) ;; rollover
@@ -2588,35 +2687,30 @@ deletes the text between the markers, before inserting the completion.
     (cscomp-log 3 "complete-cycle-candidates: looking at %s" (prin1-to-string elem))
 
     (cond
+
      ((listp elem)
-      (if (car elem)
-          (let ((thing-to-insert
-                 (car elem))
-                ;;(substring (car elem) (length cscomp-current-fragment)))
-                )
-            (delete-region cscomp-current-beginning cscomp-current-end)
-            (insert thing-to-insert)
-            (set-marker cscomp-current-end
-                        (+ (marker-position
-                            cscomp-current-beginning) (length thing-to-insert)))
-            ;; display the description of the completioni n the minibuffer
-            (message "cscomp: %s" (cadr elem)))
-        (cscomp-log 1 (format "No completion at this point!(cycle)"))))
+      (let ((thing-to-insert (car elem)))
+        (if thing-to-insert
+            (progn
+              (delete-region cscomp-current-beginning cscomp-current-end)
+              (insert thing-to-insert)
+              (set-marker cscomp-current-end
+                          (+ (marker-position
+                              cscomp-current-beginning) (length thing-to-insert)))
+              ;; display the description of the completioni n the minibuffer
+              (message "cscomp: %s" (cadr elem)))
+
+        (cscomp-log 1 "No completion at this point! (cycle)"))))
 
      ;; elem is an atom
      (t
-      (let ((thing-to-insert
-             elem)
-            ;;(substring elem (length cscomp-current-fragment)))
-            )
+      (let ((thing-to-insert elem))
         (delete-region cscomp-current-beginning cscomp-current-end)
         (insert thing-to-insert)
         (set-marker cscomp-current-end
                     (+ (marker-position cscomp-current-beginning) (length thing-to-insert) ))
         ;; display the description of the completioni n the minibuffer
-        (message "cscomp: %s" elem)))
-     )))
-
+        (message "cscomp: %s" elem))))))
 
 
 
@@ -2674,20 +2768,9 @@ that lets you select the desired completion from a popup menu.
 
         (if (not (null split))
             (progn
-              ;; set markers
-              (cscomp-log 1 "complete-at-point: reset begin,end to (%d,%d)"
-                        (- (point) (length (cadr split)))
-                        (point))
-
-              ;; beginning: right after the dot (if there is one)
-              (set-marker cscomp-current-beginning
-                          (- (point) (length (cadr split))))
-
-              (set-marker cscomp-current-end (point))
-              (cscomp-find-completion-for-split split (point) (car parse-result))
+              (cscomp-find-completion-for-split split (car parse-result))
               (setq cscomp-current-list-index -1)
               (cscomp-cycle-candidates)))))))
-
 
 
 
@@ -2697,36 +2780,32 @@ on a type or instance, the menu items are the field, property and method
 names; when completing on a namespace, the menu items are child namespaces
 or types.
 
-When the user makes a  selection from the menu, the selected item is
-inserted at point.  In the case of a method with parameters, the inserted
-thing is a parameterized snippet, a template that can then be filled in
-by the user.
+When the user makes a selection from the menu, the selected item
+is inserted at point. In the case of a method with parameters,
+and when yasnippet.el is available (see
+http://code.google.com/p/yasnippet/), the inserted thing is a
+parameterized snippet, a template that can then be filled in by
+the user.  If yasnippet is not available, then the user's menu
+choice is just inserted into the buffer as static text.
 
 See `cscomp-complete-at-point' for an alternative to this function that
-lets you cycle through the potential completions at point.
+lets you cycle through the potential completions at point, with each
+completion appearing in the buffer in turn.
 
 "
   (interactive)
   (let* ((parse-result (cscomp-parse-csharp-expression-before-point))
          (split (and parse-result (cadr parse-result))))
 
-    ;; Reset the completion list - the thing that is used
-    ;; when the "no menu" version of complete-at-pont is used.
-    (setq cscomp-current-list nil)
-
     (if (not (null split))
         (progn
-          ;; set markers
-          (set-marker cscomp-current-beginning (- (point) (length (cadr split))))
-          (set-marker cscomp-current-end (point))
-
-          (cscomp-find-completion-for-split split (point) (car parse-result))
+          (cscomp-find-completion-for-split split (car parse-result))
 
           (if cscomp-current-list
-              (let* ((title  (if (car split)
-                                 (concat (car split) "."
-                                         (cadr split) "...")
-                               (concat (cadr split) "...")))
+              (let* ((title (if (car split)
+                                (concat (car split) "."
+                                        (cadr split) "...")
+                              (concat (cadr split) "...")))
                      (selection (cscomp-popup-completion-menu title)))
                 (if (and selection
                          (not (string= selection "")))
@@ -2740,55 +2819,83 @@ lets you cycle through the potential completions at point.
 
 
 
-;; ;; =======================================================
-;; ;; Adding a new semantic tag for "namespace".
-;; ;;
-;; ;; This turned out to be much harder that it should be.
-;; ;;
-;; ;; Apparently there are special handling for tags of type 'type,
-;; ;; So, for now, punt on doing it this way.
-;; ;;
-;; ;; =======================================================
-;; ;;
-;; (defsubst semantic-tag-new-namespace (name members &rest attributes)
-;;   "Create a semantic tag of class 'namespace.
-;; NAME is the name of this namespace.
-;; MEMBERS is a list of strings or semantic tags representing the
-;; elements that are contained within the namespace.
-;; ATTRIBUTES is a list of additional attributes belonging to this tag."
-;;   (apply 'semantic-tag name 'namespace
-;;          :members members
-;;          attributes))
-;;
-;;
-;;
-;; ;; We want this:
-;; ;;
-;; ;; (defun semantic-tag-components-default (tag)
-;; ;;   "Return a list of components for TAG.
-;; ;; Perform the described task in `semantic-tag-components'."
-;; ;;   (cond ((semantic-tag-of-class-p tag 'type)
-;; ;;          (semantic-tag-type-members tag))
-;; ;;         ((semantic-tag-of-class-p tag 'namespace)
-;; ;;          (semantic-tag-type-members tag))
-;; ;;         ((semantic-tag-of-class-p tag 'function)
-;; ;;          (semantic-tag-function-arguments tag))
-;; ;;         (t nil)))
-;;
-;; ;; we'll settle for this:
-;;
-;; (defadvice semantic-tag-components-default (after
-;;                                             cscomp-advice-1
-;;                                             (tag)
-;;                                             activate compile)
-;;
-;;   (cond ((semantic-tag-of-class-p tag 'namespace)
-;;          (semantic-tag-type-members tag))
-;;         (t ad-return-value)))
+;; ========================================================================
+;; integration with Matsuyama's auto-complete.el
 
+(defun cscomp-completions-at-point ()
+  "Generates completions of field, prop or method names if the
+thing being completed is a type or instance, or on namespace
+members - child namespaces or types - if the thing being
+completed is a namespace.
+
+The result is a list of strings.
+
+This fn is used by Matsuyama's auto-complete.el, when using
+csharp-completion as a source.
+
+See also `cscomp-complete-at-point-menu' and `cscomp-complete-at-point'
+for interactive functions that do, just about the same thing.
+"
+  (progn
+    (let* ((parse-result (cscomp-parse-csharp-expression-before-point))
+           (split (and parse-result (cadr parse-result))))
+
+      (if (not (null split))
+          (progn
+            (cscomp-find-completion-for-split split (car parse-result) t)
+
+            (mapcar
+             ;; I thought I needed a separate lambda when the p1
+             ;; was non-nil, but maybe that is not the case.
+             (if cscomp-current-p1
+                 '(lambda (item)
+                    ;;(cscomp-log 3 "considering item: %s" item)
+                    (let ((result
+                           (car item)
+                           ;;(concat cscomp-current-p1 "." (car item))
+                           ))
+                      ;;(cscomp-log 3 "result: %s" result)
+                      result))
+
+               '(lambda (item)
+                  ;;(cscomp-log 3 "considering item: %s" item)
+                  (car item)))
+
+             cscomp-current-list))
+        nil))))
+
+
+;; (eval-after-load "auto-complete"
+;;   '(progn
+;;      (if (fboundp 'ac-candidates-1)
+;;          (progn
+;;            ;; In lieu of using the ac-define-source macro,
+;;            ;; define the function and the var separately.
+;;            (defvar ac-source-csharp
+;;              '((init . (setq cscomp-current-list nil))
+;;                (candidates . cscomp-completions-at-point)
+;;                (cache)))
+;;
+;;            (defun ac-complete-csharp ()
+;;              (interactive)
+;;              (auto-complete '(ac-source-csharp)))))))
+
+
+
+;; In lieu of using the ac-define-source macro,
+;; define the function and the var separately.
+(defvar ac-source-csharp
+  '((init . (setq cscomp-current-list nil))
+    (candidates . cscomp-completions-at-point)
+    (cache)))
+
+
+(defun ac-complete-csharp ()
+  "performs auto-completion using the source `ac-source-csharp'."
+  (interactive)
+  (auto-complete '(ac-source-csharp)))
 
 
 (provide 'csharp-completion)
-
 
 ;;; end of csharp-completion.el
