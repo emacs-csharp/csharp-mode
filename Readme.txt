@@ -1,9 +1,9 @@
-Mon, 24 May 2010  17:21
+Created Mon, 24 May 2010  17:21
+Updated Fri, 13 May 2011  13:02
 
 This is the readme for csharp-mode.
 
 You can use csharp-mode alone.  To do so,
-
 
  put this in your .emacs:
 
@@ -28,42 +28,10 @@ You can use csharp-mode alone.  To do so,
 
 =======================================================
 
-You can also take advantage of C# code completion.
-To do so, put csharp-completion.el, csharp-shell.el , and powershell.el
-on your load-path.
+The c# code completion is undergoing  some changes.
+For now, don't use it.
 
-You must also have semantic, from the CEDET package, on your load path.
+=======================================================
 
-Put the CscompUtilities.dll in the same location as csharp-shell.el.
-
-Put this in your .emacs file:
-
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;; C# code completion (requires CEDET semantic)
-
-    (setq load-path
-          (append '("~/users/dinoch/elisp/cedet/semantic"
-                    "~/users/dinoch/elisp/cedet/semantic/bovine"
-                    "~/users/dinoch/elisp/cedet/common"
-                    "~/users/dinoch/elisp/cedet/eieio"
-                    "~/users/dinoch/elisp/cedet/contrib"
-                    )  load-path ))
-
-    (load "semantic")
-    (load "semantic-load")
-    (load "wisent-csharp")
-
-    (require 'csharp-completion)
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-In your csharp-mode-hook, bind a key to the cscomp completion trigger.
-Like this:
-
-         ;; C# code completion
-         (local-set-key "\M-\\"   'cscomp-complete-at-point)
-         (local-set-key "\M-\."   'cscomp-complete-at-point-menu)
-
-
+x-URL: http://code.google.com/p/csharpmode/
 
