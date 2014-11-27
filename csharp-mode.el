@@ -5580,29 +5580,6 @@ Key bindings:
 
 
 
-
-  ;; =======================================================
-  ;;
-  ;; This section attempts to workaround an anomalous display behavior
-  ;; for tooltips.  It's not strictly necessary, only for aesthetics.  The
-  ;; issue is that tooltips can get clipped.  This is the topic of Emacs
-  ;; bug #5908, unfixed in v23 and present in v22.
-
-
-  (defadvice tooltip-show (before
-                           flymake-for-csharp-fixup-tooltip
-                           (arg &optional use-echo-area)
-                           activate compile)
-    (progn
-      (if ;;(and (not use-echo-area) (eq major-mode 'csharp-mode))
-          (not use-echo-area)
-          (let ((orig (ad-get-arg 0)))
-            (ad-set-arg 0 (concat " " (cheeso-string-trim (cheeso-reform-string 74 orig) ?\ )))
-            ))))
-
-
-
-
 ;; ========================================================================
 ;; YA-snippet integration
 
