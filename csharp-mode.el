@@ -382,6 +382,9 @@
 
 (require 'cc-mode)
 
+;; cc-defs in emacs 24.4 depends on cl-macroexpand-all, but does not load 'cl itself.
+(require 'cl)
+
 (message  (concat "Loading " load-file-name))
 
 
