@@ -1,0 +1,54 @@
+
+* csharp-mode
+
+This is a mode for editing C# in emacs. It's based on cc-mode, v5.30.3 and above.
+
+** Main features;
+
+- font-lock and indent of C# syntax including:
+  - all c# keywords and major syntax
+  - attributes that decorate methods, classes, fields, properties
+  - enum types
+  - #if/#endif #region/#endregion
+  - instance initializers
+  - anonymous functions and methods
+  - verbatim literal strings (those that begin with @)
+  - generics 
+- automagic code-doc generation when you type three slashes.
+- intelligent insertion of matched pairs of curly braces.
+- sets the compiler regex for next-error, for csc.exe output.
+- flymake integration, if you use it
+- integration with ya-snippet.el, if you have it.
+- imenu indexing of C# source, for easy menu-based navigation. 
+
+** Usage
+
+Currently this repo is not published to ELPA/MELPA/Marmelade, so you need to clone it.
+
+Once added to your .emacs.d it should be loadable using
+
+#+BEGIN_SRC emacs-lisp
+  (require 'csharp-mode)
+#+END_SRC
+
+* Attribution
+
+This repo is a fork of the code originally developed by Dylan R. E. Moonfire and
+further maintained by Dino Chiesa as hosted on [[https://code.google.com/p/csharpmode/][Google code]].
+
+** Change of focus
+
+The original csharp-mode repo contained lots of different code for lots of different purposes,
+some finished, some not, some experimental, some not. Basiaclly things like ASPX-mode, TFS-mode,
+code completion backends, etc.
+
+This repo intends to refocus on the major-mode and the csharp-mode package.
+This means that tasks like code-completion will be left out to better suited projects
+like [[https://github.com/OmniSharp/omnisharp-emacs][Omnisharp-Emacs]].
+
+That means lots of old code will be cleaned out, but the original contents can still be found in
+the [[https://github.com/josteink/csharp-mode/tree/extras][extras-branch]].
+
+* License
+
+The original project was licensed under [[https://www.gnu.org/licenses/gpl-2.0.html][GPL v2]], so this one is too.
