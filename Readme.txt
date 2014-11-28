@@ -1,3 +1,15 @@
+BRANCH NOTE: ORIGINAL BRANCH CONTENT (mostly) AS FOUND ON GOOGLE CODE.
+
+This branch was created mostly to have a place where old "cruft" can be
+kept around in case we should ever wish to revive it.
+
+Currently this includes everything originally published, and not just the
+data relevant to getting the csharp-mode package published.
+
+
+Original read-content found below:
+
+
 Created Mon, 24 May 2010  17:21
 Updated Fri, 13 May 2011  13:02
 
