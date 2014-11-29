@@ -1,13 +1,13 @@
 ;;; csharp-mode.el --- C# mode derived mode
 
 ;; Author     : Dylan R. E. Moonfire (original)
-;; Maintainer : Dino Chiesa <dpchiesa@hotmail.com>
+;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
-;; Modified   : May 2011
-;; Version    : 0.8.6
+;; Modified   : November 2014
+;; Version    : 0.8.7
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : http://code.google.com/p/csharpmode/
-;; Last-saved : <2011-May-22 10:48:26>
+;; Last-saved : <2014-Nov-29 13:56:00>
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -378,6 +378,9 @@
 ;;
 ;;    0.8.6 DPC 2011 May ??
 ;;          - extern keyword
+;;
+;;    0.8.7 2014 November 29
+;;          - Fix broken cl-dependency in emacs24.4 and defadvice for tooltips.
 ;;
 
 (require 'cc-mode)
