@@ -6,7 +6,7 @@
 ;; Modified   : November 2014
 ;; Version    : 0.8.7
 ;; Keywords   : c# languages oop mode
-;; X-URL      : http://code.google.com/p/csharpmode/
+;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : <2014-Nov-29 13:56:00>
 
 ;;
