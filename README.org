@@ -3,6 +3,8 @@
 
 This is a mode for editing C# in emacs. It's based on cc-mode, v5.30.3 and above.
 
+Build-status: [[{{{https://api.travis-ci.org/josteink/csharp-mode.png}}}]]
+
 ** Main features
 
 - font-lock and indent of C# syntax including:
