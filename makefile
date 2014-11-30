@@ -1,4 +1,5 @@
-VERSION:=0.8.7
+#VERSION:=0.8.7
+VERSION=$(shell grep ";; Version " csharp-mode.el | cut -d ":" -f2 | cut -c2-)
 PACKAGE_SHORTNAME=csharp-mode
 PACKAGE_NAME:=$(PACKAGE_SHORTNAME)-$(VERSION)
 PACKAGE_DIR:=/tmp/$(PACKAGE_NAME)
