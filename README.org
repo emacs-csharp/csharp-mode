@@ -19,15 +19,14 @@ This is a mode for editing C# in emacs. It's based on cc-mode, v5.30.3 and above
 - automagic code-doc generation when you type three slashes.
 - intelligent insertion of matched pairs of curly braces.
 - sets the compiler regex for next-error, for csc.exe output.
-- flymake integration, if you use it
-- integration with ya-snippet.el, if you have it.
 - imenu indexing of C# source, for easy menu-based navigation. 
 
 ** Usage
 
-Currently this repo is not published to ELPA/MELPA/Marmelade, so you need to clone it.
+This package is currently available on MELPA, but not yet Marmalade. Install using
+`M-x list-packages` and make sure you choose the MELPA-sourced package.
 
-Once added to your .emacs.d it should be loadable using
+Once installed the package should be automatically used for files with a `.cs`-extension.
 
 #+BEGIN_SRC emacs-lisp
   (require 'csharp-mode)
