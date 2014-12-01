@@ -1,4 +1,4 @@
 (define-package
-    "demo-multifile"
+    "csharp-mode"
     "VERSION"
-  "a demo multifile package.")
+    "C# mode derived mode")
