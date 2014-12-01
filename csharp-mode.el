@@ -29,7 +29,7 @@
 ;;
 ;;    This is a major mode for editing C# code. It performs automatic
 ;;    indentation of C# syntax; font locking; and integration with
-;;    yasnippet.el; and imenu.el.
+;;    imenu.el.
 ;;
 ;;    csharp-mode requires CC Mode 5.30 or later.  It works with
 ;;    cc-mode 5.31.3, which is current at this time.
@@ -49,9 +49,6 @@
 ;;   - automagic code-doc generation when you type three slashes.
 ;;
 ;;   - intelligent insertion of matched pairs of curly braces.
-;;
-;;   - yasnippet integration
-;;       - preloaded snippets
 ;;
 ;;   - imenu integration - generates an index of namespaces, classes,
 ;;     interfaces, methods, and properties for easy navigation within
@@ -77,8 +74,6 @@
 ;;      "function that runs when csharp-mode is initialized for a buffer."
 ;;      (turn-on-auto-revert-mode)
 ;;      (setq indent-tabs-mode nil)
-;;      (require 'yasnippet)
-;;      (yas/minor-mode-on)
 ;;      ...insert more code here...
 ;;      ...including any custom key bindings you might want ...
 ;;   )
@@ -90,22 +85,6 @@
 ;;
 ;;  Mostly C# mode will "just work."  Use `describe-mode' to see the
 ;;  default keybindings and the highlights of the mode.
-;;
-;;
-;;  YASnippet integration
-;;  -----------------------------
-;;
-;;  csharp-mode defines some built-in snippets for
-;;  convenience.  For example, if statements, for, foreach, and
-;;  so on.  You can see them on the YASnippet menu that is displayed
-;;  when a csharp-mode buffer is opened.  csharp-mode defines this
-;;  snippets happens only if ya-snippet is available. (It is done in an
-;;  `eval-after-load' clause.)  The builtin snippets will not overwrite
-;;  snippets that use the same name, if they are defined in the normal
-;;  way (in a compiled bundle) with ya-snippet.
-;;
-;;  You can explicitly turn off ya-snippet integration. See the var,
-;;  `csharp-want-yasnippet-fixup'.
 ;;
 ;;
 ;;  imenu integration
@@ -1815,13 +1794,6 @@ Most other csharp functions are not instrumented.
 
 
 ;;;###autoload
-(defcustom csharp-want-yasnippet-fixup t
-  "*Whether to enable the builtin C# support for yasnippet. This is meaningful
-only if flymake is loaded."
-  :type 'boolean :group 'csharp)
-
-
-;;;###autoload
 (defcustom csharp-want-imenu t
   "*Whether to generate a buffer index via imenu for C# buffers."
   :type 'boolean :group 'csharp)
@@ -1862,10 +1834,6 @@ only if flymake is loaded."
                       map)
   "Keymap used in csharp-mode buffers.")
 
-
-(defvar csharp--yasnippet-has-been-fixed nil
-  "indicates whether yasnippet has been patched for use with csharp.
-Intended for internal use only.")
 
 ;; TODO
 ;; Defines our constant for finding attributes.
@@ -4492,77 +4460,6 @@ The return value is meaningless, and is ignored by cc-mode.
                ))
 
 
-
-(defun csharp-guess-compile-command ()
-  "set `compile-command' intelligently depending on the
-current buffer, or the contents of the current directory.
-"
-  (interactive)
-  (set (make-local-variable 'compile-command)
-
-       (cond
-        ((or (file-expand-wildcards "*.csproj" t)
-             (file-expand-wildcards "*.vcproj" t)
-             (file-expand-wildcards "*.vbproj" t)
-             (file-expand-wildcards "*.shfbproj" t)
-             (file-expand-wildcards "*.sln" t))
-         (concat csharp-msbuild-tool " "))
-
-        ;; sometimes, not sure why, the buffer-file-name is
-        ;; not set.  Can use it only if set.
-        (buffer-file-name
-         (let ((filename (file-name-nondirectory buffer-file-name)))
-           (cond
-
-            ;; editing a c# file - check for an explicitly-specified command
-            ((string-equal (substring buffer-file-name -3) ".cs")
-             (let ((explicitly-specified-command
-                    (csharp-get-value-from-comments "compile" csharp-cmd-line-limit)))
-
-
-               (if explicitly-specified-command
-                   (csharp-replace-command-tokens explicitly-specified-command)
-                   (concat csharp-make-tool " " ;; assume a makefile exists
-                           (file-name-sans-extension filename)
-                           ".exe"))))
-
-            ;; something else - do a typical .exe build
-            (t
-             (concat csharp-make-tool " "
-                     (file-name-sans-extension filename)
-                     ".exe")))))
-        (t
-         ;; punt
-         (concat csharp-make-tool " ")))))
-
-
-
-(defun csharp-invoke-compile-interactively ()
-  "fn to wrap the `compile' function.  This simply
-checks to see if `compile-command' has been previously set, and
-if not, invokes `csharp-guess-compile-command' to set the value.
-Then it invokes the `compile' function, interactively.
-
-The effect is to guess the compile command only once, per buffer.
-
-I tried doing this with advice attached to the `compile'
-function, but because of the interactive nature of the fn, it
-didn't work the way I wanted it to. So this fn should be bound to
-the key sequence the user likes for invoking compile, like ctrl-c
-ctrl-e.
-
-"
-  (interactive)
-  (cond
-   ((not (boundp 'csharp-local-compile-command-has-been-set))
-    (csharp-guess-compile-command)
-    (set (make-local-variable 'csharp-local-compile-command-has-been-set) t)))
-  ;; local compile command has now been set
-  (call-interactively 'compile))
-
-
-
-
 ;;; The entry point into the mode
 ;;;###autoload
   (defun csharp-mode ()
@@ -4590,7 +4487,6 @@ To run your own logic after csharp-mode starts, do this:
     (turn-on-font-lock)
     (turn-on-auto-revert-mode) ;; helpful when also using Visual Studio
     (setq indent-tabs-mode nil) ;; tabs are evil
-    (yas/minor-mode-on)
     ....your own code here...
   )
   (add-hook  'csharp-mode-hook 'my-csharp-mode-fn t)
@@ -4599,11 +4495,11 @@ To run your own logic after csharp-mode starts, do this:
 The function above is just a suggestion.
 
 
-YASnippet and IMenu Integraiton
+IMenu Integraiton
 ===============================
 
-Check the menubar for menu entries for YASnippet and Imenu; the latter
-is labelled \"Index\".
+Check the menubar for menu entries for Imenu; It is labelled
+\"Index\".
 
 The Imenu index gets computed when the file is .cs first opened and loaded.
 This may take a moment or two.  If you don't like this delay and don't
@@ -4643,12 +4539,6 @@ Key bindings:
     ;; only makes the necessary initialization to get the syntactic
     ;; analysis and similar things working.
     (c-common-init 'csharp-mode)
-
-    (eval-after-load  "yasnippet"
-      '(progn
-         (if csharp-want-yasnippet-fixup
-             (csharp-yasnippet-fixup))))
-
 
     (local-set-key (kbd "/") 'csharp-maybe-insert-codedoc)
     (local-set-key (kbd "{") 'csharp-insert-open-brace)
@@ -4702,308 +4592,6 @@ Key bindings:
 
     (set (make-local-variable 'comment-auto-fill-only-comments) t)
     )
-
-
-
-;; ========================================================================
-;; YA-snippet integration
-
-(defun csharp-yasnippet-fixup ()
-  "Sets snippets into ya-snippet for C#, if yasnippet is loaded,
-and if the snippets do not already exist.
-"
-  (if (not csharp--yasnippet-has-been-fixed)
-      (if (fboundp 'yas/snippet-table-fetch)
-          ;; yasnippet is present
-          (let ((snippet-table (yas/snippet-table 'csharp-mode))
-                (keymap (if yas/use-menu
-                            (yas/menu-keymap-for-mode 'csharp-mode)
-                          nil))
-                (yas/require-template-condition nil)
-                (builtin-snips
-                 '(
-  ("xmls" "{
-      XmlSerializer s1 = new XmlSerializer(typeof(${1:type}));
-
-      // use this to \"suppress\" the default xsd and xsd-instance namespaces
-      XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
-      ns.Add(\"\", \"\");
-
-      s1.Serialize(new XTWFND(System.Console.Out), object, ns);
-      System.Console.WriteLine(\"\\n\");
-}
-
-  $0
-  /// XmlTextWriterFormattedNoDeclaration
-  /// helper class : eliminates the XML Documentation at the
-  /// start of a XML doc.
-  /// XTWFND = XmlTextWriterFormattedNoDeclaration
-  /// usage:       s1.Serialize(new XTWFND(System.Console.Out), thing, ns);
-
-  public class XTWFND : System.Xml.XmlTextWriter
-  {
-    public XTWFND(System.IO.StringWriter w) : base(w) { Formatting=System.Xml.Formatting.Indented;  }
-    public XTWFND(System.IO.TextWriter w) : base(w) { Formatting = System.Xml.Formatting.Indented; }
-    public XTWFND(System.IO.Stream s) : base(s, null) { Formatting = System.Xml.Formatting.Indented; }
-    public XTWFND(string filename) : base(filename, null) { Formatting = System.Xml.Formatting.Indented; }
-    public override void WriteStartDocument() { }
-  }
-
-" "xmlserializer { ... }" nil)
-  ("wl" "System.Console.WriteLine(${0://thing to do});
-" "WriteLine( ... );" nil)
-  ("while" "while (${1:condition})
-{
-    ${0://thing to do}
-}" "while (...) { ... }" nil)
-  ("using" "using (${1:type} ${2:var} = new ${1:type}(${4:ctor args}))
-{
-    ${5:// body...}
-}" "using ... { ... }" nil)
-  ("try" "try
-{
-  $0
-}
-catch (System.Exception exc1)
-{
-  throw new Exception(\"uncaught exception\", exc1);
-}" "try { ... } catch { ... }" nil)
-  ("sum" "/// <summary>
-///  ${1:description}
-/// </summary>
-///
-/// <remarks>
-///  ${2:comments}
-/// </remarks>
-" "/// <summary>..." nil)
-  ("sing" "#region Singleton ${1:className}
-public sealed class $1
-{
-    private readonly static $1 _instance = new $1();
-    public static $1 Instance  { get { return _instance; } }
-    static $1() { /* required for lazy init */ }
-    private $1()
-    {
-        // implementation here
-    }
-}
-
-#endregion
-" "public sealed class Singleton {...}" nil)
-  ("setting" " #region Property${1:PropName}
-
-    private string default$1 = ${2:defaultValue};
-    private string _$1;
-    public string $1
-    {
-        get
-        {
-                if (_$1 == null)
-                {
-                    _$1 = System.Configuration.ConfigurationManager.AppSettings[\"$1\"];
-
-                    if (string.IsNullOrEmpty(_$1))
-                    {
-                        _$1 = default$1;
-                    }
-                }
-                return this._$1;
-            }
-        set
-        {
-            string new$1 = value;
-            // optional validation:
-            //Validation.EnforceXxxx(new$1, \"$1\");
-            _$1 = new$1;
-        }
-    }
-
-#endregion
-" "config setting" nil)
-  ("prop" "private ${1:Type} _${2:Name};
-public ${1:Type} ${2:Name}
-{
-  get
-  {
-    ${3://get impl}
-  }
-
-  set
-  {
-    ${4://get impl}
-  }
-
-}" "property ... { ... }" nil)
-  ("pa" "        for (int i=0; i < args.Length; i++)
-        {
-            switch (args[i])
-            {
-            case \"-?\":
-            case \"-help\":
-                throw new ArgumentException(args[i]);
-
-            default: // positional args
-                if ($2 != 0)
-                    // we have all the args we need
-                    throw new ArgumentException(args[i]);
-
-                if ($1 == null)
-                    $1 = args[i];
-
-                else
-                    $2 = System.Int32.Parse(args[i]);
-
-                break;
-            }
-        }
-
-        // check values
-        if ($1 == null)
-            throw new ArgumentException();
-
-        if ($2 == 0)
-            throw new ArgumentException();
-
-
-" "switch(args[0]) {...}" nil)
-  ("openread" "        using(Stream src = File.OpenRead($1))
-        {
-          using(Stream dest= File.Create($2))
-          {
-            if (compress)
-              Compress(src, dest);
-            else
-              Decompress(src, dest);
-          }
-        }
-" "File.OpenRead(...)" nil)
-  ("ofd" "var dlg = new System.Windows.Forms.OpenFileDialog();
-dlg.Filter = \"${1:filter string}\"; // ex: \"C# (*.cs)|*.cs|Text (*.txt)|*.txt\";
-if (dlg.ShowDialog() == DialogResult.OK)
-{
-    string fileName = dlg.FileName;
-    $0
-}
-" "new OpenFileDialog; if (DialogResult.OK) { ... }" nil)
-  ("ife" "if (${1:predicate})
-{
-  ${2:// then clause}
-}
-else
-{
-  ${3:// else clause}
-}" "if (...) { ... } else { ... }" nil)
-  ("fore" "foreach (${1:type} ${2:var} in ${3:IEnumerable})
-{
-    ${4:// body...}
-}" "foreach ... { ... }" nil)
-  ("for" "for (int ${1:index}=0; $1 < ${2:Limit}; $1++)
-{
-    ${3:// body...}
-}" "for (...) { ... }" nil)
-  ("fbd" "using (FolderBrowserDialog dialog = new FolderBrowserDialog())
-{
-    dialog.Description = \"Open a folder which contains the xml output\";
-    dialog.ShowNewFolderButton = false;
-    dialog.RootFolder = Environment.SpecialFolder.MyComputer;
-    if(dialog.ShowDialog() == DialogResult.OK)
-    {
-        string folder = dialog.SelectedPath;
-        foreach (string fileName in Directory.GetFiles(folder, \"*.xml\", SearchOption.TopDirectoryOnly))
-        {
-            SQLGenerator.GenerateSQLTransactions(Path.GetFullPath(fileName));
-        }
-    }
-}
-
-" "new FolderBrowserDialog; if (DialogResult.OK) { ... }" nil)
-  ("doc" "/// <summary>
-/// ${1:summary}
-/// </summary>
-///
-/// <remarks>
-/// ${2:remarks}
-/// </remarks>
-$0" "XML Documentation" nil)
-  ("conv" "  List<String> Values = new List<String>() { \"7\", \"13\", \"41\", \"3\" };
-
-  // ConvertAll maps the given delegate across all the List elements
-  var foo = Values.ConvertAll((s) => { return System.Convert.ToInt32(s); }) ;
-
-  System.Console.WriteLine(\"typeof(foo) = {0}\", foo.GetType().ToString());
-
-  Array.ForEach(foo.ToArray(),Console.WriteLine);
-" "ConvertAll((s) => { ... });" nil)
-  ("cla" "public class ${1:Classname}
-{
-  // default ctor
-  public ${1:Classname}()
-  {
-  }
-
-  ${2:// methods here}
-}" "class ... { ... }" nil)
-  ("ca" "  List<String> Values = new List<String>() { \"7\", \"13\", \"41\", \"3\" };
-
-  // ConvertAll maps the given delegate across all the List elements
-  var foo = Values.ConvertAll((s) => { return System.Convert.ToInt32(s); }) ;
-
-  System.Console.WriteLine(\"typeof(foo) = {0}\", foo.GetType().ToString());
-
-  Array.ForEach(foo.ToArray(),Console.WriteLine);
-" "ConvertAll((s) => { ... });" nil)
-  ("ass" "
-
-[assembly: AssemblyTitle(\"$1\")]
-[assembly: AssemblyCompany(\"${2:YourCoName}\")]
-[assembly: AssemblyProduct(\"${3}\")]
-[assembly: AssemblyCopyright(\"Copyright © ${4:Someone} 2011\")]
-[assembly: AssemblyTrademark(\"\")]
-[assembly: AssemblyCulture(\"\")]
-[assembly: AssemblyConfiguration(\"\")]
-[assembly: AssemblyDescription(\"${5}\")]
-[assembly: AssemblyVersion(\"${6:1.0.1.0}\")]
-[assembly: AssemblyFileVersion(\"${7:1.0.1.0}\")]
-
-" "assembly info" nil)
-  )))
-
-            (setq csharp--yasnippet-has-been-fixed t)
-
-            (add-to-list 'yas/known-modes 'csharp-mode)
-
-            ;; It's possible that Csharp-mode is not on the yasnippet menu
-            ;; Install it here.
-            (when yas/use-menu
-              (define-key
-                yas/menu-keymap
-                (vector 'csharp-mode)
-                `(menu-item "C#" ,keymap)))
-
-            ;; Insert the snippets from above into the table if they
-            ;; are not already defined.
-            (mapcar
-             '(lambda (item)
-                (let* ((full-key (car item))
-                       (existing-snip
-                        (yas/snippet-table-fetch snippet-table full-key)))
-                  (if (not existing-snip)
-                      (let* ((key (file-name-sans-extension full-key))
-                             (name (caddr item))
-                             (condition (nth 3 item))
-                             (template (yas/make-template (cadr item)
-                                                          (or name key)
-                                                          condition)))
-                        (yas/snippet-table-store snippet-table
-                                                 full-key
-                                                 key
-                                                 template)
-                        (when yas/use-menu
-                          (define-key keymap (vector (make-symbol full-key))
-                            `(menu-item ,(yas/template-name template)
-                                        ,(yas/make-menu-binding (yas/template-content template))
-                                        :keys ,(concat key yas/trigger-symbol))))))))
-             builtin-snips)))))
 
 (provide 'csharp-mode)
 
