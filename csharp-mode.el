@@ -388,9 +388,6 @@
 ;; cc-defs in emacs 24.4 depends on cl-macroexpand-all, but does not load 'cl itself.
 (require 'cl)
 
-(message  (concat "Loading " load-file-name))
-
-
 ;; ==================================================================
 ;; c# upfront stuff
 ;; ==================================================================
@@ -5882,12 +5879,6 @@ $0" "XML Documentation" nil)
                                         ,(yas/make-menu-binding (yas/template-content template))
                                         :keys ,(concat key yas/trigger-symbol))))))))
              builtin-snips)))))
-
-
-
-
-(message  (concat "Done loading " load-file-name))
-
 
 (provide 'csharp-mode)
 
