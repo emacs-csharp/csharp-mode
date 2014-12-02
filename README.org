@@ -27,6 +27,9 @@ This package is currently available on MELPA, but not yet Marmalade. Install usi
 
 Once installed the package should be automatically used for files with a '.cs'-extension.
 
+Note: This package is also available on [[http://stable.melpa.org/][MELPA-stable]] for those who don't want or need
+bleeding edge development-versions.
+
 * Attribution
 
 This repo is a fork of the code originally developed by Dylan R. E. Moonfire and
