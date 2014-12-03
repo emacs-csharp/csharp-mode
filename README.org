@@ -1,4 +1,5 @@
 
+
 * csharp-mode
 
 This is a mode for editing C# in emacs. It's based on cc-mode, v5.30.3 and above.
@@ -30,23 +31,38 @@ Once installed the package should be automatically used for files with a '.cs'-e
 Note: This package is also available on [[http://stable.melpa.org/][MELPA-stable]] for those who don't want or need
 bleeding edge development-versions.
 
+For a better experience you may want to enable electric-pair-mode when editing C#-files.
+To do so, add the following to your .emacs-file:
+
+#+BEGIN_SRC emacs-lisp
+  (defun my-csharp-mode-hook ()
+    ;; enable the stuff you want for C# here
+    (electric-pair-mode 1))
+  (add-hook 'csharp-mode-hook 'my-csharp-mode-hook)
+#+END_SRC
+
+NOTE: If you have a generic prog-mode-hook, you currently have to add that hook
+to csharp-mode as well.
+
+For more advanced and IDE-like functionality we recommend using csharp-mode together
+with [[https://github.com/OmniSharp/omnisharp-emacs][Omnisharp-Emacs]].
+
 * Attribution
 
 This repo is a fork of the code originally developed by Dylan R. E. Moonfire and
 further maintained by Dino Chiesa as hosted on [[https://code.google.com/p/csharpmode/][Google code]].
 
-** Change of focus
+** New focus
 
 The original csharp-mode repo contained lots of different code for lots of different purposes,
 some finished, some not, some experimental, some not. Basiaclly things like ASPX-mode, TFS-mode,
 code completion backends, etc.
 
-This repo intends to refocus on the major-mode and the csharp-mode package.
-This means that tasks like code-completion will be left out to better suited projects
-like [[https://github.com/OmniSharp/omnisharp-emacs][Omnisharp-Emacs]].
+All this original code can still be found in the [[https://github.com/josteink/csharp-mode/tree/extras][extras-branch]], but we have decided to
+go for a more focused approach and to throw out all dead or unused code, code we wont
+be maintaining.
 
-That means lots of old code will be cleaned out, but the original contents can still be found in
-the [[https://github.com/josteink/csharp-mode/tree/extras][extras-branch]].
+The goal: That what we package in csharp-mode actually works and works well.
 
 * License
 
