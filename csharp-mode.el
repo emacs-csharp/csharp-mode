@@ -316,6 +316,7 @@
 
 
 
+
 ;; These are only required at compile time to get the sources for the
 ;; language constants.  (The load of cc-fonts and the font-lock
 ;; related constants could additionally be put inside an
@@ -333,6 +334,34 @@
     (load "cc-langs" nil t)))
 
 (eval-and-compile
+  ;; ==================================================================
+  ;; constants used in this module
+  ;; ==================================================================
+
+  ;;(error (byte-compile-dest-file))
+  ;;(error (c-get-current-file))
+
+  (defconst csharp-aspnet-directive-re
+    "<%@.+?%>"
+    "Regex for matching directive blocks in ASP.NET files (.aspx, .ashx, .ascx)")
+
+
+  (defconst csharp-enum-decl-re
+    (concat
+     "\\<enum[ \t\n\r\f\v]+"
+     "\\([[:alpha:]_][[:alnum:]_]*\\)"
+     "[ \t\n\r\f\v]*"
+     "\\(:[ \t\n\r\f\v]*"
+     "\\("
+     (c-make-keywords-re nil
+			 (list "sbyte" "byte" "short" "ushort" "int" "uint" "long" "ulong"))
+     "\\)"
+     "\\)?")
+    "Regex that captures an enum declaration in C#"
+    )
+
+  ;; ==================================================================
+
   ;; Make our mode known to the language constant system.  Use Java
   ;; mode as the fallback for the constants we don't change here.
   ;; This needs to be done also at compile time since the language
@@ -347,33 +376,6 @@
 
 
 
-;; ==================================================================
-;; constants used in this module
-;; ==================================================================
-
-;;(error (byte-compile-dest-file))
-;;(error (c-get-current-file))
-
-(defconst csharp-aspnet-directive-re
-  "<%@.+?%>"
-  "Regex for matching directive blocks in ASP.NET files (.aspx, .ashx, .ascx)")
-
-
-(defconst csharp-enum-decl-re
-  (concat
-   "\\<enum[ \t\n\r\f\v]+"
-   "\\([[:alpha:]_][[:alnum:]_]*\\)"
-   "[ \t\n\r\f\v]*"
-   "\\(:[ \t\n\r\f\v]*"
-   "\\("
-   (c-make-keywords-re nil
-     (list "sbyte" "byte" "short" "ushort" "int" "uint" "long" "ulong"))
-   "\\)"
-   "\\)?")
-  "Regex that captures an enum declaration in C#"
-  )
-
-;; ==================================================================
 
 
 
@@ -1584,7 +1586,8 @@ comment at the start of cc-engine.el for more info."
 
 (c-lang-defconst c-other-kwds
   csharp '("sizeof" "typeof" "is" "as" "yield" "extern"
-           "where" "select" "in" "from"))
+           "where" "select" "in" "from" "let" "orderby" "ascending" "descending"
+	   "await" "async" "var"))
 
 (c-lang-defconst c-overloadable-operators
   ;; EMCA-344, S14.2.1
