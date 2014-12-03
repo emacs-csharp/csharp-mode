@@ -22,8 +22,7 @@ test:
 %.elc: %.el
 	$(EMACS) -f batch-byte-compile $<
 
-#all: $(ELCS) test package
-all: test package
+all: $(ELCS) test package
 
 clean:
 	rm -f ../$(PACKAGE_NAME).tar
