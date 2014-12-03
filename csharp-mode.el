@@ -1586,7 +1586,8 @@ comment at the start of cc-engine.el for more info."
 
 (c-lang-defconst c-other-kwds
   csharp '("sizeof" "typeof" "is" "as" "yield" "extern"
-           "where" "select" "in" "from"))
+           "where" "select" "in" "from" "let" "orderby" "ascending" "descending"
+	   "await" "async" "var"))
 
 (c-lang-defconst c-overloadable-operators
   ;; EMCA-344, S14.2.1
