@@ -48,7 +48,8 @@
 ;;
 ;;   - automagic code-doc generation when you type three slashes.
 ;;
-;;   - intelligent insertion of matched pairs of curly braces.
+;;   - compatible with electric-pair-mode for intelligent insertion
+;;     of matched braces, quotes, etc.
 ;;
 ;;   - imenu integration - generates an index of namespaces, classes,
 ;;     interfaces, methods, and properties for easy navigation within
@@ -548,162 +549,6 @@ comment at the start of cc-engine.el for more info."
                 (t nil))))))
       rtn))
 
-
-
-(defun csharp-insert-open-brace ()
-  "Intelligently insert a pair of curly braces. This fn should be
-bound to the open-curly brace, with
-
-    (local-set-key (kbd \"{\") 'csharp-insert-open-brace)
-
-The default binding for an open curly brace in cc-modes is often
-`c-electric-brace' or `skeleton-pair-insert-maybe'.  The former
-can be configured to insert newlines around braces in various
-syntactic positions.  The latter inserts a pair of braces and
-then does not insert a newline, and does not indent.
-
-This fn provides another option, with some additional
-intelligence for csharp-mode.  When you type an open curly, the
-appropriate pair of braces appears, with spacing and indent set
-in a context-sensitive manner:
-
- - Within a string literal, you just get a pair of braces, and
-   point is set between them. This works for String.Format()
-   purposes.
-
- - Following = or [], as in an array assignment, you get a pair
-   of braces, with two intervening spaces, with a semincolon
-   appended. Point is left between the braces.
-
- - Following \"new Foo\", it's an object initializer. You get:
-   newline, open brace, newline, newline, close, semi.  Point is
-   left on the blank line between the braces. Unless the object
-   initializer is within an array initializer, in which case, no
-   newlines, and the semi is replaced with a comma. (Try it to
-   see what this means).
-
- - Following => , implying a lambda, you get an open/close pair,
-   with two intervening spaces, no semicolon, and point on the
-   2nd space.
-
- - Otherwise, you get a newline, the open curly, followed by
-   an empty line and the closing curly on the line following,
-   with point on the empty line.
-
-
-There may be another way to get this to happen appropriately just
-within emacs, but I could not figure out how to do it.  So I
-wrote this alternative.
-
-    "
-  (interactive)
-  (let
-      (tpoint
-       (in-string (string= (csharp-in-literal) "string"))
-       (preceding3
-        (save-excursion
-          (and
-           (skip-chars-backward " \t")
-           (> (- (point) 2) (point-min))
-           (buffer-substring-no-properties (point) (- (point) 3)))))
-       (one-word-back
-        (save-excursion
-          (backward-word 2)
-          (thing-at-point 'word))))
-
-    (cond
-
-     ;; Case 1: inside a string literal?
-     ;; --------------------------------------------
-     ;; If so, then just insert a pair of braces and put the point
-     ;; between them.  The most common case is a format string for
-     ;; String.Format() or Console.WriteLine().
-     (in-string
-      (self-insert-command 1)
-      (insert "}")
-      (backward-char))
-
-     ;; Case 2: the open brace starts an array initializer.
-     ;; --------------------------------------------
-     ;; When the last non-space was an equals sign or square brackets,
-     ;; then it's an initializer.
-     ((save-excursion
-        (and (c-safe (backward-sexp) t)
-             (looking-at "\\(\\w+\\b *=\\|[[]]+\\)")))
-      (self-insert-command 1)
-      (insert "  };")
-      (backward-char 3))
-
-     ;; Case 3: the open brace starts an instance initializer
-     ;; --------------------------------------------
-     ;; If one-word-back was "new", then it's an object initializer.
-     ((string= one-word-back "new")
-      (csharp-log 2 "object initializer")
-      (setq tpoint (point)) ;; prepare to indent-region later
-      (backward-word 2)
-      (c-backward-syntactic-ws)
-      (if (or (eq (char-before) ?,)       ;; comma
-              (and (eq (char-before) 123) ;; open curly
-                   (progn (backward-char)
-                          (c-backward-syntactic-ws)
-                          (looking-back "\\[\\]"))))
-          (progn
-            ;; within an array - emit no newlines
-            (goto-char tpoint)
-            (self-insert-command 1)
-            (insert "  },")
-            (backward-char 3))
-
-        (progn
-          (goto-char tpoint)
-          (newline)
-          (self-insert-command 1)
-          (newline-and-indent)
-          (newline)
-          (insert "};")
-          (c-indent-region tpoint (point))
-          (forward-line -1)
-          (indent-according-to-mode)
-          (end-of-line))))
-
-
-     ;; Case 4: a lambda initialier.
-     ;; --------------------------------------------
-     ;; If the open curly follows =>, then it's a lambda initializer.
-     ((string= (substring preceding3 -2) "=>")
-      (csharp-log 2 "lambda init")
-      (self-insert-command 1)
-      (insert "  }")
-      (backward-char 2))
-
-     ;; else, it's a new scope. (if, while, class, etc)
-     (t
-      (save-excursion
-        (csharp-log 2 "new scope")
-        (set-mark (point)) ;; prepare to indent-region later
-        ;; check if the prior sexp is on the same line
-        (if (save-excursion
-              (let ((curline (line-number-at-pos))
-                    (aftline (progn
-                               (if (c-safe (backward-sexp) t)
-                                   (line-number-at-pos)
-                                 -1))))
-                (= curline aftline)))
-            (newline-and-indent))
-        (self-insert-command 1)
-        (c-indent-line-or-region)
-        (end-of-line)
-        (newline)
-        (insert "}")
-        ;;(c-indent-command) ;; not sure of the difference here
-        (c-indent-line-or-region)
-        (forward-line -1)
-        (end-of-line)
-        (newline-and-indent)
-        ;; point ends up on an empty line, within the braces, properly indented
-        (setq tpoint (point)))
-
-      (goto-char tpoint)))))
 
 
 ;; ==================================================================
@@ -4541,7 +4386,6 @@ Key bindings:
     (c-common-init 'csharp-mode)
 
     (local-set-key (kbd "/") 'csharp-maybe-insert-codedoc)
-    (local-set-key (kbd "{") 'csharp-insert-open-brace)
 
     ;; Need the following for parse-partial-sexp to work properly with
     ;; verbatim literal strings Setting this var to non-nil tells
