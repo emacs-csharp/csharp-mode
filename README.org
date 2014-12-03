@@ -41,9 +41,6 @@ To do so, add the following to your .emacs-file:
   (add-hook 'csharp-mode-hook 'my-csharp-mode-hook)
 #+END_SRC
 
-NOTE: If you have a generic prog-mode-hook, you currently have to add that hook
-to csharp-mode as well.
-
 For more advanced and IDE-like functionality we recommend using csharp-mode together
 with [[https://github.com/OmniSharp/omnisharp-emacs][Omnisharp-Emacs]].
 
