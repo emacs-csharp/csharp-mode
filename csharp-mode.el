@@ -1,10 +1,11 @@
+
 ;;; csharp-mode.el --- C# mode derived mode
 
 ;; Author     : Dylan R. E. Moonfire (original)
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
 ;; Modified   : November 2014
-;; Version    : 0.8.7
+;; Version    : 0.8.8
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : <2014-Nov-29 13:56:00>
@@ -265,6 +266,11 @@
 ;;
 ;;    0.8.7 2014 November 29
 ;;          - Fix broken cl-dependency in emacs24.4 and defadvice for tooltips.
+;;
+;;    0.8.8 2014 December 3
+;;          - Fix broken byte-compile.
+;;          - Add extra C# keywords.
+;;          - Call prog-mode hooks.
 ;;
 
 (require 'cc-mode)
@@ -4415,7 +4421,10 @@ Key bindings:
         (speedbar-add-supported-extension '(".cs"))) ;; idempotent
 
     (c-update-modeline)
-    (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook)
+    ;; run prog-mode-hooks if available
+    (if (boundp 'prog-mode-hook)
+	(c-run-mode-hooks 'prog-mode-hook 'c-mode-common-hook 'csharp-mode-hook)
+      (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook))
 
     ;; maybe do imenu scan after hook returns
     (if csharp-want-imenu
