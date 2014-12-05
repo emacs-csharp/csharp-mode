@@ -4387,6 +4387,14 @@ Key bindings:
     ;; customized values for our language.
     (c-init-language-vars csharp-mode)
 
+    ;; Set style to c# style unless a file local variable or default
+    ;; style is found, in which case it should be set after
+    ;; calling `c-common-init' below.
+    (unless (or c-file-style
+                (stringp c-default-style)
+                (assq 'csharp-mode c-default-style))
+      (c-set-style "c#" t))
+    
     ;; `c-common-init' initializes most of the components of a CC Mode
     ;; buffer, including setup of the mode menu, font-lock, etc.
     ;; There's also a lower level routine `c-basic-common-init' that
