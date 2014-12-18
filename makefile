@@ -1,4 +1,4 @@
-VERSION=$(shell grep ";; Version " csharp-mode.el | cut -d ":" -f2 | cut -c2-)
+VERSION=$(shell grep -a ";; Version " csharp-mode.el | cut -d ":" -f2 | cut -c2-)
 PACKAGE_SHORTNAME=csharp-mode
 PACKAGE_NAME:=$(PACKAGE_SHORTNAME)-$(VERSION)
 PACKAGE_DIR:=./.tmp/$(PACKAGE_NAME)
@@ -9,7 +9,7 @@ ELS = csharp-mode.el csharp-mode-tests.el
 ELCS = $(ELS:.el=.elc)
 
 package: $(PACKAGE_DIR)
-	tar cvf ../$(PACKAGE_NAME).tar --exclude="*#" --exclude="*~" --exclude="*tests*" --exclude "*-pkg.el.template*" --exclude="makefile" --exclude="run-travis-ci.sh" -C $(PACKAGE_DIR)/.. $(PACKAGE_NAME)
+	tar cvf ../$(PACKAGE_NAME).tar --exclude="*#" --exclude="*~" --exclude="*tests*" --exclude="test-files" --exclude "*-pkg.el.template*" --exclude="makefile" --exclude="run-travis-ci.sh" -C $(PACKAGE_DIR)/.. $(PACKAGE_NAME)
 
 $(PACKAGE_DIR):
 	mkdir -p $@
