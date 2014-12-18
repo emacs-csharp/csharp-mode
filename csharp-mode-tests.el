@@ -30,7 +30,7 @@
 (ert-deftest fontification-of-literals-detects-end-of-strings ()
   ;; this test needs a double which also writes and generates the actual
   ;; test-content itself by inserting into a new temp buffer.
-  (let* ((buffer (find-file-read-only "d:/Throwaway/test.cs")))
+  (let* ((buffer (find-file-read-only "test-files/fontification-test.cs")))
     ;; double-ensure mode is active
     (csharp-mode)
     (goto-char (point-min))
