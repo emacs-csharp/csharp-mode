@@ -344,14 +344,6 @@
   ;; constants used in this module
   ;; ==================================================================
 
-  ;;(error (byte-compile-dest-file))
-  ;;(error (c-get-current-file))
-
-  (defconst csharp-aspnet-directive-re
-    "<%@.+?%>"
-    "Regex for matching directive blocks in ASP.NET files (.aspx, .ashx, .ascx)")
-
-
   (defconst csharp-enum-decl-re
     (concat
      "\\<enum[ \t\n\r\f\v]+"
@@ -406,23 +398,17 @@ close-brace) appears.  The concept is used to allow proper
 indenting of blocks of code: Where a vsemi appears, the following
 line will not indent further.
 
-A vsemi appears in 3 cases in C#:
+A vsemi appears in 2 cases in C#:
 
  - after an attribute that decorates a class, method, field, or
    property.
 
  - in an object initializer, before the open-curly?
 
- - after an ASPNET directive, that appears in a aspx/ashx/ascx file
-
 An example of the former is  [WebMethod] or [XmlElement].
-An example of the latter is something like this:
-
-    <%@ WebHandler Language=\"C#\" Class=\"Handler\" %>
 
 Providing this function allows the indenting in csharp-mode
-to work properly with code that includes attributes and ASPNET
-directives.
+to work properly with code that includes attributes.
 
 "
   (save-excursion
@@ -436,11 +422,6 @@ directives.
               "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
               "[A-Za-z_][[:alnum:]]*[\ t\n\f\v\r]*"))
              (looking-at "[ \t\n\f\v\r]*{"))
-        t)
-
-       ;; put a vsemi after an ASPNET directive, like
-       ;; <%@ WebHandler Language="C#" Class="Handler" %>
-       ((looking-back (concat csharp-aspnet-directive-re "$") nil t)
         t)
 
        ;; put a vsemi after an attribute, as with
@@ -1230,103 +1211,6 @@ comment at the start of cc-engine.el for more info."
                     (goto-char (match-end 0))
                     ))
                 nil))
-
-
-           ;; Case 6: directive blocks for .aspx/.ashx/.ascx
-           ,`((lambda (limit)
-                (let ((parse-sexp-lookup-properties
-                       (cc-eval-when-compile
-                         (boundp 'parse-sexp-lookup-properties))))
-
-                  (while (re-search-forward csharp-aspnet-directive-re limit t)
-                    (csharp-log 3 "aspnet template? - %d limit(%d)" (match-beginning 1)
-                                limit)
-
-                    (unless
-                        (progn
-                          (goto-char (match-beginning 0))
-                          (c-skip-comments-and-strings limit))
-
-                        (save-match-data
-                          (let ((end-open (+ (match-beginning 0) 3))
-                                (beg-close (- (match-end 0) 2)))
-                            (c-put-font-lock-face (match-beginning 0)
-                                                  end-open
-                                                  'font-lock-preprocessor-face)
-
-                            (c-put-font-lock-face beg-close
-                                                  (match-end 0)
-                                                  'font-lock-preprocessor-face)
-
-                            ;; fontify within the directive
-                            (while (re-search-forward
-                                    ,(concat
-                                      "\\("
-                                      (c-lang-const c-symbol-key)
-                                      "\\)"
-                                      "=?"
-                                      )
-                                    beg-close t)
-
-                            (c-put-font-lock-face (match-beginning 1)
-                                                  (match-end 1)
-                                                  'font-lock-keyword-face)
-                            (c-skip-comments-and-strings beg-close))
-                            ))
-                        (goto-char (match-end 0)))))
-                nil))
-
-
-;;            ;; Case 5: #if
-;;            ,@(when t
-;;                `((,(byte-compile
-;;                     `(lambda (limit)
-;;                        (let ((parse-sexp-lookup-properties
-;;                               (cc-eval-when-compile
-;;                                 (boundp 'parse-sexp-lookup-properties))))
-;;                          (while (re-search-forward
-;;                                  "\\<\\(#if\\)[ \t\n\r\f\v]+\\([A-Za-z_][[:alnum:]]*\\)"
-;;                                  limit t)
-;;
-;;                            (csharp-log 3 "#if directive - %d" (match-beginning 1))
-;;
-;;                            (unless
-;;                                (progn
-;;                                  (goto-char (match-beginning 0))
-;;                                  (c-skip-comments-and-strings limit))
-;;
-;;                              (save-match-data
-;;                                (c-put-font-lock-face (match-beginning 2)
-;;                                                      (match-end 2)
-;;                                                      'font-lock-variable-name-face)
-;;                                (goto-char (match-end 0))))))
-;;                        nil))
-;;                   )))
-
-
- ;;           ,`(,(c-make-font-lock-search-function
- ;;                (concat "\\<new"
- ;;                        "[ \t\n\r\f\v]+"
- ;;                        "\\(\\(?:"
- ;;                        (c-lang-const c-symbol-key)
- ;;                        "\\.\\)*"
- ;;                        (c-lang-const c-symbol-key)
- ;;                        "\\)"
- ;;                        "[ \t\n\r\f\v]*"
- ;;                        "\\(?:"
- ;;                        "( *)[ \t\n\r\f\v]*"          ;; optional ()
- ;;                        "\\)?"
- ;;                        "{")
- ;;                '((c-font-lock-declarators limit t nil)
- ;;                  (save-match-data
- ;;                    (goto-char (match-end 0))
- ;;                    (c-put-char-property (1- (point)) 'c-type
- ;;                                         'c-decl-id-start)
- ;;                    (c-forward-syntactic-ws))
- ;;                  (goto-char (match-end 0)))))
-
-
-
 
            ;; Fontify labels after goto etc.
            ,@(when (c-lang-const c-before-label-kwds)
