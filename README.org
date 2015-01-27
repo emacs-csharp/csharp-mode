@@ -24,7 +24,7 @@ This is a mode for editing C# in emacs. It's based on cc-mode, v5.30.3 and above
 ** Usage
 
 This package is currently available on MELPA & Marmalade. Install using
-'M-x package-install<RET>csharp-mode'.
+~M-x package-install<RET>csharp-mode~.
 
 Once installed the package should be automatically used for files with a '.cs'-extension.
 
