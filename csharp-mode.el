@@ -2,7 +2,7 @@
 ;;; csharp-mode.el --- C# mode derived mode
 
 ;; Author     : Dylan R. E. Moonfire (original)
-;; Maintainer : Jostein Kj�nigsen <jostein@gmail.com>
+;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
 ;; Modified   : November 2014
 ;; Version    : 0.8.8
@@ -4137,16 +4137,21 @@ The return value is meaningless, and is ignored by cc-mode.
 ;;                (cons "C#" (c-lang-const c-mode-menu csharp)))
 
 ;;; Compilation regexps
+;; When invoked by MSBuild, csc’s errors look like this:
+;; subfolder\file.cs(6,18): error CS1006: Name of constructor must match name of class [c:\Users\user\project.csproj]
+(defun csharp-compilation-error-file-resolve ()
+  ;; http://stackoverflow.com/a/18049590/429091
+  (cons (match-string 1) (match-string 4)))
 (eval-after-load 'compile
   (lambda ()
     (dolist
         (regexp
          '((msbuild-error
-            "^[[:blank:]]*\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): error .+$"
-            1 2 3 2)
+            "^[[:blank:]]*\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): error .+?\\(?:\\[\\([^[\r\n]+\\)[\\\\/][^\\\\/]+\\]\\)$"
+            csharp-compilation-error-file-resolve 2 3 2)
            (msbuild-warning
-            "^[[:blank:]]*\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): warning .+$"
-            1 2 3 1)))
+            "^[[:blank:]]*\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): warning .+?\\(?:\\[\\([^[\r\n]+\\)[\\\\/][^\\\\/]+\\]\\)$"
+            csharp-compilation-error-file-resolve 2 3 1)))
       (add-to-list 'compilation-error-regexp-alist-alist regexp))
     (dolist (symbol '(msbuild-error msbuild-warning))
       (add-to-list 'compilation-error-regexp-alist symbol))))
