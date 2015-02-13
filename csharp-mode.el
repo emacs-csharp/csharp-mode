@@ -4142,10 +4142,10 @@ The return value is meaningless, and is ignored by cc-mode.
     (dolist
         (regexp
          '((msbuild-error
-            "^[[:space:]]+\\([^(]+\\)(\\([0-9]+\\),\\([0-9]+\\)): error .+$"
+            "^[[:blank:]]*\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): error .+$"
             1 2 3 2)
            (msbuild-warning
-            "^[[:space:]]+\\([^(]+\\)(\\([0-9]+\\),\\([0-9]+\\)): warning .+$"
+            "^[[:blank:]]*\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): warning .+$"
             1 2 3 1)))
       (add-to-list 'compilation-error-regexp-alist-alist regexp))
     (dolist (symbol '(msbuild-error msbuild-warning))
