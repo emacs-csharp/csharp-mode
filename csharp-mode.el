@@ -4136,6 +4136,21 @@ The return value is meaningless, and is ignored by cc-mode.
 ;;                ;; irrelevant menu alternatives.
 ;;                (cons "C#" (c-lang-const c-mode-menu csharp)))
 
+;;; Compilation regexps
+(eval-after-load 'compile
+  (lambda ()
+    (dolist
+        (regexp
+         '((msbuild-error
+            "^[[:space:]]+\\([^(]+\\)(\\([0-9]+\\),\\([0-9]+\\)): error .+$"
+            1 2 3 2)
+           (msbuild-warning
+            "^[[:space:]]+\\([^(]+\\)(\\([0-9]+\\),\\([0-9]+\\)): warning .+$"
+            1 2 3 1)))
+      (add-to-list 'compilation-error-regexp-alist-alist regexp))
+    (dolist (symbol '(msbuild-error msbuild-warning))
+      (add-to-list 'compilation-error-regexp-alist symbol))))
+
 ;;; Autoload mode trigger
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
