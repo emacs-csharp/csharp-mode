@@ -4138,20 +4138,41 @@ The return value is meaningless, and is ignored by cc-mode.
 
 ;;; Compilation regexps
 ;; When invoked by MSBuild, csc’s errors look like this:
-;; subfolder\file.cs(6,18): error CS1006: Name of constructor must match name of class [c:\Users\user\project.csproj]
-(defun csharp-compilation-error-file-resolve ()
+;; subfolder\file.cs(6,18): error CS1006: Name of constructor must
+;; match name of class [c:\Users\user\project.csproj]
+
+(defun csharp--compilation-error-file-resolve ()
   ;; http://stackoverflow.com/a/18049590/429091
-  (cons (match-string 1) (match-string 4)))
+  (expand-file-name (match-string 1) (file-name-directory (match-string 4))))
+
 (eval-after-load 'compile
   (lambda ()
     (dolist
         (regexp
-         '((msbuild-error
-            "^[[:blank:]]*\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): error .+?\\(?:\\[\\([^[\r\n]+\\)[\\\\/][^\\\\/]+\\]\\)$"
-            csharp-compilation-error-file-resolve 2 3 2)
+         `((msbuild-error
+            ,(concat
+              "^[[:blank:]]*"
+              "\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
+              "error [[:alnum:]]+: .+ \\[\\([^]\r\n]+\\)\\]$")
+            csharp--compilation-error-file-resolve
+            2
+            3
+            2
+            nil
+            (1 compilation-error-face)
+            (4 compilation-error-face))
            (msbuild-warning
-            "^[[:blank:]]*\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): warning .+?\\(?:\\[\\([^[\r\n]+\\)[\\\\/][^\\\\/]+\\]\\)$"
-            csharp-compilation-error-file-resolve 2 3 1)))
+            ,(concat
+              "^[[:blank:]]*"
+              "\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
+              "warning [[:alnum:]]+: .+ \\[\\([^]\r\n]+\\)\\]$")
+            csharp--compilation-error-file-resolve
+            2
+            3
+            1
+            nil
+            (1 compilation-warning-face)
+            (4 compilation-warning-face))))
       (add-to-list 'compilation-error-regexp-alist-alist regexp))
     (dolist (symbol '(msbuild-error msbuild-warning))
       (add-to-list 'compilation-error-regexp-alist symbol))))
