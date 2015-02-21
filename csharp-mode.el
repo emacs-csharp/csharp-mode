@@ -4145,15 +4145,24 @@ The return value is meaningless, and is ignored by cc-mode.
   ;; http://stackoverflow.com/a/18049590/429091
   (expand-file-name (match-string 1) (file-name-directory (match-string 4))))
 
+(defconst csharp-compilation-re-build-error
+  (concat
+   "^[[:blank:]]*"
+   "\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
+   "error [[:alnum:]]+: .+ \\[\\([^]\r\n]+\\)\\]$"))
+
+(defconst csharp-compilation-re-build-warning
+  (concat
+   "^[[:blank:]]*"
+   "\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
+   "warning [[:alnum:]]+: .+ \\[\\([^]\r\n]+\\)\\]$"))
+
 (eval-after-load 'compile
   (lambda ()
     (dolist
         (regexp
          `((msbuild-error
-            ,(concat
-              "^[[:blank:]]*"
-              "\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
-              "error [[:alnum:]]+: .+ \\[\\([^]\r\n]+\\)\\]$")
+            csharp-compilation-re-build-error
             csharp--compilation-error-file-resolve
             2
             3
@@ -4162,10 +4171,7 @@ The return value is meaningless, and is ignored by cc-mode.
             (1 compilation-error-face)
             (4 compilation-error-face))
            (msbuild-warning
-            ,(concat
-              "^[[:blank:]]*"
-              "\\([^(\r\n]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
-              "warning [[:alnum:]]+: .+ \\[\\([^]\r\n]+\\)\\]$")
+            csharp-compilation-re-build-warning
             csharp--compilation-error-file-resolve
             2
             3
