@@ -1,0 +1,73 @@
+-*- mode: compilation; default-directory: "~/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/" -*-
+Compilation started at Fri Feb 20 22:55:05
+
+xbuild /p:GenerateFullPaths=true
+XBuild Engine Version 12.0
+Mono, Version 3.12.0.0
+Copyright (C) 2005-2013 Various Mono authors
+
+Build started 2/20/2015 10:55:06 PM.
+__________________________________________________
+Project "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.csproj" (default target(s)):
+	Target PrepareForBuild:
+		Configuration: Debug Platform: AnyCPU
+	Target ResolveProjectReferences:
+		Project "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/ClassLibrary1.csproj" (default target(s)):
+			Target PrepareForBuild:
+				Configuration: Debug Platform: AnyCPU
+			Target GenerateSatelliteAssemblies:
+			No input files were specified for target GenerateSatelliteAssemblies, skipping.
+			Target GenerateTargetFrameworkMonikerAttribute:
+			Skipping target "GenerateTargetFrameworkMonikerAttribute" because its outputs are up-to-date.
+			Target CoreCompile:
+				Tool /Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/mcs.exe execution started with arguments: /noconfig /debug:full /debug+ /optimize- /out:obj/Debug/ClassLibrary1.dll Class1.cs Folder/Class1.cs Properties/AssemblyInfo.cs /target:library /define:"DEBUG;TRACE" /fullpaths /nostdlib /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Xml.Linq.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Data.DataSetExtensions.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/Microsoft.CSharp.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Data.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Xml.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Core.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/mscorlib.dll /warn:4
+/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Class1.cs(11): warning CS0169: The private field `ClassLibrary1.Class1.BadImageFormatExcep' is never used
+/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs(11): warning CS0169: The private field `ClassLibrary1.Folder.Class1.foo' is never used
+			Target DeployOutputFiles:
+				Copying file from '/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/obj/Debug/ClassLibrary1.dll.mdb' to '/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/bin/Debug/ClassLibrary1.dll.mdb'
+				Copying file from '/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/obj/Debug/ClassLibrary1.dll' to '/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/bin/Debug/ClassLibrary1.dll'
+		Done building project "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/ClassLibrary1.csproj".
+	Target CopyFilesMarkedCopyLocal:
+		Copying file from '/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/bin/Debug/ClassLibrary1.dll' to '/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/bin/Debug/ClassLibrary1.dll'
+		Copying file from '/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/bin/Debug/ClassLibrary1.dll.mdb' to '/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/bin/Debug/ClassLibrary1.dll.mdb'
+	Target GenerateSatelliteAssemblies:
+	No input files were specified for target GenerateSatelliteAssemblies, skipping.
+	Target GenerateTargetFrameworkMonikerAttribute:
+	Skipping target "GenerateTargetFrameworkMonikerAttribute" because its outputs are up-to-date.
+	Target CoreCompile:
+		Tool /Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/mcs.exe execution started with arguments: /noconfig /debug:full /debug+ /optimize- /out:obj/Debug/ConsoleApplication1.exe Program.cs Properties/AssemblyInfo.cs /target:exe /define:"DEBUG;TRACE" /fullpaths /nostdlib /platform:AnyCPU /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Xml.Linq.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Data.DataSetExtensions.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/Microsoft.CSharp.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Data.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Xml.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Core.dll /reference:/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/bin/Debug//ClassLibrary1.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/mscorlib.dll /warn:4
+/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs(14): warning CS0168: The variable `foo' is declared but never used
+/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs(15): warning CS0168: The variable `sgedf' is declared but never used
+/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs(16): warning CS0219: The variable `x' is assigned but its value is never used
+	Target _CopyAppConfigFile:
+	Skipping target "_CopyAppConfigFile" because its outputs are up-to-date.
+	Target DeployOutputFiles:
+		Copying file from '/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/obj/Debug/ConsoleApplication1.exe.mdb' to '/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/bin/Debug/ConsoleApplication1.exe.mdb'
+		Copying file from '/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/obj/Debug/ConsoleApplication1.exe' to '/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/bin/Debug/ConsoleApplication1.exe'
+Done building project "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.csproj".
+
+Build succeeded.
+
+Warnings:
+
+/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.csproj (default targets) ->
+/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/xbuild/12.0/bin/Microsoft.Common.targets (ResolveProjectReferences target) ->
+/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/ClassLibrary1.csproj (default targets) ->
+/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/xbuild/12.0/bin/Microsoft.CSharp.targets (CoreCompile target) ->
+
+	/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Class1.cs(11): warning CS0169: The private field `ClassLibrary1.Class1.BadImageFormatExcep' is never used
+	/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs(11): warning CS0169: The private field `ClassLibrary1.Folder.Class1.foo' is never used
+
+/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.csproj (default targets) ->
+/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/xbuild/12.0/bin/Microsoft.CSharp.targets (CoreCompile target) ->
+
+	/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs(14): warning CS0168: The variable `foo' is declared but never used
+	/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs(15): warning CS0168: The variable `sgedf' is declared but never used
+	/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs(16): warning CS0219: The variable `x' is assigned but its value is never used
+
+	 5 Warning(s)
+	 0 Error(s)
+
+Time Elapsed 00:00:01.1888770
+
+Compilation finished at Fri Feb 20 22:55:07

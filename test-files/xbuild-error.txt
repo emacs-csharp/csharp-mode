@@ -1,0 +1,47 @@
+-*- mode: compilation; default-directory: "~/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/" -*-
+Compilation started at Fri Feb 20 22:52:43
+
+xbuild /p:GenerateFullPaths=true
+XBuild Engine Version 12.0
+Mono, Version 3.12.0.0
+Copyright (C) 2005-2013 Various Mono authors
+
+Build started 2/20/2015 10:52:44 PM.
+__________________________________________________
+Project "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.csproj" (default target(s)):
+	Target PrepareForBuild:
+		Configuration: Debug Platform: AnyCPU
+	Target ResolveProjectReferences:
+		Project "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/ClassLibrary1.csproj" (default target(s)):
+			Target PrepareForBuild:
+				Configuration: Debug Platform: AnyCPU
+			Target GenerateSatelliteAssemblies:
+			No input files were specified for target GenerateSatelliteAssemblies, skipping.
+			Target GenerateTargetFrameworkMonikerAttribute:
+			Skipping target "GenerateTargetFrameworkMonikerAttribute" because its outputs are up-to-date.
+			Target CoreCompile:
+				Tool /Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/mcs.exe execution started with arguments: /noconfig /debug:full /debug+ /optimize- /out:obj/Debug/ClassLibrary1.dll Class1.cs Folder/Class1.cs Properties/AssemblyInfo.cs /target:library /define:"DEBUG;TRACE" /fullpaths /nostdlib /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Xml.Linq.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Data.DataSetExtensions.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/Microsoft.CSharp.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Data.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Xml.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/System.Core.dll /reference:/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/4.5/mscorlib.dll /warn:4
+/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs(12): error CS1525: Unexpected symbol `}', expecting `;', `{', `=>', or `where'
+			Task "Csc" execution -- FAILED
+			Done building target "CoreCompile" in project "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/ClassLibrary1.csproj".-- FAILED
+		Done building project "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/ClassLibrary1.csproj".-- FAILED
+	Task "MSBuild" execution -- FAILED
+	Done building target "ResolveProjectReferences" in project "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.csproj".-- FAILED
+Done building project "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.csproj".-- FAILED
+
+Build FAILED.
+Errors:
+
+/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.csproj (default targets) ->
+/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/xbuild/12.0/bin/Microsoft.Common.targets (ResolveProjectReferences target) ->
+/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/ClassLibrary1.csproj (default targets) ->
+/Library/Frameworks/Mono.framework/Versions/3.12.0/lib/mono/xbuild/12.0/bin/Microsoft.CSharp.targets (CoreCompile target) ->
+
+	/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs(12): error CS1525: Unexpected symbol `}', expecting `;', `{', `=>', or `where'
+
+	 0 Warning(s)
+	 1 Error(s)
+
+Time Elapsed 00:00:00.9346550
+
+Compilation exited abnormally with code 1 at Fri Feb 20 22:52:45
