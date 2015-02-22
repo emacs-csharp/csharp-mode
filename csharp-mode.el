@@ -4145,34 +4145,46 @@ The return value is meaningless, and is ignored by cc-mode.
   ;; http://stackoverflow.com/a/18049590/429091
   (cons (match-string 1) (file-name-directory (match-string 4))))
 
-(defconst csharp-compilation-re-build-error
+(defconst csharp-compilation-re-msbuild-error
   (concat
    "^[[:blank:]]*"
    "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
-   "error [[:alnum:]]+: [^[\r\n]+\\(?:\\[\\([^]\r\n]+\\)\\]\\)?$")
-  ;; docstring
-  "Regexp to match compilation error from xbuild/msbuild-logs like this:
-	/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs(12): error CS1525: Unexpected symbol `}', expecting `;', `{', `=>', or `where'
-"
-)
+   "error [[:alnum:]]+: [^[\r\n]+\\[\\([^]\r\n]+\\)\\]$")
+  "Regexp to match compilation error from msbuild.")
 
-(defconst csharp-compilation-re-build-warning
+(defconst csharp-compilation-re-msbuild-warning
   (concat
    "^[[:blank:]]*"
    "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
-   "warning [[:alnum:]]+: [^[\r\n]+\\(?:\\[\\([^]\r\n]+\\)\\]\\)?$")
-  ;; docstring
-  "Regexp to match compilation warning from xbuild/msbuild-logs like this:
-	/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Class1.cs(11): warning CS0169: The private field `ClassLibrary1.Class1.BadImageFormatExcep' is never used
-"
-  )
+   "warning [[:alnum:]]+: [^[\r\n]+\\[\\([^]\r\n]+\\)\\]$")
+  "Regexp to match compilation warning from msbuild.")
+
+(defconst csharp-compilation-re-xbuild-error
+  (concat
+   "^[[:blank:]]*"
+   "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
+   "error [[:alnum:]]+: .+$")
+  "Regexp to match compilation error from xbuild.")
+
+(defconst csharp-compilation-re-xbuild-warning
+  (concat
+   "^[[:blank:]]*"
+   "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
+   "warning [[:alnum:]]+: .+$")
+  "Regexp to match compilation warning from xbuild.")
 
 (eval-after-load 'compile
   (lambda ()
     (dolist
         (regexp
-         `((msbuild-error
-            ,csharp-compilation-re-build-error
+         `((xbuild-error
+            ,csharp-compilation-re-xbuild-error
+            1 2 3 2)
+           (xbuild-warning
+            ,csharp-compilation-re-xbuild-warning
+            1 2 3 1)
+           (msbuild-error
+            ,csharp-compilation-re-msbuild-error
             csharp--compilation-error-file-resolve
             2
             3
@@ -4181,7 +4193,7 @@ The return value is meaningless, and is ignored by cc-mode.
             (1 compilation-error-face)
             (4 compilation-error-face))
            (msbuild-warning
-            ,csharp-compilation-re-build-warning
+            ,csharp-compilation-re-msbuild-warning
             csharp--compilation-error-file-resolve
             2
             3
@@ -4189,9 +4201,8 @@ The return value is meaningless, and is ignored by cc-mode.
             nil
             (1 compilation-warning-face)
             (4 compilation-warning-face))))
-      (add-to-list 'compilation-error-regexp-alist-alist regexp))
-    (dolist (symbol '(msbuild-error msbuild-warning))
-      (add-to-list 'compilation-error-regexp-alist symbol))))
+      (add-to-list 'compilation-error-regexp-alist-alist regexp)
+      (add-to-list 'compilation-error-regexp-alist (car regexp)))))
 
 ;;; Autoload mode trigger
 ;;;###autoload
