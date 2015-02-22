@@ -4143,13 +4143,13 @@ The return value is meaningless, and is ignored by cc-mode.
 
 (defun csharp--compilation-error-file-resolve ()
   ;; http://stackoverflow.com/a/18049590/429091
-  (expand-file-name (match-string 1) (file-name-directory (match-string 4))))
+  (cons (match-string 1) (file-name-directory (match-string 4))))
 
 (defconst csharp-compilation-re-build-error
   (concat
    "^[[:blank:]]*"
    "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
-   "error [[:alnum:]]+: .+ ?\\(\\[\\([^]\r\n]+\\)\\]\\)?$")
+   "error [[:alnum:]]+: [^[\r\n]+\\(?:\\[\\([^]\r\n]+\\)\\]\\)?$")
   ;; docstring
   "Regexp to match compilation error from xbuild/msbuild-logs like this:
 	/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs(12): error CS1525: Unexpected symbol `}', expecting `;', `{', `=>', or `where'
@@ -4160,7 +4160,7 @@ The return value is meaningless, and is ignored by cc-mode.
   (concat
    "^[[:blank:]]*"
    "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
-   "warning [[:alnum:]]+: .+ ?\\(\\[\\([^]\r\n]+\\)\\]\\)?$")
+   "warning [[:alnum:]]+: [^[\r\n]+\\(?:\\[\\([^]\r\n]+\\)\\]\\)?$")
   ;; docstring
   "Regexp to match compilation warning from xbuild/msbuild-logs like this:
 	/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Class1.cs(11): warning CS0169: The private field `ClassLibrary1.Class1.BadImageFormatExcep' is never used
