@@ -4168,7 +4168,7 @@ The return value is meaningless, and is ignored by cc-mode.
     (dolist
         (regexp
          `((msbuild-error
-            csharp-compilation-re-build-error
+            ,csharp-compilation-re-build-error
             csharp--compilation-error-file-resolve
             2
             3
@@ -4177,7 +4177,7 @@ The return value is meaningless, and is ignored by cc-mode.
             (1 compilation-error-face)
             (4 compilation-error-face))
            (msbuild-warning
-            csharp-compilation-re-build-warning
+            ,csharp-compilation-re-build-warning
             csharp--compilation-error-file-resolve
             2
             3
