@@ -10,7 +10,7 @@
 
 (defun get-current-line-contents ()
   (let* ((start)
-	 (end))
+         (end))
     (move-beginning-of-line 1)
     (setq start (point))
     (move-end-of-line 1)
@@ -49,5 +49,21 @@
       (should
        (equal buffer1 buffer2)))))
 
+(ert-deftest build-warnings-and-errors-are-parsed ()
+  (dolist (test-case
+	   `(("./test-files/msbuild-warning.txt" ,csharp-compilation-re-msbuild-warning 3)
+	     ("./test-files/msbuild-error.txt" ,csharp-compilation-re-msbuild-error 1)
+	     ("./test-files/xbuild-warning.txt" ,csharp-compilation-re-xbuild-warning 5)
+	     ("./test-files/xbuild-error.txt" ,csharp-compilation-re-xbuild-error 1)
+	     ))
+
+    (let* ((file-name (car test-case))
+	   (regexp    (cadr test-case))
+	   (times     (caddr test-case))
+	   (find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
+	   (buffer (find-file-read-only file-name)))
+      (dotimes (number times)
+	(re-search-forward regexp))
+      (kill-buffer buffer))))
 
 ;;(ert-run-tests-interactively t)

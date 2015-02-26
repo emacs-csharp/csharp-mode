@@ -1,0 +1,32 @@
+-*- xmode: compilation; default-directory: "~/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/" -*-
+Compilation started at Sat Feb 21 10:26:47
+
+"C:\Program Files (x86)\MSBuild\12.0\Bin\Msbuild.exe"
+Microsoft (R) Build Engine version 12.0.31101.0
+[Microsoft .NET Framework, version 4.0.30319.35312]
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Build started 2/21/2015 10:26:47 AM.
+Project "c:\Users\jesse_000\Dropbox\barfapp\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.csproj" on node 1 (default targets).
+Project "c:\Users\jesse_000\Dropbox\barfapp\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.csproj" (1) is building "c:\Users\jesse_000\Dropbox\barfapp\ConsoleApplication1\ClassLibrary1\ClassLibrary1.csproj" (2) on node 1 (default targets).
+GenerateTargetFrameworkMonikerAttribute:
+Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
+CoreCompile:
+  C:\Program Files (x86)\MSBuild\12.0\bin\Csc.exe /noconfig /nowarn:1701,1702 /nostdlib+ /errorreport:prompt /warn:4 /define:DEBUG;TRACE /highentropyva+ /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Microsoft.CSharp.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Core.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.DataSetExtensions.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.Linq.dll" /debug+ /debug:full /filealign:512 /optimize- /out:obj\Debug\ClassLibrary1.dll /subsystemversion:6.00 /target:library /utf8output Class1.cs Folder\Class1.cs Properties\AssemblyInfo.cs "C:\Users\jesse_000\AppData\Local\Temp\.NETFramework,Version=v4.5.AssemblyAttributes.cs"
+Folder\Class1.cs(11,12): error CS1002: ; expected [c:\Users\jesse_000\Dropbox\barfapp\ConsoleApplication1\ClassLibrary1\ClassLibrary1.csproj]
+Done Building Project "c:\Users\jesse_000\Dropbox\barfapp\ConsoleApplication1\ClassLibrary1\ClassLibrary1.csproj" (default targets) -- FAILED.
+Done Building Project "c:\Users\jesse_000\Dropbox\barfapp\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.csproj" (default targets) -- FAILED.
+
+Build FAILED.
+
+"c:\Users\jesse_000\Dropbox\barfapp\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.csproj" (default target) (1) ->
+"c:\Users\jesse_000\Dropbox\barfapp\ConsoleApplication1\ClassLibrary1\ClassLibrary1.csproj" (default target) (2) ->
+(CoreCompile target) -> 
+  Folder\Class1.cs(11,12): error CS1002: ; expected [c:\Users\jesse_000\Dropbox\barfapp\ConsoleApplication1\ClassLibrary1\ClassLibrary1.csproj]
+
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:00.26
+
+Compilation exited abnormally with code 1 at Sat Feb 21 10:26:48
