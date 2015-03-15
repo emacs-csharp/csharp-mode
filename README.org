@@ -20,6 +20,7 @@ This is a mode for editing C# in emacs. It's based on cc-mode, v5.30.3 and above
 - automagic code-doc generation when you type three slashes.
 - intelligent insertion of matched pairs of curly braces.
 - imenu indexing of C# source, for easy menu-based navigation. 
+- compilation-mode support for msbuild and xbuild.
 
 ** Usage
 

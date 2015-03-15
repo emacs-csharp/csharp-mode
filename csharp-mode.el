@@ -5,7 +5,7 @@
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
 ;; Modified   : November 2014
-;; Version    : 0.8.8
+;; Version    : 0.8.9
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : <2014-Nov-29 13:56:00>
@@ -271,6 +271,9 @@
 ;;          - Fix broken byte-compile.
 ;;          - Add extra C# keywords.
 ;;          - Call prog-mode hooks.
+;;
+;;    0.8.9 2015 March 15
+;;          - (Re)add compilation-mode support for msbuild and xbuild.
 ;;
 
 (require 'cc-mode)
