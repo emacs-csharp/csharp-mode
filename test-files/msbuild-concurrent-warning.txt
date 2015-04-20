@@ -1,0 +1,36 @@
+-*- mode: compilation; default-directory: "~/Documents/Visual Studio 2015/Projects/ConsoleApplication3/ConsoleApplication3/" -*-
+Compilation started at Mon Apr 20 01:44:21
+
+bash -c "for m in *akefile; do break; done; if [[ ${m} != \"*akefile\" ]]; then PATH=\"${PATH}:/c/Program Files (x86)/MSBuild/14.0/Bin:/c/Program Files/Emacs/bin\" make; else set -o pipefail; 'c:/Program Files (x86)/MSBuild/14.0/Bin/MSBuild.exe' //m; fi"
+Microsoft (R) Build Engine version 14.0.22609.0
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Build started 2015-04-20 01:44:22.
+The target "AfterGenerateAppxManifest" listed in an AfterTargets attribute at "C:\Program Files (x86)\MSBuild\Microsoft\.NetNative\Microsoft.NetNative.targets (60,11)" does not exist in the project, and will be ignored.
+The target "AfterGenerateAppxManifest" listed in an AfterTargets attribute at "C:\Program Files (x86)\MSBuild\Microsoft\.NetNative\Microsoft.NetNative.targets (108,11)" does not exist in the project, and will be ignored.
+     1>Project "c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ConsoleApplication3\ConsoleApplication3\ConsoleApplication3.csproj" on node 1 (default targets).
+     1>GenerateTargetFrameworkMonikerAttribute:
+       Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
+       CoreCompile:
+         C:\Program Files (x86)\MSBuild\14.0\bin\csc2.exe /noconfig /nowarn:1701,1702 /nostdlib+ /platform:anycpu32bitpreferred /errorreport:prompt /warn:4 /define:DEBUG;TRACE /highentropyva+ /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Microsoft.CSharp.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Core.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.DataSetExtensions.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.Linq.dll" /debug+ /debug:full /filealign:512 /optimize- /out:obj\Debug\ConsoleApplication3.exe /ruleset:"C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\\Rule Sets\MinimumRecommendedRules.ruleset" /subsystemversion:6.00 /target:exe /utf8output Program.cs Properties\AssemblyInfo.cs "C:\Users\ohnob\AppData\Local\Temp\.NETFramework,Version=v4.5.AssemblyAttributes.cs"
+     1>Program.cs(13,10): warning CS1030: #warning: 'asdf' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ConsoleApplication3\ConsoleApplication3\ConsoleApplication3.csproj]
+       _CopyAppConfigFile:
+       Skipping target "_CopyAppConfigFile" because all output files are up-to-date with respect to the input files.
+       CopyFilesToOutputDirectory:
+         Copying file from "obj\Debug\ConsoleApplication3.exe" to "bin\Debug\ConsoleApplication3.exe".
+         ConsoleApplication3 -> c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ConsoleApplication3\ConsoleApplication3\bin\Debug\ConsoleApplication3.exe
+         Copying file from "obj\Debug\ConsoleApplication3.pdb" to "bin\Debug\ConsoleApplication3.pdb".
+     1>Done Building Project "c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ConsoleApplication3\ConsoleApplication3\ConsoleApplication3.csproj" (default targets).
+
+Build succeeded.
+
+       "c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ConsoleApplication3\ConsoleApplication3\ConsoleApplication3.csproj" (default target) (1) ->
+       (CoreCompile target) -> 
+         Program.cs(13,10): warning CS1030: #warning: 'asdf' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ConsoleApplication3\ConsoleApplication3\ConsoleApplication3.csproj]
+
+    1 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:00.20
+
+Compilation finished at Mon Apr 20 01:44:22
