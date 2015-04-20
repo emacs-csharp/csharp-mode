@@ -8,6 +8,8 @@ EMACS="$(shell which emacs)" -Q -batch -L .
 ELS = csharp-mode.el csharp-mode-tests.el
 ELCS = $(ELS:.el=.elc)
 
+all: $(ELCS) test package
+
 package: $(PACKAGE_DIR)
 	tar cvf ../$(PACKAGE_NAME).tar --exclude="*#" --exclude="*~" --exclude="*tests*" --exclude="test-files" --exclude "*-pkg.el.template*" --exclude="makefile" --exclude="run-travis-ci.sh" -C $(PACKAGE_DIR)/.. $(PACKAGE_NAME)
 
@@ -21,8 +23,6 @@ test:
 
 %.elc: %.el
 	$(EMACS) -f batch-byte-compile $<
-
-all: $(ELCS) test package
 
 clean:
 	rm -f ../$(PACKAGE_NAME).tar

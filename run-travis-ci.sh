@@ -11,4 +11,4 @@ echo "ECUKES_EMACS = $ECUKES_EMACS"
 echo
 
 # bytecompile, tests, package
-make all 
+make
