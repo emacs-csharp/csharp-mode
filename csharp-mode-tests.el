@@ -49,21 +49,48 @@
       (should
        (equal buffer1 buffer2)))))
 
+(defun list-repeat-once (mylist)
+  (append mylist mylist))
+
 (ert-deftest build-warnings-and-errors-are-parsed ()
   (dolist (test-case
-	   `(("./test-files/msbuild-warning.txt" ,csharp-compilation-re-msbuild-warning 3)
-	     ("./test-files/msbuild-error.txt" ,csharp-compilation-re-msbuild-error 1)
-	     ("./test-files/xbuild-warning.txt" ,csharp-compilation-re-xbuild-warning 5)
-	     ("./test-files/xbuild-error.txt" ,csharp-compilation-re-xbuild-error 1)
+	   `(("./test-files/msbuild-warning.txt" ,csharp-compilation-re-msbuild-warning 8
+              ,(list-repeat-once
+                '("Class1.cs"
+                  "Folder\\Class1.cs"
+                  "Program.cs"
+                  "Program.cs")))
+	     ("./test-files/msbuild-error.txt" ,csharp-compilation-re-msbuild-error 2
+              ,(list-repeat-once
+                '("Folder\\Class1.cs")))
+             ("./test-files/msbuild-concurrent-warning.txt" ,csharp-compilation-re-msbuild-warning 2
+              ,(list-repeat-once
+                '("Program.cs")))
+             ("./test-files/msbuild-concurrent-error.txt" ,csharp-compilation-re-msbuild-error 2
+              ,(list-repeat-once
+                '("Program.cs")))
+	     ("./test-files/xbuild-warning.txt" ,csharp-compilation-re-xbuild-warning 10
+              ,(list-repeat-once
+                '("/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Class1.cs"
+                  "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs"
+                  "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs"
+                  "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs"
+                  "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs")))
+	     ("./test-files/xbuild-error.txt" ,csharp-compilation-re-xbuild-error 2
+              ,(list-repeat-once
+                '("/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs")))
 	     ))
 
     (let* ((file-name (car test-case))
 	   (regexp    (cadr test-case))
 	   (times     (caddr test-case))
+           (matched-file-names (cadddr test-case))
 	   (find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
 	   (buffer (find-file-read-only file-name)))
       (dotimes (number times)
-	(re-search-forward regexp))
+	(re-search-forward regexp)
+        (should
+         (equal (nth number matched-file-names) (match-string 1))))
       (kill-buffer buffer))))
 
 ;;(ert-run-tests-interactively t)
