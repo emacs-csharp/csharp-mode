@@ -4,7 +4,7 @@ PACKAGE_NAME:=$(PACKAGE_SHORTNAME)-$(VERSION)
 PACKAGE_DIR:=./.tmp/$(PACKAGE_NAME)
 #PACKAGE_DIR:=/tmp/$(PACKAGE_NAME)
 
-EMACS=$(shell which emacs) -Q -batch -L .
+EMACS="$(shell which emacs)" -Q -batch -L .
 ELS = csharp-mode.el csharp-mode-tests.el
 ELCS = $(ELS:.el=.elc)
 
