@@ -275,6 +275,9 @@
 ;;    0.8.9 2015 March 15
 ;;          - (Re)add compilation-mode support for msbuild and xbuild.
 ;;
+;;    0.8.x 2015 May 14th
+;;          - Imenu: Correctly handle support for default-values in paramlist.
+;;
 
 (require 'cc-mode)
 
@@ -2232,6 +2235,7 @@ Upon entry, it's assumed that the parens included in S.
              (state 0)  ;; 0 => ws, 1=>slurping param...
              c
              cs
+	     quoting
              nesting
              need-type
              ix2
@@ -2248,9 +2252,14 @@ Upon entry, it's assumed that the parens included in S.
            ;; backing over whitespace "after" the param
            ((= state 0)
             (cond
-             ;; more ws
-             ((string-match "[ \t\f\v\n\r]" cs)
+             ;; more ws. = is equal to whitespace in the sense that its follows a param-name.
+             ((string-match "[ \t\f\v\n\r=]" cs)
               t)
+	     ((string-match "[\"']" cs)
+	      ;; a quote means we're probably dealing with a stringy default-value
+	      ;; back out until we're back into unquoted context
+	      (setq quoting cs
+		    state 5))
              ;; a legal char for an identifier
              ((string-match "[A-Za-z_0-9]" cs)
               (setq state 1))
@@ -2264,8 +2273,13 @@ Upon entry, it's assumed that the parens included in S.
              ;; ws signifies the end of the param
              ((string-match "[ \t\f\v\n\r]" cs)
               (setq state 2))
+	     ((string-match "[=]" cs)
+	      ;; = means what we slurped was a default-value for a param
+	      ;; go back to slurping param-name
+	      (setq state 0))
              ;; a legal char for an identifier
-             ((string-match "[A-Za-z_0-9]" cs)
+	     ;; (or . for object-access in default value)
+             ((string-match "[A-Za-z_0-9\.]" cs)
               t)
              (t
               (error "unexpected char (B)"))))
@@ -2276,6 +2290,10 @@ Upon entry, it's assumed that the parens included in S.
             (cond
              ((string-match "[ \t\f\v\n\r]" cs)
               t)
+	     ((string-match "[=]" cs)
+	      ;; = means what we slurped was a default-value for a param
+	      ;; go back to slurping param-name
+	      (setq state 0))
              ;; non-ws indicates the type spec is beginning
              (t
               (incf i)
@@ -2343,6 +2361,16 @@ Upon entry, it's assumed that the parens included in S.
 
              (t
               (error "unexpected char (C)"))))
+
+	   ;; in a quoted context of a default-value.
+	   ;; we're basically waiting for a matching quote, to go back to slurping param-name
+	   ((= state 5)
+	    (cond
+	     ((equal quoting cs)
+	      ;; we're back to unquoted! slurp param-name!
+	      (setq state 0))
+	     (t
+	      t)))
            )
 
           (decf i))

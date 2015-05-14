@@ -54,13 +54,13 @@
 
 (ert-deftest build-warnings-and-errors-are-parsed ()
   (dolist (test-case
-	   `(("./test-files/msbuild-warning.txt" ,csharp-compilation-re-msbuild-warning 8
+           `(("./test-files/msbuild-warning.txt" ,csharp-compilation-re-msbuild-warning 8
               ,(list-repeat-once
                 '("Class1.cs"
                   "Folder\\Class1.cs"
                   "Program.cs"
                   "Program.cs")))
-	     ("./test-files/msbuild-error.txt" ,csharp-compilation-re-msbuild-error 2
+             ("./test-files/msbuild-error.txt" ,csharp-compilation-re-msbuild-error 2
               ,(list-repeat-once
                 '("Folder\\Class1.cs")))
              ("./test-files/msbuild-concurrent-warning.txt" ,csharp-compilation-re-msbuild-warning 2
@@ -69,28 +69,50 @@
              ("./test-files/msbuild-concurrent-error.txt" ,csharp-compilation-re-msbuild-error 2
               ,(list-repeat-once
                 '("Program.cs")))
-	     ("./test-files/xbuild-warning.txt" ,csharp-compilation-re-xbuild-warning 10
+             ("./test-files/xbuild-warning.txt" ,csharp-compilation-re-xbuild-warning 10
               ,(list-repeat-once
                 '("/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Class1.cs"
                   "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs"
                   "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs"
                   "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs"
                   "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs")))
-	     ("./test-files/xbuild-error.txt" ,csharp-compilation-re-xbuild-error 2
+             ("./test-files/xbuild-error.txt" ,csharp-compilation-re-xbuild-error 2
               ,(list-repeat-once
                 '("/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs")))
-	     ))
+             ))
 
     (let* ((file-name (car test-case))
-	   (regexp    (cadr test-case))
-	   (times     (caddr test-case))
+           (regexp    (cadr test-case))
+           (times     (caddr test-case))
            (matched-file-names (cadddr test-case))
-	   (find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
-	   (buffer (find-file-read-only file-name)))
+           (find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
+           (buffer (find-file-read-only file-name)))
       (dotimes (number times)
-	(re-search-forward regexp)
+        (re-search-forward regexp)
         (should
          (equal (nth number matched-file-names) (match-string 1))))
       (kill-buffer buffer))))
 
+(ert-deftest imenu-parsing-supports-default-values ()
+  (dolist (test-case
+           '(;; should support bools
+             ("(bool a, bool b = true)"                  "(bool, bool)")
+             ("(bool a=true, bool b)"                    "(bool, bool)")
+             ;; should support strings
+             ("(string a, string b = \"quoted string\")" "(string, string)")
+             ("(string a = \"quoted string\", string b)" "(string, string)")
+	     ;; should support chars
+             ("(char a, char b = 'b')"                   "(char, char)")
+             ("(char a = 'a', char b)"                   "(char, char)")
+	     ;; should support self-object-access
+	     ("(object o = Const)"                       "(object)")
+	     ;; should support other-object-access
+	     ("(object o = ConstObject.Const)"           "(object)")
+	     ))
+    (let* ((test-value     (car test-case))
+	   (expected-value (cadr test-case))
+	   (result         (csharp--imenu-remove-param-names-from-paramlist test-value)))
+      (should (equal expected-value result)))))
+
 ;;(ert-run-tests-interactively t)
+
