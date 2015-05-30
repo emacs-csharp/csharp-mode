@@ -1264,7 +1264,7 @@ a square parentasis block [ ... ]."
 (c-lang-defconst c-modifier-kwds
   csharp '("public" "partial" "private" "const" "abstract" "sealed"
            "protected" "ref" "out" "static" "virtual"
-           "override" "params" "internal"))
+           "override" "params" "internal" "async"))
 
 
 ;; Thu, 22 Apr 2010  23:02
