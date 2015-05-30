@@ -1286,7 +1286,7 @@ a square parentasis block [ ... ]."
 ;; This allows the classes after the : in the class declartion to be
 ;; fontified.
 (c-lang-defconst c-typeless-decl-kwds
-  csharp '(":"))
+  csharp '(":" "var"))
 
 ;; Sets up the enum to handle the list properly, and also the new
 ;; keyword to handle object initializers.  This requires a modified
@@ -1333,7 +1333,7 @@ a square parentasis block [ ... ]."
 (c-lang-defconst c-other-kwds
   csharp '("sizeof" "typeof" "is" "as" "yield" "extern"
            "where" "select" "in" "from" "let" "orderby" "ascending" "descending"
-	   "await" "async" "var"))
+           "await" "async"))
 
 (c-lang-defconst c-overloadable-operators
   ;; EMCA-344, S14.2.1
