@@ -1282,11 +1282,9 @@ a square parentasis block [ ... ]."
   csharp '("struct" "class" "interface" "is" "as"
            "delegate" "event" "set" "get" "add" "remove"))
 
-
-;; This allows the classes after the : in the class declartion to be
-;; fontified.
+;; Handle typeless variable declaration
 (c-lang-defconst c-typeless-decl-kwds
-  csharp '(":" "var"))
+  csharp '("var"))
 
 ;; Sets up the enum to handle the list properly, and also the new
 ;; keyword to handle object initializers.  This requires a modified
