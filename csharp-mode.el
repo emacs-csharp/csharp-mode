@@ -275,7 +275,7 @@
 ;;    0.8.9 2015 March 15
 ;;          - (Re)add compilation-mode support for msbuild and xbuild.
 ;;
-;;    0.8.x 2015 May 14th
+;;    0.8.10 2015 May 31th
 ;;          - Imenu: Correctly handle support for default-values in paramlist.
 ;;
 
