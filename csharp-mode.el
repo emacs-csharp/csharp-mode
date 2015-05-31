@@ -4,8 +4,8 @@
 ;; Author     : Dylan R. E. Moonfire (original)
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
-;; Modified   : November 2014
-;; Version    : 0.8.9
+;; Modified   : May 2015
+;; Version    : 0.8.10
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : <2014-Nov-29 13:56:00>
@@ -275,7 +275,7 @@
 ;;    0.8.9 2015 March 15
 ;;          - (Re)add compilation-mode support for msbuild and xbuild.
 ;;
-;;    0.8.x 2015 May 14th
+;;    0.8.10 2015 May 31th
 ;;          - Imenu: Correctly handle support for default-values in paramlist.
 ;;
 
