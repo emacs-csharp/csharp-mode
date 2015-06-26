@@ -42,6 +42,8 @@ To do so, add the following to your .emacs-file:
   (add-hook 'csharp-mode-hook 'my-csharp-mode-hook)
 #+END_SRC
 
+For further mode-specific customization, ~M-x customize-group RET csharp RET~ will show available settings with documentation. For configuring ~cc-mode~ settings (which csharp-mode derives from) see the [[https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html][cc-mode manual]].
+
 For more advanced and IDE-like functionality we recommend using csharp-mode together
 with [[https://github.com/OmniSharp/omnisharp-emacs][Omnisharp-Emacs]].
 
