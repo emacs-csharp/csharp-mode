@@ -2647,7 +2647,7 @@ this fn will be something like this:
      (\"(bottom)\"     . 1))
 
 "
-  (cl-flet ((helper (list new)
+  (flet ((helper (list new)
                  (if (null list) new
                    (let* ((elt (car list))
                           (topic (csharp--make-plural (csharp--first-word (car elt))))
@@ -2914,7 +2914,7 @@ out into multiple submenus.
 
 "
   (let ((counts (csharp--imenu-counts menu-alist)))
-    (cl-flet ((helper
+    (flet ((helper
             (list new)
             (if (null list)
                 new
