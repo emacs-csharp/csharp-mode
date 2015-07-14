@@ -79,6 +79,19 @@
              ("./test-files/xbuild-error.txt" ,csharp-compilation-re-xbuild-error 2
               ,(list-repeat-once
                 '("/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs")))
+             ("./test-files/devenv-error.txt" ,csharp-compilation-re-xbuild-error 3
+              ,(list-repeat-once
+                '("c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"
+                  "c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"
+                  "c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp")))
+             ("./test-files/devenv-error.txt" ,csharp-compilation-re-xbuild-warning 1
+              ,(list-repeat-once
+                '("c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp")))
+             ("./test-files/devenv-mixed-error.txt" ,csharp-compilation-re-xbuild-error 3
+              ,(list-repeat-once
+                '("c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"
+                  "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"
+                  "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp")))
              ))
 
     (let* ((file-name (car test-case))
@@ -87,10 +100,13 @@
            (matched-file-names (cadddr test-case))
            (find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
            (buffer (find-file-read-only file-name)))
+      (message (concat "Testing compilation-log: " file-name)) 
       (dotimes (number times)
-        (re-search-forward regexp)
-        (should
-         (equal (nth number matched-file-names) (match-string 1))))
+        (let* ((expected (nth number matched-file-names)))
+          (message (concat "- Expecting match: " expected))
+          (re-search-forward regexp)
+          (should
+           (equal expected (match-string 1)))))
       (kill-buffer buffer))))
 
 (ert-deftest imenu-parsing-supports-default-values ()
@@ -101,18 +117,17 @@
              ;; should support strings
              ("(string a, string b = \"quoted string\")" "(string, string)")
              ("(string a = \"quoted string\", string b)" "(string, string)")
-	     ;; should support chars
+             ;; should support chars
              ("(char a, char b = 'b')"                   "(char, char)")
              ("(char a = 'a', char b)"                   "(char, char)")
-	     ;; should support self-object-access
-	     ("(object o = Const)"                       "(object)")
-	     ;; should support other-object-access
-	     ("(object o = ConstObject.Const)"           "(object)")
-	     ))
+             ;; should support self-object-access
+             ("(object o = Const)"                       "(object)")
+             ;; should support other-object-access
+             ("(object o = ConstObject.Const)"           "(object)")
+             ))
     (let* ((test-value     (car test-case))
-	   (expected-value (cadr test-case))
-	   (result         (csharp--imenu-remove-param-names-from-paramlist test-value)))
+           (expected-value (cadr test-case))
+           (result         (csharp--imenu-remove-param-names-from-paramlist test-value)))
       (should (equal expected-value result)))))
 
 ;;(ert-run-tests-interactively t)
-

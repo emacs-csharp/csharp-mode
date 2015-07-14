@@ -1,0 +1,25 @@
+-- mode: compilation; default-directory: "~/" --
+Compilation started at Mon Jul 13 14:26:40
+
+"C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE\devenv.com" C:\working_chad\dev_grep\build_grep_database\build_grep_database.sln /build Debug
+
+Microsoft (R) Microsoft Visual Studio 2012 Version 11.0.61030.0.
+Copyright (C) Microsoft Corp. All rights reserved.
+1>------ Build started: Project: build_grep_database, Configuration: Release Win32 ------
+1>Build started 7/13/2015 2:26:41 PM.
+1>InitializeBuildStatus:
+1> Creating "Release\build_grep_database.unsuccessfulbuild" because "AlwaysCreate" was specified.
+1>ClCompile:
+1> All outputs are up-to-date.
+1> DatabaseConnection.cpp
+1>c:\working_chad\dev_grep\build_grep_database\databaseconnection.cpp(18): error C2059: syntax error : 'bad suffix on number'
+1>c:\working_chad\dev_grep\build_grep_database\databaseconnection.cpp(18): error C2146: syntax error : missing ';' before identifier 'dsfsdf'
+1>c:\working_chad\dev_grep\build_grep_database\databaseconnection.cpp(18): error C2065: 'dsfsdf' : undeclared identifier
+1>c:\working_chad\dev_grep\build_grep_database\databaseconnection.cpp(97): warning C4244: 'return' : conversion from 'my_ulonglong' to 'long', possible loss of data
+1>
+1>Build FAILED.
+1>
+1>Time Elapsed 00:00:00.77
+========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ==========
+
+Compilation exited abnormally with code 1 at Mon Jul 13 14:26:42

@@ -1,4 +1,4 @@
--*- xmode: compilation; default-directory: "~/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/" -*-
+-*- xmode: compilation; default-directory: "~/" -*-
 Compilation started at Fri Feb 20 22:52:43
 
 xbuild /p:GenerateFullPaths=true

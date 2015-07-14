@@ -1,4 +1,4 @@
--*- xmode: compilation; default-directory: "~/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/" -*-
+-*- xmode: compilation; default-directory: "~" -*-
 Compilation started at Sat Feb 21 10:26:47
 
 "C:\Program Files (x86)\MSBuild\12.0\Bin\Msbuild.exe"

@@ -1,0 +1,39 @@
+-*- mode: compilation; default-directory: "~/" -*-
+Compilation started at Mon Jul 13 16:25:02
+
+"C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE\devenv.com"
+C:\inservice\SystemTesting\SystemTesting.sln /build Debug
+
+Microsoft (R) Microsoft Visual Studio 2012 Version 11.0.61030.0.
+Copyright (C) Microsoft Corp. All rights reserved.
+1>------ Build started: Project: OperateDevice_Proxy, Configuration: Debug x86 ------
+2>------ Build started: Project: OperationsProxy, Configuration: Debug Win32 ------
+2>Build started 7/13/2015 4:25:05 PM.
+2>InitializeBuildStatus:
+2>  Touching ".\Debug\OperationsProxy.unsuccessfulbuild".
+2>ClCompile:
+2>  OperationsProxy.cpp
+1>Build started 7/13/2015 4:25:05 PM.
+1>GenerateTargetFrameworkMonikerAttribute:
+1>Skipping target "GenerateTargetFrameworkMonikerAttribute" because all
+output files are up-to-date with respect to the input files.
+1>CoreCompile:
+1>  C:\Windows\Microsoft.NET\Framework\v4.0.30319\Csc.exe /noconfig /nowarn:1701,1702,2008 /nostdlib+ /platform:x86 /errorreport:prompt /warn:4 /define:DEBUG;TRACE /errorendlocation /preferreduilang:en-US /highentropyva+ /reference:C:\cad\bin\CADBase.dll /reference:C:\cad\bin\CADCore.dll /reference:C:\cad\bin\IPSProvider.dll /reference:C:\cad\bin\IPSUtil.dll /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Microsoft.CSharp.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll" /reference:C:\cad\bin\PacketTypes.dll /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Core.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.DataSetExtensions.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.Linq.dll" /debug+ /debug:full /filealign:512 /optimize- /out:obj\x86\Debug\OperateDevice_Proxy.exe /subsystemversion:6.00 /target:exe /utf8output Program.cs Properties\AssemblyInfo.cs RegistryUtil.cs "C:\Users\cmcalkin\AppData\Local\Temp\.NETFramework,Version=v4.5.AssemblyAttributes.cs" obj\x86\Debug\\TemporaryGeneratedFile_E7A71F73-0F8D-4B9B-B56E-8E70B10BC5D3.cs obj\x86\Debug\\TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.cs obj\x86\Debug\\TemporaryGeneratedFile_5937a670-0e60-4077-877b-f7221da3dda1.cs
+1>C:\inservice\SystemTesting\OperateDeviceProxy\OperateDevice_Proxy\Program.cs(101,9,101,17): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+1>C:\inservice\SystemTesting\OperateDeviceProxy\OperateDevice_Proxy\Program.cs(101,9,101,10): error CS0012: The type 'System.Data.Entity.Core.Objects.DataClasses.EntityObject' is defined in an assembly that is not referenced. You must add a reference to assembly 'EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
+1>C:\inservice\SystemTesting\OperateDeviceProxy\OperateDevice_Proxy\Program.cs(101,11,101,17): error CS1061: 'int' does not contain a definition for 'sfddsf' and no extension method 'sfddsf' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+1>C:\inservice\SystemTesting\OperateDeviceProxy\OperateDevice_Proxy\Program.cs(321,30,321,31): warning CS0168: The variable 'e' is declared but never used
+1>
+1>Build FAILED.
+1>
+1>Time Elapsed 00:00:00.28
+2>c:\inservice\systemtesting\operationsproxy\operationsproxy.cpp(54): error C2059: syntax error : 'bad suffix on number'
+2>c:\inservice\systemtesting\operationsproxy\operationsproxy.cpp(54): error C2146: syntax error : missing ';' before identifier 'sdfsdf'
+2>c:\inservice\systemtesting\operationsproxy\operationsproxy.cpp(54): error C2065: 'sdfsdf' : undeclared identifier
+2>
+2>Build FAILED.
+2>
+2>Time Elapsed 00:00:02.49
+========== Build: 0 succeeded, 2 failed, 15 up-to-date, 0 skipped ==========
+
+Compilation exited abnormally with code 1 at Mon Jul 13 16:25:08
