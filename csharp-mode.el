@@ -2647,16 +2647,18 @@ this fn will be something like this:
      (\"(bottom)\"     . 1))
 
 "
-  (flet ((helper (list new)
-                 (if (null list) new
-                   (let* ((elt (car list))
-                          (topic (csharp--make-plural (csharp--first-word (car elt))))
-                          (xelt (assoc topic new)))
-                     (helper (cdr list)
-                             (if xelt
-                                 (progn (incf (cdr xelt)) new)
-                               (cons (cons topic 1) new)))))))
-    (nreverse (helper list nil))))
+  (letrec ((helper
+            (lambda (list new)
+              (if (null list) new
+                (let* ((elt (car list))
+                       (topic (csharp--make-plural
+                               (csharp--first-word(car elt))))
+                       (xelt (assoc topic new)))
+                  (funcall helper (cdr list)
+                           (if xelt
+                               (progn (incf (cdr xelt)) new)
+                             (cons (cons topic 1) new))))))))
+    (nreverse (funcall helper list nil))))
 
 
 
@@ -2914,36 +2916,37 @@ out into multiple submenus.
 
 "
   (let ((counts (csharp--imenu-counts menu-alist)))
-    (flet ((helper
-            (list new)
-            (if (null list)
-                new
-              (let* ((elt (car list))
-                     (topic (csharp--make-plural (csharp--first-word (car elt))))
-                     (xelt (assoc topic new)))
-                (helper
-                 (cdr list)
-                 (if xelt
-                     (progn
-                       (rplacd xelt (cons elt (cdr xelt)))
-                       new)
-                   (cons
+    (letrec ((helper
+              (lambda (list new)
+                (if (null list)
+                    new
+                  (let* ((elt (car list))
+                         (topic (csharp--make-plural
+                                 (csharp--first-word (car elt))))
+                         (xelt (assoc topic new)))
+                    (funcall
+                     helper (cdr list)
+                     (if xelt
+                         (progn
+                           (rplacd xelt (cons elt (cdr xelt)))
+                           new)
+                       (cons
 
-                    (cond
-                     ((> (cdr (assoc topic counts))
-                         csharp-imenu-max-similar-items-before-extraction)
-                      (cons topic (list elt)))
+                        (cond
+                         ((> (cdr (assoc topic counts))
+                             csharp-imenu-max-similar-items-before-extraction)
+                          (cons topic (list elt)))
 
-                     ((imenu--subalist-p elt)
-                      (cons (car elt)
-                            (csharp--imenu-reorg-alist-intelligently (cdr elt))))
-                     (t
-                      elt))
+                         ((imenu--subalist-p elt)
+                          (cons (car elt)
+                                (csharp--imenu-reorg-alist-intelligently (cdr elt))))
+                         (t
+                          elt))
 
-                    new)))))))
+                        new))))))))
 
       (csharp--imenu-break-into-submenus
-       (nreverse (helper menu-alist nil))))))
+       (nreverse (funcall helper menu-alist nil))))))
 
 
 
