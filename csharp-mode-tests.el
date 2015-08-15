@@ -100,7 +100,7 @@
            (matched-file-names (cadddr test-case))
            (find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
            (buffer (find-file-read-only file-name)))
-      (message (concat "Testing compilation-log: " file-name)) 
+      (message (concat "Testing compilation-log: " file-name))
       (dotimes (number times)
         (let* ((expected (nth number matched-file-names)))
           (message (concat "- Expecting match: " expected))
@@ -129,5 +129,14 @@
            (expected-value (cadr test-case))
            (result         (csharp--imenu-remove-param-names-from-paramlist test-value)))
       (should (equal expected-value result)))))
+
+(ert-deftest activating-mode-triggers-all-hooks ()
+  (add-hook 'csharp-mode-hook (lambda () (setq csharp-hook1 t)))
+  (add-hook 'prog-mode-hook   (lambda () (setq csharp-hook2 t)))
+  
+  (with-temp-buffer
+    (csharp-mode)
+    (should (equal t (and csharp-hook1
+                          csharp-hook2)))))
 
 ;;(ert-run-tests-interactively t)
