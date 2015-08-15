@@ -278,6 +278,10 @@
 ;;    0.8.10 2015 May 31th
 ;;          - Imenu: Correctly handle support for default-values in paramlist.
 ;;
+;;    0.8.11 2015 August 15th
+;;          - Make mode a derived mode. Improve evil-support.
+;;          - Fix all runtime warnings.
+;;
 
 (require 'cc-mode)
 
