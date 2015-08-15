@@ -139,4 +139,15 @@
     (should (equal t (and csharp-hook1
                           csharp-hook2)))))
 
+(ert-deftest indentation-rules-should-be-as-specified-in-test-doc ()
+  (let* ((buffer (find-file "test-files/indentation-tests.cs")))
+    ;; double-ensure mode is active
+    (csharp-mode)
+
+    (setq orig-content (buffer-substring-no-properties (point-min) (point-max)))
+    (indent-region (point-min) (point-max))
+    (setq indented-content (buffer-substring-no-properties (point-min) (point-max)))
+
+    (should (equal orig-content indented-content))))
+
 ;;(ert-run-tests-interactively t)
