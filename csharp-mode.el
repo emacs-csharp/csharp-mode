@@ -4220,6 +4220,12 @@ Key bindings:
     ;; define underscore as part of a word in the Csharp syntax table
     (modify-syntax-entry ?_ "w" csharp-mode-syntax-table)
 
+    ;; ensure #region and #pragma directives are not treated as computational
+    ;; expressions and thus wont have string and character rules applied to
+    ;; them.
+    (modify-syntax-entry ?# "< b" csharp-mode-syntax-table)
+    (modify-syntax-entry ?\n "> b" csharp-mode-syntax-table)
+
     ;; define @ as an expression prefix in Csharp syntax table
     (modify-syntax-entry ?@ "'" csharp-mode-syntax-table)
 
