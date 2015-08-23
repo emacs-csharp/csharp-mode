@@ -49,6 +49,29 @@
       (should
        (equal buffer1 buffer2)))))
 
+(ert-deftest fontification-of-compiler-directives ()
+  (let* ((buffer (find-file-read-only "test-files/fontification-test-compiler-directives.cs")))
+    ;; double-ensure mode is active
+    (csharp-mode)
+    (goto-char (point-min))
+    (let* ((buffer1)
+           (buffer2))
+      ;; get reference string
+      (move-to-line-after "reference")
+      (setq reference (get-current-line-contents))
+
+      ;; get verification string
+      (move-to-line-after "t1")
+      (setq t1 (get-current-line-contents))
+
+      ;; get verification string
+      (move-to-line-after "t2")
+      (setq t2 (get-current-line-contents))
+
+      ;; check equality
+      (should (equal reference t1))
+      (should (equal reference t2)))))
+
 (defun list-repeat-once (mylist)
   (append mylist mylist))
 
