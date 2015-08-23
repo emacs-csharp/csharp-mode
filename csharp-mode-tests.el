@@ -45,32 +45,40 @@
       (setq buffer2 (get-current-line-contents))
 
       ;; check equality
-      (setq debug-res (list buffer1 buffer2))
       (should
-       (equal buffer1 buffer2)))))
+       (equal-including-properties buffer1 buffer2)))))
 
 (ert-deftest fontification-of-compiler-directives ()
   (let* ((buffer (find-file-read-only "test-files/fontification-test-compiler-directives.cs")))
     ;; double-ensure mode is active
     (csharp-mode)
     (goto-char (point-min))
-    (let* ((buffer1)
-           (buffer2))
+    (let* ((reference)
+           (v1)
+           (t1)
+           (t2))
       ;; get reference string
       (move-to-line-after "reference")
       (setq reference (get-current-line-contents))
 
       ;; get verification string
+      (move-to-line-after "v1")
+      (setq v1 (get-current-line-contents))
+
+      ;; get test-case1
       (move-to-line-after "t1")
       (setq t1 (get-current-line-contents))
 
-      ;; get verification string
+      ;; get test-case2
       (move-to-line-after "t2")
       (setq t2 (get-current-line-contents))
 
       ;; check equality
-      (should (equal reference t1))
-      (should (equal reference t2)))))
+      (setq debug-res (list reference v1 t1 t2))
+      (should (and
+               (equal-including-properties reference v1)
+               (equal-including-properties reference t1)
+               (equal-including-properties reference t2))))))
 
 (defun list-repeat-once (mylist)
   (append mylist mylist))
@@ -156,7 +164,7 @@
 (ert-deftest activating-mode-triggers-all-hooks ()
   (add-hook 'csharp-mode-hook (lambda () (setq csharp-hook1 t)))
   (add-hook 'prog-mode-hook   (lambda () (setq csharp-hook2 t)))
-  
+
   (with-temp-buffer
     (csharp-mode)
     (should (equal t (and csharp-hook1
@@ -173,4 +181,4 @@
 
     (should (equal orig-content indented-content))))
 
-;;(ert-run-tests-interactively t)
+;;(ert-run-tests-interactively t)q

@@ -8,11 +8,11 @@ public class Test
 
         // reference
         x += "foo";
-        #region t1 test
+        #region v1 verification
         x += "foo";
         #endregion
 
-        #region t2 test'
+        #region t1 test'
         x += "foo";
         #endregion
 
