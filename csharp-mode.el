@@ -280,7 +280,9 @@
 ;;
 ;;    0.8.11 2015 August 15th
 ;;          - Make mode a derived mode. Improve evil-support.
-;;          - Fix all runtime warnings.
+;;          - Add support for devenv compilation-output.
+;;          - Fix all runtime warnings
+;;          - Fix error with string-values in #region directives.
 ;;
 
 (require 'cc-mode)
