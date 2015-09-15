@@ -34,7 +34,8 @@
   (let* ((buffer (find-file-read-only "test-files/fontification-test.cs")))
     ;; double-ensure mode is active
     (csharp-mode)
-    (font-lock-fontify-buffer)
+    (if (fboundp 'font-lock-ensure)
+        (font-lock-ensure))
     (goto-char (point-min))
     (let* ((buffer1)
            (buffer2))
@@ -54,7 +55,8 @@
   (let* ((buffer (find-file-read-only "test-files/fontification-test-compiler-directives.cs")))
     ;; double-ensure mode is active
     (csharp-mode)
-    (font-lock-fontify-buffer)
+    (if (fboundp 'font-lock-ensure)
+        (font-lock-ensure))
     (goto-char (point-min))
     (let* ((reference)
            (v1)
