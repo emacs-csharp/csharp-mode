@@ -1,4 +1,5 @@
 (require 'ert)
+(require 'cl-lib)
 (require 'csharp-mode)
 
 ;;; test-helper functions
@@ -25,7 +26,7 @@
     (should
      (equal 'csharp-mode major-mode))))
 
-(setq debug-res nil)
+(defvar debug-res nil)
 
 (ert-deftest fontification-of-literals-detects-end-of-strings ()
   ;; this test needs a double which also writes and generates the actual
@@ -33,6 +34,7 @@
   (let* ((buffer (find-file-read-only "test-files/fontification-test.cs")))
     ;; double-ensure mode is active
     (csharp-mode)
+    (font-lock-ensure)
     (goto-char (point-min))
     (let* ((buffer1)
            (buffer2))
@@ -52,6 +54,7 @@
   (let* ((buffer (find-file-read-only "test-files/fontification-test-compiler-directives.cs")))
     ;; double-ensure mode is active
     (csharp-mode)
+    (font-lock-ensure)
     (goto-char (point-min))
     (let* ((reference)
            (v1)
@@ -161,6 +164,9 @@
            (result         (csharp--imenu-remove-param-names-from-paramlist test-value)))
       (should (equal expected-value result)))))
 
+(defvar csharp-hook1 nil)
+(defvar csharp-hook2 nil)
+
 (ert-deftest activating-mode-triggers-all-hooks ()
   (add-hook 'csharp-mode-hook (lambda () (setq csharp-hook1 t)))
   (add-hook 'prog-mode-hook   (lambda () (setq csharp-hook2 t)))
@@ -171,7 +177,9 @@
                           csharp-hook2)))))
 
 (ert-deftest indentation-rules-should-be-as-specified-in-test-doc ()
-  (let* ((buffer (find-file "test-files/indentation-tests.cs")))
+  (let* ((buffer (find-file "test-files/indentation-tests.cs"))
+         (orig-content)
+         (indented-content))
     ;; double-ensure mode is active
     (csharp-mode)
 
