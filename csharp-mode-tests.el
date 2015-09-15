@@ -130,8 +130,8 @@
 
     (let* ((file-name (car test-case))
            (regexp    (cadr test-case))
-           (times     (caddr test-case))
-           (matched-file-names (cadddr test-case))
+           (times     (cl-caddr test-case))
+           (matched-file-names (cl-cadddr test-case))
            (find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
            (buffer (find-file-read-only file-name)))
       (message (concat "Testing compilation-log: " file-name))
