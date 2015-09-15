@@ -1191,8 +1191,8 @@ a square parentasis block [ ... ]."
 (c-lang-defconst c-block-prefix-disallowed-chars
 
   ;; Allow ':' for inherit list starters.
-  csharp (set-difference (c-lang-const c-block-prefix-disallowed-chars)
-                         '(?: ?,)))
+  csharp (cl-set-difference (c-lang-const c-block-prefix-disallowed-chars)
+                            '(?: ?,)))
 
 
 (c-lang-defconst c-assignment-operators
