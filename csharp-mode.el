@@ -288,6 +288,11 @@
 (require 'cc-mode)
 (require 'cl-lib)
 
+;; Work around emacs bug#18845
+(eval-when-compile
+  (when (and (= emacs-major-version 24) (>= emacs-minor-version 4))
+    (require 'cl)))
+
 ;; ==================================================================
 ;; c# upfront stuff
 ;; ==================================================================
