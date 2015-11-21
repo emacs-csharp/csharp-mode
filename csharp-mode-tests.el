@@ -178,6 +178,14 @@
     (should (equal t (and csharp-hook1
                           csharp-hook2)))))
 
+(defvar c-mode-hook-run nil)
+(ert-deftest avoid-runing-c-mode-hook ()
+  (add-hook 'c-mode-hook (lambda () (setq c-mode-hook-run t)))
+
+  (with-temp-buffer
+    (csharp-mode)
+     (should-not c-mode-hook-run)))
+
 (ert-deftest indentation-rules-should-be-as-specified-in-test-doc ()
   (let* ((buffer (find-file "test-files/indentation-tests.cs"))
          (orig-content)
