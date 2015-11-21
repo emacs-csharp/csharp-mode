@@ -4260,25 +4260,22 @@ Key bindings:
     ;; so I put it afterwards to make it stick.
     (make-local-variable 'paragraph-separate)
 
-    ;;(message "C#: set paragraph-separate")
-
     ;; Speedbar handling
-    (if (fboundp 'speedbar-add-supported-extension)
-        (speedbar-add-supported-extension '(".cs"))) ;; idempotent
+    (when (fboundp 'speedbar-add-supported-extension)
+      (speedbar-add-supported-extension '(".cs"))) ;; idempotent
 
     (c-update-modeline)
 
     ;; maybe do imenu scan after hook returns
-    (if csharp-want-imenu
-      (progn
-        ;; There are two ways to do imenu indexing. One is to provide a
-        ;; function, via `imenu-create-index-function'.  The other is to
-        ;; provide imenu with a list of regexps via
-        ;; `imenu-generic-expression'; imenu will do a "generic scan" for you.
-        ;; csharp-mode uses the former method.
-        ;;
-        (setq imenu-create-index-function 'csharp-imenu-create-index)
-        (imenu-add-menubar-index)))
+    (when csharp-want-imenu
+      ;; There are two ways to do imenu indexing. One is to provide a
+      ;; function, via `imenu-create-index-function'.  The other is to
+      ;; provide imenu with a list of regexps via
+      ;; `imenu-generic-expression'; imenu will do a "generic scan" for you.
+      ;; csharp-mode uses the former method.
+
+      (setq imenu-create-index-function 'csharp-imenu-create-index)
+      (imenu-add-menubar-index))
 
     ;; The paragraph-separate variable was getting stomped by
     ;; other hooks, so it must reside here.
