@@ -4164,18 +4164,9 @@ The return value is meaningless, and is ignored by cc-mode.
                ))
 
 
-;;; The entry point into the mode
 ;;;###autoload
 (define-derived-mode csharp-mode c-mode "C#"
-  "Major mode for editing C# code. This mode is derived from CC Mode to
-support C#.
-
-Normally, you'd want to autoload this mode by setting `auto-mode-alist' with
-an entry for csharp, in your .emacs file:
-
-   (autoload 'csharp-mode \"csharp-mode\" \"Major mode for editing C# code.\" t)
-   (setq auto-mode-alist
-      (append '((\"\\.cs$\" . csharp-mode)) auto-mode-alist))
+  "Major mode for editing C# code.
 
 The mode provides fontification and indent for C# syntax, as well
 as some other handy features.
@@ -4199,15 +4190,15 @@ To run your own logic after csharp-mode starts, do this:
 The function above is just a suggestion.
 
 
-IMenu Integraiton
+Imenu Integration
 ===============================
 
-Check the menubar for menu entries for Imenu; It is labelled
+Check the menubar for menu entries for Imenu; it is labelled
 \"Index\".
 
 The Imenu index gets computed when the file is .cs first opened and loaded.
 This may take a moment or two.  If you don't like this delay and don't
-use imenu, you can turn this off with the variable `csharp-want-imenu'.
+use Imenu, you can turn this off with the variable `csharp-want-imenu'.
 
 
 
@@ -4295,7 +4286,7 @@ Key bindings:
           "[ \t]*\\(//+\\|\\**\\)\\([ \t]+\\|[ \t]+<.+?>\\)$\\|^\f")
 
     (setq beginning-of-defun-function 'csharp-move-back-to-beginning-of-defun)
-    ;; end-of-defun-function   can remain forward-sexp !!
+    ;; `end-of-defun-function' can remain forward-sexp !!
 
     (set (make-local-variable 'comment-auto-fill-only-comments) t))
 
