@@ -4165,7 +4165,7 @@ The return value is meaningless, and is ignored by cc-mode.
 
 
 ;;;###autoload
-(define-derived-mode csharp-mode c-mode "C#"
+(define-derived-mode csharp-mode prog-mode "C#"
   "Major mode for editing C# code.
 
 The mode provides fontification and indent for C# syntax, as well
