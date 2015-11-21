@@ -4,11 +4,11 @@
 ;; Author     : Dylan R. E. Moonfire (original)
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
-;; Modified   : May 2015
-;; Version    : 0.8.10
+;; Modified   : November 2015
+;; Version    : 0.8.11
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
-;; Last-saved : <2014-Nov-29 13:56:00>
+;; Last-saved : <2015-Nov-21 14:23:00>
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -278,7 +278,7 @@
 ;;    0.8.10 2015 May 31th
 ;;          - Imenu: Correctly handle support for default-values in paramlist.
 ;;
-;;    0.8.11 2015 August 15th
+;;    0.8.11 2015 November 21st
 ;;          - Make mode a derived mode. Improve evil-support.
 ;;          - Add support for devenv compilation-output.
 ;;          - Fix all runtime warnings
