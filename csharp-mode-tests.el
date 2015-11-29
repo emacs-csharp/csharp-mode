@@ -166,6 +166,36 @@
            (result         (csharp--imenu-remove-param-names-from-paramlist test-value)))
       (should (equal expected-value result)))))
 
+(ert-deftest imenu-parsing-supports-generic-parameters ()
+  (let* ((find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
+         (buffer         (find-file-read-only "./test-files/imenu-generics-test.cs"))
+         (beginning-of-buffer)
+         (imenu-index    (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
+         (class-entry    (cadr imenu-index))
+         (class-entries  (cdr class-entry))
+         (imenu-items    (mapconcat 'car class-entries " ")))
+
+    ;; ("(top)" "method void NoGeneric(this IAppBuilder, params object[])" "method void OneGeneric<T>(this IAppBuilder, params object[])" "method void TwoGeneric<T1,T2>(this IAppBuilder, params object[])" "(bottom)")
+    (should (string-match-p "NoGeneric" imenu-items))
+    (should (string-match-p "OneGeneric<T>" imenu-items))
+    (should (string-match-p "TwoGeneric<T1,T2>" imenu-items))
+    (kill-buffer buffer)))
+
+(ert-deftest imenu-parsing-supports-comments ()
+  (let* ((find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
+         (buffer         (find-file-read-only "./test-files/imenu-comment-test.cs"))
+         (beginning-of-buffer)
+         (imenu-index    (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
+         (class-entry    (cadr imenu-index))
+         (class-entries  (cdr class-entry))
+         (imenu-items    (mapconcat 'car class-entries " ")))
+
+    ;; ("(top)" "method void NoGeneric(this IAppBuilder, params object[])" "method void OneGeneric<T>(this IAppBuilder, params object[])" "method void TwoGeneric<T1,T2>(this IAppBuilder, params object[])" "(bottom)")
+    (should (string-match-p "HasNoComment" imenu-items))
+    (should (string-match-p "HasComment" imenu-items))
+    (should (string-match-p "HasCommentToo" imenu-items))
+    (kill-buffer buffer)))
+
 (defvar csharp-hook1 nil)
 (defvar csharp-hook2 nil)
 
