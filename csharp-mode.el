@@ -1488,6 +1488,7 @@ Most other csharp functions are not instrumented.
          "\\)"                                        ;; 3. end of name of func
          "[ \t\n\r\f\v]*"
          "\\(\([^\)]*\)\\)"                           ;; 4. params w/parens
+         "\\(?:[ \t]*/[/*].*\\)?"                     ;; optional comment at end of line
          "[ \t\n\r\f\v]*"
          ))
 
