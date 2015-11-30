@@ -105,6 +105,12 @@
              ("./test-files/msbuild-concurrent-error.txt" ,csharp-compilation-re-msbuild-error 2
               ,(list-repeat-once
                 '("Program.cs")))
+             ("./test-files/msbuild-square-brackets.txt", csharp-compilation-re-msbuild-error 2
+              ,(list-repeat-once
+                '("Properties\\AssemblyInfo.cs"
+                  "Program.cs"
+                  "Program.cs"
+                  "Program.cs")))
              ("./test-files/xbuild-warning.txt" ,csharp-compilation-re-xbuild-warning 10
               ,(list-repeat-once
                 '("/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Class1.cs"
