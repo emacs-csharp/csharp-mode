@@ -167,9 +167,8 @@
       (should (equal expected-value result)))))
 
 (ert-deftest imenu-parsing-supports-generic-parameters ()
-  (let* ((find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
+  (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
          (buffer         (find-file-read-only "./test-files/imenu-generics-test.cs"))
-         (beginning-of-buffer)
          (imenu-index    (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
          (class-entry    (cadr imenu-index))
          (class-entries  (cdr class-entry))
@@ -182,9 +181,8 @@
     (kill-buffer buffer)))
 
 (ert-deftest imenu-parsing-supports-comments ()
-  (let* ((find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
+  (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
          (buffer         (find-file-read-only "./test-files/imenu-comment-test.cs"))
-         (beginning-of-buffer)
          (imenu-index    (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
          (class-entry    (cadr imenu-index))
          (class-entries  (cdr class-entry))
