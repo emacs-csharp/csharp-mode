@@ -17,7 +17,7 @@ The target "AfterGenerateAppxManifest" listed in an AfterTargets attribute at "C
      1>Properties\AssemblyInfo.cs(40,15): error CS0029: Cannot implicitly convert type 'int' to 'int[]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
      1>Program.cs(13,24): error CS0029: Cannot implicitly convert type 'int' to 'string' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
      1>Program.cs(14,26): error CS0029: Cannot implicitly convert type 'string' to 'string[]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
-     1>Program.cs(15,28): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<string[]>' to 'string[][]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
+     1>Program.cs(15,28): warning CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<string[]>' to 'string[][]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
      1>Done Building Project "c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj" (default targets) -- FAILED.
 
 Build FAILED.
@@ -27,7 +27,7 @@ Build FAILED.
          Properties\AssemblyInfo.cs(40,15): error CS0029: Cannot implicitly convert type 'int' to 'int[]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
          Program.cs(13,24): error CS0029: Cannot implicitly convert type 'int' to 'string' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
          Program.cs(14,26): error CS0029: Cannot implicitly convert type 'string' to 'string[]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
-         Program.cs(15,28): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<string[]>' to 'string[][]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
+         Program.cs(15,28): warning CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<string[]>' to 'string[][]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
 
     0 Warning(s)
     4 Error(s)
