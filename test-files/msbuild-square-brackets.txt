@@ -1,0 +1,37 @@
+-*- mode: compilation; default-directory: "~/Documents/Visual Studio 2015/Projects/ArrayThingError/ArrayThingError/" -*-
+Compilation started at Wed May 13 19:21:20
+
+bash -c "for m in *akefile; do break; done; if [[ ${m} != \"*akefile\" ]]; then make; else set -o pipefail; 'c:/Program Files (x86)/MSBuild/14.0/Bin/MSBuild.exe' //m; fi"
+Microsoft (R) Build Engine version 14.0.22823.1
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Build started 2015-05-13 19:21:20.
+The target "AfterGenerateAppxManifest" listed in an AfterTargets attribute at "C:\Program Files (x86)\MSBuild\Microsoft\.NetNative\Microsoft.Net.CoreRuntime.targets (64,11)" does not exist in the project, and will be ignored.
+The target "AfterGenerateAppxManifest" listed in an AfterTargets attribute at "C:\Program Files (x86)\MSBuild\Microsoft\.NetNative\Microsoft.NetNative.targets (75,11)" does not exist in the project, and will be ignored.
+The target "AfterGenerateAppxManifest" listed in an AfterTargets attribute at "C:\Program Files (x86)\MSBuild\Microsoft\.NetNative\Microsoft.NetNative.targets (122,11)" does not exist in the project, and will be ignored.
+     1>Project "c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj" on node 1 (default targets).
+     1>GenerateTargetFrameworkMonikerAttribute:
+       Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
+       CoreCompile:
+         C:\Program Files (x86)\MSBuild\14.0\bin\csc2.exe /noconfig /nowarn:1701,1702 /nostdlib+ /platform:anycpu32bitpreferred /errorreport:prompt /warn:4 /define:DEBUG;TRACE /highentropyva+ /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Microsoft.CSharp.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Core.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.DataSetExtensions.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Net.Http.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.dll" /reference:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.Linq.dll" /debug+ /debug:full /filealign:512 /optimize- /out:obj\Debug\ArrayThingError.exe /ruleset:"C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Static Analysis Tools\\Rule Sets\MinimumRecommendedRules.ruleset" /subsystemversion:6.00 /target:exe /utf8output Program.cs Properties\AssemblyInfo.cs "C:\Users\ohnob\AppData\Local\Temp\.NETFramework,Version=v4.5.AssemblyAttributes.cs"
+     1>Properties\AssemblyInfo.cs(40,15): error CS0029: Cannot implicitly convert type 'int' to 'int[]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
+     1>Program.cs(13,24): error CS0029: Cannot implicitly convert type 'int' to 'string' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
+     1>Program.cs(14,26): error CS0029: Cannot implicitly convert type 'string' to 'string[]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
+     1>Program.cs(15,28): warning CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<string[]>' to 'string[][]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
+     1>Done Building Project "c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj" (default targets) -- FAILED.
+
+Build FAILED.
+
+       "c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj" (default target) (1) ->
+       (CoreCompile target) -> 
+         Properties\AssemblyInfo.cs(40,15): error CS0029: Cannot implicitly convert type 'int' to 'int[]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
+         Program.cs(13,24): error CS0029: Cannot implicitly convert type 'int' to 'string' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
+         Program.cs(14,26): error CS0029: Cannot implicitly convert type 'string' to 'string[]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
+         Program.cs(15,28): warning CS0029: Cannot implicitly convert type 'System.Collections.Generic.List<string[]>' to 'string[][]' [c:\Users\ohnob\Documents\Visual Studio 2015\Projects\ArrayThingError\ArrayThingError\ArrayThingError.csproj]
+
+    0 Warning(s)
+    4 Error(s)
+
+Time Elapsed 00:00:00.23
+
+Compilation exited abnormally with code 1 at Wed May 13 19:21:20
