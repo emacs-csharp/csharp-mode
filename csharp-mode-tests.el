@@ -90,58 +90,55 @@
 
 (ert-deftest build-warnings-and-errors-are-parsed ()
   (dolist (test-case
-           `(("./test-files/msbuild-warning.txt" ,csharp-compilation-re-msbuild-warning 8
+           `(("./test-files/msbuild-warning.txt" ,csharp-compilation-re-msbuild-warning
               ,(list-repeat-once
                 '("Class1.cs"
                   "Folder\\Class1.cs"
                   "Program.cs"
                   "Program.cs")))
-             ("./test-files/msbuild-error.txt" ,csharp-compilation-re-msbuild-error 2
+             ("./test-files/msbuild-error.txt" ,csharp-compilation-re-msbuild-error
               ,(list-repeat-once
                 '("Folder\\Class1.cs")))
-             ("./test-files/msbuild-concurrent-warning.txt" ,csharp-compilation-re-msbuild-warning 2
+             ("./test-files/msbuild-concurrent-warning.txt" ,csharp-compilation-re-msbuild-warning
               ,(list-repeat-once
                 '("Program.cs")))
-             ("./test-files/msbuild-concurrent-error.txt" ,csharp-compilation-re-msbuild-error 2
+             ("./test-files/msbuild-concurrent-error.txt" ,csharp-compilation-re-msbuild-error
               ,(list-repeat-once
                 '("Program.cs")))
-             ("./test-files/msbuild-square-brackets.txt" ,csharp-compilation-re-msbuild-error 6
+             ("./test-files/msbuild-square-brackets.txt" ,csharp-compilation-re-msbuild-error
               ,(list-repeat-once
                 '("Properties\\AssemblyInfo.cs"
                   "Program.cs"
                   "Program.cs")))
-             ("./test-files/msbuild-square-brackets.txt" ,csharp-compilation-re-msbuild-warning 2
+             ("./test-files/msbuild-square-brackets.txt" ,csharp-compilation-re-msbuild-warning
               ,(list-repeat-once
                 '("Program.cs")))
-             ("./test-files/xbuild-warning.txt" ,csharp-compilation-re-xbuild-warning 10
+             ("./test-files/xbuild-warning.txt" ,csharp-compilation-re-xbuild-warning
               ,(list-repeat-once
                 '("/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Class1.cs"
                   "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs"
                   "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs"
                   "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs"
                   "/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ConsoleApplication1/Program.cs")))
-             ("./test-files/xbuild-error.txt" ,csharp-compilation-re-xbuild-error 2
+             ("./test-files/xbuild-error.txt" ,csharp-compilation-re-xbuild-error
               ,(list-repeat-once
                 '("/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs")))
-             ("./test-files/devenv-error.txt" ,csharp-compilation-re-xbuild-error 3
-              ,(list-repeat-once
-                '("c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"
-                  "c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"
-                  "c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp")))
-             ("./test-files/devenv-error.txt" ,csharp-compilation-re-xbuild-warning 1
-              ,(list-repeat-once
-                '("c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp")))
-             ("./test-files/devenv-mixed-error.txt" ,csharp-compilation-re-xbuild-error 3
+             ("./test-files/devenv-error.txt" ,csharp-compilation-re-xbuild-error
+              ("c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"
+                 "c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"
+                 "c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"))
+             ("./test-files/devenv-error.txt" ,csharp-compilation-re-xbuild-warning
+              ("c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"))
+             ("./test-files/devenv-mixed-error.txt" ,csharp-compilation-re-xbuild-error
               ,(list-repeat-once
                 '("c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"
                   "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"
-                  "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp")))
-             ))
+                  "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp")))))
 
     (let* ((file-name (car test-case))
            (regexp    (cadr test-case))
-           (times     (cl-caddr test-case))
-           (matched-file-names (cl-cadddr test-case))
+           (matched-file-names (cl-caddr test-case))
+           (times     (length matched-file-names))
            (find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
            (buffer (find-file-read-only file-name)))
       (message (concat "Testing compilation-log: " file-name))
