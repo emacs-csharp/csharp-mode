@@ -125,15 +125,17 @@
                 '("/Users/jesseblack/Dropbox/barfapp/ConsoleApplication1/ClassLibrary1/Folder/Class1.cs")))
              ("./test-files/devenv-error.txt" ,csharp-compilation-re-xbuild-error
               ("c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"
-                 "c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"
-                 "c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"))
+               "c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"
+               "c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"))
              ("./test-files/devenv-error.txt" ,csharp-compilation-re-xbuild-warning
               ("c:\\working_chad\\dev_grep\\build_grep_database\\databaseconnection.cpp"))
              ("./test-files/devenv-mixed-error.txt" ,csharp-compilation-re-xbuild-error
-              ,(list-repeat-once
-                '("c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"
-                  "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"
-                  "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp")))))
+              ("C:\\inservice\\SystemTesting\\OperateDeviceProxy\\OperateDevice_Proxy\\Program.cs"
+               "C:\\inservice\\SystemTesting\\OperateDeviceProxy\\OperateDevice_Proxy\\Program.cs"
+               "C:\\inservice\\SystemTesting\\OperateDeviceProxy\\OperateDevice_Proxy\\Program.cs"
+               "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"
+               "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"
+               "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"))))
 
     (let* ((file-name (car test-case))
            (regexp    (cadr test-case))
