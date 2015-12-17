@@ -790,7 +790,7 @@ a square parentasis block [ ... ]."
                 "[ \t\n\f\v\r]*="
                 "[ \t\n\f\v\r]*"
                 "\\)?"
-                "\\(\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*[A-Za-z_][[:alnum:]]*\\)"
+                "\\([A-Za-z_][[:alnum:]]*\\(?:\\.[A-Za-z_][[:alnum:]]*\\)*\\)"
                 "[ \t\n\f\v\r]*;")
               (2 font-lock-constant-face t t)
               (3 font-lock-constant-face))
@@ -1036,8 +1036,8 @@ a square parentasis block [ ... ]."
                                    "[ \t\n\r\f\v]*"
                                    "\\(?:\\(?:return\\|assembly\\)[ \t]*:[ \t]*\\)?"
                                    "\\("
-                                   "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
                                    "[A-Za-z_][[:alnum:]]*"
+                                   "\\(?:\\.[A-Za-z_][[:alnum:]]*\\)*"
                                    "\\)"
                                    "[^]]*\\]\\)"
                                    )
@@ -1125,7 +1125,7 @@ a square parentasis block [ ... ]."
            ;; this needs to be done in the matchers-after because
            ;; otherwise the namespace names get the font-lock-type-face,
            ;; due to the energetic efforts of c-forward-type.
-           ,`("\\<\\(namespace\\)[ \t\n\r\f\v]+\\(\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*[A-Za-z_][[:alnum:]]*\\)"
+           ,`("\\<\\(namespace\\)[ \t\n\r\f\v]+\\(\\[A-Za-z_][[:alnum:]](?:\\.[A-Za-z_][[:alnum:]]*\\)*\\)"
               2 font-lock-constant-face t)
 
 
@@ -1529,8 +1529,8 @@ Most other csharp functions are not instrumented.
          "[ \t\n\r\f\v]*"
          "\\)?"
          "\\("
-         "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
          "[A-Za-z_][[:alnum:]]*"
+         "\\(?:\\.[A-Za-z_][[:alnum:]]*\\)*"
          "\\)"                                        ;; imported namespace
          "[ \t\n\r\f\v]*"
          ";"
@@ -1633,8 +1633,8 @@ Most other csharp functions are not instrumented.
          "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2: return type - possibly generic
          "[ \t\n\r\f\v]+"
          "\\("
-         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"          ;; possible prefix interface
-         "[[:alpha:]_][[:alnum:]_]*"                  ;; 3: name of prop
+         "[[:alpha:]_][[:alnum:]_]"                   ;; 3: name of prop
+         "\\(?:\\.[A-Za-z_][[:alnum:]_]*\\)*"         ;; Additional names if interface is prefixed
          "\\)"
          "[ \t\n\r\f\v]*"
          ))
@@ -1669,8 +1669,8 @@ Most other csharp functions are not instrumented.
          "\\(namespace\\)"
          "[ \t\n\r\f\v]+"
          "\\("
-         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"          ;; name of namespace
-         "[A-Za-z_][[:alnum:]]*"
+         "[A-Za-z_][[:alnum:]]"                       ;; name of namespace
+         "\\(?:\\.[A-Za-z_][[:alnum:]_]*\\)*"
          "\\)"
          "[ \t\n\r\f\v]*"
          ))
