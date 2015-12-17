@@ -790,7 +790,7 @@ a square parentasis block [ ... ]."
                 "[ \t\n\f\v\r]*="
                 "[ \t\n\f\v\r]*"
                 "\\)?"
-                "\\(\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*[A-Za-z_][[:alnum:]]*\\)"
+                "\\([A-Za-z_][[:alnum:]]*\\(?:\\.[A-Za-z_][[:alnum:]]*\\)*\\)"
                 "[ \t\n\f\v\r]*;")
               (2 font-lock-constant-face t t)
               (3 font-lock-constant-face))
