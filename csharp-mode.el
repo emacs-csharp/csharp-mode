@@ -1529,7 +1529,7 @@ Most other csharp functions are not instrumented.
          "[ \t\n\r\f\v]*"
          "\\)?"
          "\\("
-         "[A-Za-z_][[:alnum:]]"
+         "[A-Za-z_][[:alnum:]]*"
          "\\(?:\\.[A-Za-z_][[:alnum:]]*\\)*"
          "\\)"                                        ;; imported namespace
          "[ \t\n\r\f\v]*"
