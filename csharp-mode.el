@@ -1486,7 +1486,7 @@ Most other csharp functions are not instrumented.
          "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2. return type - possibly generic
          "[ \t\n\r\f\v]+"
          "\\([[:alpha:]_][[:alnum:]_]*"               ;; 3. begin name of func
-         "\\(?:<\\(?:[[:alpha:]][[:alnum:]]*[, ]?\\)*>\\)?"  ;; (with optional generic type parameter(s)
+         "\\(?:<\\(?:[[:alpha:]][[:alnum:]]*\\)\\(?:[, ]+[[:alpha:]][[:alnum:]]*\\)*>\\)?"  ;; (with optional generic type parameter(s)
          "\\)"                                        ;; 3. end of name of func
          "[ \t\n\r\f\v]*"
          "\\(\([^\)]*\)\\)"                           ;; 4. params w/parens
