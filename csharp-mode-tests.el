@@ -202,6 +202,16 @@
     (should (string-match-p "HasCommentToo" imenu-items))
     (kill-buffer buffer)))
 
+(ert-deftest imenu-parsing-supports-explicit-interface-properties ()
+  (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
+         (buffer         (find-file-read-only "./test-files/imenu-interface-property-test.cs"))
+         (imenu-index    (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
+         (class-entry    (caddr imenu-index))
+         (class-entries  (cdr class-entry))
+         (imenu-items    (mapconcat 'car class-entries " ")))
+    (should (string-match-p "prop IImenuTest.InterfaceString" imenu-items))
+    (kill-buffer buffer)))
+
 (defvar csharp-hook1 nil)
 (defvar csharp-hook2 nil)
 
