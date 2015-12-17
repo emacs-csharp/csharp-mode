@@ -1669,8 +1669,8 @@ Most other csharp functions are not instrumented.
          "\\(namespace\\)"
          "[ \t\n\r\f\v]+"
          "\\("
-         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"          ;; name of namespace
-         "[A-Za-z_][[:alnum:]]*"
+         "[A-Za-z_][[:alnum:]]"                       ;; name of namespace
+         "\\(?:\\.[A-Za-z_][[:alnum:]_]*\\)*"
          "\\)"
          "[ \t\n\r\f\v]*"
          ))
