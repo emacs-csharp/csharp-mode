@@ -1633,8 +1633,8 @@ Most other csharp functions are not instrumented.
          "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2: return type - possibly generic
          "[ \t\n\r\f\v]+"
          "\\("
-         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"          ;; possible prefix interface
-         "[[:alpha:]_][[:alnum:]_]*"                  ;; 3: name of prop
+         "[[:alpha:]_][[:alnum:]_]"                   ;; 3: name of prop
+         "\\(?:\\.[A-Za-z_][[:alnum:]_]*\\)*"         ;; Additional names if interface is prefixed
          "\\)"
          "[ \t\n\r\f\v]*"
          ))
