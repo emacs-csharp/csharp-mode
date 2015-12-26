@@ -212,6 +212,15 @@
     (should (string-match-p "prop IImenuTest.InterfaceString" imenu-items))
     (kill-buffer buffer)))
 
+(ert-deftest imenu-parsing-supports-explicit-interface-methods ()
+  (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
+         (buffer         (find-file-read-only "./test-files/imenu-interface-property-test.cs"))
+         (imenu-index    (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
+         (class-entry    (cl-caddr imenu-index))
+         (class-entries  (cdr class-entry))
+         (imenu-items    (mapconcat 'car class-entries " ")))
+    (should (string-match-p "method string MethodName" imenu-items))
+    (kill-buffer buffer)))
 (ert-deftest imenu-parsing-supports-namespace ()
   (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
          (buffer         (find-file-read-only "./test-files/imenu-namespace-test.cs"))

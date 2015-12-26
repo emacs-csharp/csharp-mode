@@ -1485,6 +1485,7 @@ Most other csharp functions are not instrumented.
          "\\(?:override[ \t\n\r\f\v]+\\)?"            ;; optional
          "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2. return type - possibly generic
          "[ \t\n\r\f\v]+"
+         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"         ;; possible prefix interface
          "\\([[:alpha:]_][[:alnum:]_]*"               ;; 3. begin name of func
          "\\(?:<\\(?:[[:alpha:]][[:alnum:]]*\\)\\(?:[, ]+[[:alpha:]][[:alnum:]]*\\)*>\\)?"  ;; (with optional generic type parameter(s)
          "\\)"                                        ;; 3. end of name of func
