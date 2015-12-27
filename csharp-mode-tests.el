@@ -174,62 +174,54 @@
            (result         (csharp--imenu-remove-param-names-from-paramlist test-value)))
       (should (equal expected-value result)))))
 
-(ert-deftest imenu-parsing-supports-generic-parameters ()
-  (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
-         (buffer         (find-file-read-only "./test-files/imenu-generics-test.cs"))
-         (imenu-index    (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
-         (class-entry    (cadr imenu-index))
+(defmacro def-imenutest (testname filename index &rest body)
+  `(ert-deftest ,testname ()
+     (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
+            (buffer         (find-file-read-only ,filename))
+            (,index         (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
+            )
+       ,@body
+       (kill-buffer buffer))))
+
+(def-imenutest imenu-parsing-supports-generic-parameters
+  "./test-files/imenu-generics-test.cs" imenu-index
+  (let* ((class-entry    (cadr imenu-index))
          (class-entries  (cdr class-entry))
          (imenu-items    (mapconcat 'car class-entries " ")))
 
     ;; ("(top)" "method void NoGeneric(this IAppBuilder, params object[])" "method void OneGeneric<T>(this IAppBuilder, params object[])" "method void TwoGeneric<T1,T2>(this IAppBuilder, params object[])" "(bottom)")
     (should (string-match-p "NoGeneric" imenu-items))
     (should (string-match-p "OneGeneric<T>" imenu-items))
-    (should (string-match-p "TwoGeneric<T1,T2>" imenu-items))
-    (kill-buffer buffer)))
+    (should (string-match-p "TwoGeneric<T1,T2>" imenu-items))))
 
-(ert-deftest imenu-parsing-supports-comments ()
-  (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
-         (buffer         (find-file-read-only "./test-files/imenu-comment-test.cs"))
-         (imenu-index    (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
-         (class-entry    (cadr imenu-index))
+(def-imenutest imenu-parsing-supports-comments
+  "./test-files/imenu-comment-test.cs" imenu-index 
+  (let* ((class-entry    (cadr imenu-index))
          (class-entries  (cdr class-entry))
          (imenu-items    (mapconcat 'car class-entries " ")))
-
-    ;; ("(top)" "method void NoGeneric(this IAppBuilder, params object[])" "method void OneGeneric<T>(this IAppBuilder, params object[])" "method void TwoGeneric<T1,T2>(this IAppBuilder, params object[])" "(bottom)")
     (should (string-match-p "HasNoComment" imenu-items))
     (should (string-match-p "HasComment" imenu-items))
-    (should (string-match-p "HasCommentToo" imenu-items))
-    (kill-buffer buffer)))
+    (should (string-match-p "HasCommentToo" imenu-items))))
 
-(ert-deftest imenu-parsing-supports-explicit-interface-properties ()
-  (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
-         (buffer         (find-file-read-only "./test-files/imenu-interface-property-test.cs"))
-         (imenu-index    (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
-         (class-entry    (cl-caddr imenu-index))
+(def-imenutest imenu-parsing-supports-explicit-interface-properties
+  "./test-files/imenu-interface-property-test.cs" imenu-index
+  (let* ((class-entry    (cl-caddr imenu-index))
          (class-entries  (cdr class-entry))
          (imenu-items    (mapconcat 'car class-entries " ")))
-    (should (string-match-p "prop IIMenuTest.InterfaceString" imenu-items))
-    (kill-buffer buffer)))
+    (should (string-match-p "prop IIMenuTest.InterfaceString" imenu-items))))
 
-(ert-deftest imenu-parsing-supports-explicit-interface-methods ()
-  (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
-         (buffer         (find-file-read-only "./test-files/imenu-interface-property-test.cs"))
-         (imenu-index    (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
-         (class-entry    (cl-caddr imenu-index))
+(def-imenutest imenu-parsing-supports-explicit-interface-methods
+  "./test-files/imenu-interface-property-test.cs" imenu-index
+  (let* ((class-entry    (cl-caddr imenu-index))
          (class-entries  (cdr class-entry))
          (imenu-items    (mapconcat 'car class-entries " ")))
-    (should (string-match-p "method string IIMenuTest.MethodName" imenu-items))
-    (kill-buffer buffer)))
+    (should (string-match-p "method string IIMenuTest.MethodName" imenu-items))))
 
-(ert-deftest imenu-parsing-supports-namespace ()
-  (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
-         (buffer         (find-file-read-only "./test-files/imenu-namespace-test.cs"))
-         (imenu-index    (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
-         (ns-entry       (cadr imenu-index))
+(def-imenutest imenu-parsing-supports-namespaces
+  "./test-files/imenu-namespace-test.cs" imenu-index
+  (let* ((ns-entry       (cadr imenu-index))
          (ns-item        (car ns-entry)))
-    (should (string-match-p "namespace ImenuTest" ns-item))
-    (kill-buffer buffer)))
+    (should (string-match-p "namespace ImenuTest" ns-item))))
 
 (defvar csharp-hook1 nil)
 (defvar csharp-hook2 nil)
@@ -249,7 +241,7 @@
 
   (with-temp-buffer
     (csharp-mode)
-     (should-not c-mode-hook-run)))
+    (should-not c-mode-hook-run)))
 
 (ert-deftest indentation-rules-should-be-as-specified-in-test-doc ()
   (let* ((buffer (find-file "test-files/indentation-tests.cs"))
