@@ -209,7 +209,7 @@
          (class-entry    (cl-caddr imenu-index))
          (class-entries  (cdr class-entry))
          (imenu-items    (mapconcat 'car class-entries " ")))
-    (should (string-match-p "prop IImenuTest.InterfaceString" imenu-items))
+    (should (string-match-p "prop IIMenuTest.InterfaceString" imenu-items))
     (kill-buffer buffer)))
 
 (ert-deftest imenu-parsing-supports-explicit-interface-methods ()
@@ -219,8 +219,9 @@
          (class-entry    (cl-caddr imenu-index))
          (class-entries  (cdr class-entry))
          (imenu-items    (mapconcat 'car class-entries " ")))
-    (should (string-match-p "method string MethodName" imenu-items))
+    (should (string-match-p "method string IIMenuTest.MethodName" imenu-items))
     (kill-buffer buffer)))
+
 (ert-deftest imenu-parsing-supports-namespace ()
   (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
          (buffer         (find-file-read-only "./test-files/imenu-namespace-test.cs"))
