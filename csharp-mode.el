@@ -369,7 +369,7 @@
      "\\(:[ \t\n\r\f\v]*"
      "\\("
      (c-make-keywords-re nil
-			 (list "sbyte" "byte" "short" "ushort" "int" "uint" "long" "ulong"))
+       (list "sbyte" "byte" "short" "ushort" "int" "uint" "long" "ulong"))
      "\\)"
      "\\)?")
     "Regex that captures an enum declaration in C#"
@@ -436,8 +436,8 @@ to work properly with code that includes attributes.
        ;; before open curly in object initializer. new Foo* { }
        ((and (looking-back
               (concat "\\<new[ \t\n\f\v\r]+"
-              "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
-              "[A-Za-z_][[:alnum:]]*[\ t\n\f\v\r]*"))
+                      "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
+                      "[A-Za-z_][[:alnum:]]*[\ t\n\f\v\r]*"))
              (looking-at "[ \t\n\f\v\r]*{"))
         t)
 
@@ -447,37 +447,37 @@ to work properly with code that includes attributes.
        ;; specifying something for a parameter.
        ((c-safe (backward-sexp) t)
         (cond
-           ((re-search-forward
-             (concat
-              "\\(\\["
-              "[ \t\n\r\f\v]*"
-              "\\("
-              "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
-              "[A-Za-z_][[:alnum:]]*"
-              "\\)"
-              "[^]]*\\]\\)"
-              )
-             (1+ pos-or-point) t)
+         ((re-search-forward
+           (concat
+            "\\(\\["
+            "[ \t\n\r\f\v]*"
+            "\\("
+            "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
+            "[A-Za-z_][[:alnum:]]*"
+            "\\)"
+            "[^]]*\\]\\)"
+            )
+           (1+ pos-or-point) t)
 
-             (c-safe (backward-sexp))
-             (c-backward-syntactic-ws)
-             (cond
+          (c-safe (backward-sexp))
+          (c-backward-syntactic-ws)
+          (cond
 
-              ((eq (char-before) 93) ;; close sq brace (a previous attribute)
-               (csharp--at-vsemi-p (point))) ;; recurse
+           ((eq (char-before) 93) ;; close sq brace (a previous attribute)
+            (csharp--at-vsemi-p (point))) ;; recurse
 
-              ((or
-                (eq (char-before) 59) ;; semicolon
-                (eq (char-before) 123) ;; open curly
-                (eq (char-before) 125)) ;; close curly
-               t)
+           ((or
+             (eq (char-before) 59) ;; semicolon
+             (eq (char-before) 123) ;; open curly
+             (eq (char-before) 125)) ;; close curly
+            t)
 
-              ;; attr is used within a line of code
-              (t nil)))
-
+           ;; attr is used within a line of code
            (t nil)))
 
-        (t nil))
+         (t nil)))
+
+       (t nil))
       )))
 
 
@@ -504,7 +504,7 @@ An alternative is to use `csharp-lineup-if-and-region'.
 
 (defun csharp-lineup-if-and-region (langelem)
 
-"Indent all #region/endregion blocks and #if/endif blocks inline
+  "Indent all #region/endregion blocks and #if/endif blocks inline
 with code while retaining normal column-zero indention for any
 other processing blocks.
 
@@ -521,8 +521,8 @@ Another option is to use `csharp-lineup-region'.
 
 
 
-  (defun csharp-in-literal (&optional lim detect-cpp)
-    "Return the type of literal point is in, if any.
+(defun csharp-in-literal (&optional lim detect-cpp)
+  "Return the type of literal point is in, if any.
 Basically this works like `c-in-literal' except it doesn't
 use or fill the cache (`c-in-literal-cache').
 
@@ -536,37 +536,37 @@ is used.
 Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
 
-    (let ((rtn
-           (save-excursion
-             (let* ((pos (point))
-                    (lim (or lim (progn
-                                   (c-beginning-of-syntax)
-                                   (point))))
-                    (state (parse-partial-sexp lim pos)))
-               (csharp-log 4 "parse lim(%d) state: %s" lim (prin1-to-string state))
-               (cond
-                ((elt state 3)
-                 (csharp-log 4 "in literal string (%d)" pos)
-                 'string)
-                ((elt state 4)
-                 (csharp-log 4 "in literal comment (%d)" pos)
-                 (if (elt state 7) 'c++ 'c))
-                ((and detect-cpp (c-beginning-of-macro lim)) 'pound)
-                (t nil))))))
-      rtn))
+  (let ((rtn
+         (save-excursion
+           (let* ((pos (point))
+                  (lim (or lim (progn
+                                 (c-beginning-of-syntax)
+                                 (point))))
+                  (state (parse-partial-sexp lim pos)))
+             (csharp-log 4 "parse lim(%d) state: %s" lim (prin1-to-string state))
+             (cond
+              ((elt state 3)
+               (csharp-log 4 "in literal string (%d)" pos)
+               'string)
+              ((elt state 4)
+               (csharp-log 4 "in literal comment (%d)" pos)
+               (if (elt state 7) 'c++ 'c))
+              ((and detect-cpp (c-beginning-of-macro lim)) 'pound)
+              (t nil))))))
+    rtn))
 
 
 (defun csharp-is-square-parentasis-block-p ()
   "Attempts to safely assess if the current point is at the opening of
 a square parentasis block [ ... ]."
   (let* ((start (point)) ;; variables used to hold our position, so that we know that
-	 (end))          ;; our code isn't stuck trying to look for a non-existant sexp.
+         (end))          ;; our code isn't stuck trying to look for a non-existant sexp.
     (and (eq (char-after) 91) ;; open square
-	 (while (and (eq (char-after) 91)
-		     (not (eq start end)))
-	   (c-safe (c-forward-sexp 1))
-	   (setq end (point)))
-	 (eq (char-before) 93))) ;; close square
+         (while (and (eq (char-after) 91)
+                     (not (eq start end)))
+           (c-safe (c-forward-sexp 1))
+           (setq end (point)))
+         (eq (char-before) 93))) ;; close square
   )
 
 
@@ -850,108 +850,108 @@ a square parentasis block [ ... ]."
            ,@(when t
                `((,(byte-compile
                     `(lambda (limit)
-                        (let ((parse-sexp-lookup-properties
-                               (cc-eval-when-compile
-                                 (boundp 'parse-sexp-lookup-properties))))
+                       (let ((parse-sexp-lookup-properties
+                              (cc-eval-when-compile
+                                (boundp 'parse-sexp-lookup-properties))))
 
-                          (while (re-search-forward
-                                  ,(concat "\\<new"
-                                           "[ \t\n\r\f\v]+"
-                                           "\\(\\(?:"
-                                           (c-lang-const c-symbol-key)
-                                           "\\.\\)*"
-                                           (c-lang-const c-symbol-key)
-                                           "\\)"
-                                           )
-                                  limit t)
-                            (unless
-                                (progn
-                                  (goto-char (match-beginning 0))
-                                  (c-skip-comments-and-strings limit))
+                         (while (re-search-forward
+                                 ,(concat "\\<new"
+                                          "[ \t\n\r\f\v]+"
+                                          "\\(\\(?:"
+                                          (c-lang-const c-symbol-key)
+                                          "\\.\\)*"
+                                          (c-lang-const c-symbol-key)
+                                          "\\)"
+                                          )
+                                 limit t)
+                           (unless
+                               (progn
+                                 (goto-char (match-beginning 0))
+                                 (c-skip-comments-and-strings limit))
 
-                              (csharp-log 3 "ctor invoke? at %d" (match-beginning 1))
+                             (csharp-log 3 "ctor invoke? at %d" (match-beginning 1))
 
-                              (save-match-data
-                                ;; next thing could be: [] () <> or {} or nothing (semicolon, comma).
+                             (save-match-data
+                               ;; next thing could be: [] () <> or {} or nothing (semicolon, comma).
 
-                                ;; fontify the typename
-                                (c-put-font-lock-face (match-beginning 1)
-                                                      (match-end 1)
-                                                      'font-lock-type-face)
+                               ;; fontify the typename
+                               (c-put-font-lock-face (match-beginning 1)
+                                                     (match-end 1)
+                                                     'font-lock-type-face)
 
-                                (goto-char (match-end 0))
-                                (c-forward-syntactic-ws limit)
-                                (if (eq (char-after) ?<) ;; ctor for generic type
-                                    (progn
-                                      (csharp-log 3 " - this is a generic type")
-                                      ;; skip over <> safely
-                                      (c-safe (c-forward-sexp 1) t)
-                                      (c-forward-syntactic-ws)))
+                               (goto-char (match-end 0))
+                               (c-forward-syntactic-ws limit)
+                               (if (eq (char-after) ?<) ;; ctor for generic type
+                                   (progn
+                                     (csharp-log 3 " - this is a generic type")
+                                     ;; skip over <> safely
+                                     (c-safe (c-forward-sexp 1) t)
+                                     (c-forward-syntactic-ws)))
 
-                                ;; now, could be [] or (..) or {..} or semicolon.
+                               ;; now, could be [] or (..) or {..} or semicolon.
 
-                                (csharp-log 3 " - looking for sexp")
+                               (csharp-log 3 " - looking for sexp")
 
-                                (if (or
-                                     (eq (char-after) ?{) ;; open curly
-                                     (csharp-is-square-parentasis-block-p)
-                                     (and (eq (char-after) 40) ;; open paren
-                                          (c-safe (c-forward-sexp 1) t)))
+                               (if (or
+                                    (eq (char-after) ?{) ;; open curly
+                                    (csharp-is-square-parentasis-block-p)
+                                    (and (eq (char-after) 40) ;; open paren
+                                         (c-safe (c-forward-sexp 1) t)))
 
-                                    (progn
-                                      ;; at this point we've jumped over any intervening s-exp,
-                                      ;; like sq brackets or parens.
-                                      (c-forward-syntactic-ws)
-                                      (csharp-log 3 " - after fwd-syn-ws point(%d)" (point))
-                                      (csharp-log 3 " - next char:  %c" (char-after))
-                                      (if (eq (char-after) ?{)
-                                          (let ((start (point))
-                                                (end (if (c-safe (c-forward-sexp 1) t)
-                                                         (point) 0)))
-                                            (csharp-log 3 " -  open curly gets c-decl-id-start %d" start)
-                                            (c-put-char-property start
-                                                                 'c-type
-                                                                 'c-decl-id-start)
-                                            (goto-char start)
-                                            (if (> end start)
-                                                (progn
-                                                  (forward-char 1) ;; step over open curly
-                                                  (c-forward-syntactic-ws)
-                                                  (while (> end (point))
-                                                    ;; now, try to fontify/assign variables to any properties inside the curlies
-                                                    (csharp-log 3 " - inside open curly  point(%d)" (point))
-                                                    (csharp-log 3 " -   next char:  %c" (char-after))
-                                                    ;; fontify each property assignment
-                                                    (if (re-search-forward
-                                                         (concat "\\(" (c-lang-const c-symbol-key) "\\)\\s*=")
-                                                         end t)
-                                                        (progn
-                                                          (csharp-log 3 " -   found variable  %d-%d"
-                                                                      (match-beginning 1)
-                                                                      (match-end 1))
-                                                          (c-put-font-lock-face (match-beginning 1)
-                                                                                (match-end 1)
-                                                                                'font-lock-variable-name-face)
-                                                          (goto-char (match-end 0))
-                                                          (c-forward-syntactic-ws)
-                                                          ;; advance to the next assignment, if possible
-                                                          (if (eq (char-after) ?@)
-                                                              (forward-char 1))
+                                   (progn
+                                     ;; at this point we've jumped over any intervening s-exp,
+                                     ;; like sq brackets or parens.
+                                     (c-forward-syntactic-ws)
+                                     (csharp-log 3 " - after fwd-syn-ws point(%d)" (point))
+                                     (csharp-log 3 " - next char:  %c" (char-after))
+                                     (if (eq (char-after) ?{)
+                                         (let ((start (point))
+                                               (end (if (c-safe (c-forward-sexp 1) t)
+                                                        (point) 0)))
+                                           (csharp-log 3 " -  open curly gets c-decl-id-start %d" start)
+                                           (c-put-char-property start
+                                                                'c-type
+                                                                'c-decl-id-start)
+                                           (goto-char start)
+                                           (if (> end start)
+                                               (progn
+                                                 (forward-char 1) ;; step over open curly
+                                                 (c-forward-syntactic-ws)
+                                                 (while (> end (point))
+                                                   ;; now, try to fontify/assign variables to any properties inside the curlies
+                                                   (csharp-log 3 " - inside open curly  point(%d)" (point))
+                                                   (csharp-log 3 " -   next char:  %c" (char-after))
+                                                   ;; fontify each property assignment
+                                                   (if (re-search-forward
+                                                        (concat "\\(" (c-lang-const c-symbol-key) "\\)\\s*=")
+                                                        end t)
+                                                       (progn
+                                                         (csharp-log 3 " -   found variable  %d-%d"
+                                                                     (match-beginning 1)
+                                                                     (match-end 1))
+                                                         (c-put-font-lock-face (match-beginning 1)
+                                                                               (match-end 1)
+                                                                               'font-lock-variable-name-face)
+                                                         (goto-char (match-end 0))
+                                                         (c-forward-syntactic-ws)
+                                                         ;; advance to the next assignment, if possible
+                                                         (if (eq (char-after) ?@)
+                                                             (forward-char 1))
 
-                                                          (if (c-safe (c-forward-sexp 1) t)
-                                                              (progn
-                                                                (forward-char 1)
-                                                                (c-forward-syntactic-ws))))
+                                                         (if (c-safe (c-forward-sexp 1) t)
+                                                             (progn
+                                                               (forward-char 1)
+                                                               (c-forward-syntactic-ws))))
 
-                                                      ;; else
-                                                      (csharp-log 3 " -   no more assgnmts found")
-                                                      (goto-char end)))))
-                                            )))))
+                                                     ;; else
+                                                     (csharp-log 3 " -   no more assgnmts found")
+                                                     (goto-char end)))))
+                                           )))))
 
-                              (goto-char (match-end 0))
-                              )))
-                        nil))
-                    )))
+                             (goto-char (match-end 0))
+                             )))
+                       nil))
+                  )))
 
 
            ;; Case 2: declaration of enum with or without an explicit
@@ -1214,7 +1214,7 @@ a square parentasis block [ ... ]."
 (c-lang-defconst c-type-prefix-kwds
   ;; ECMA-344, S?
   csharp '("class" "interface" "struct"))  ;; no enum here.
-                                           ;; we want enum to be a brace list.
+;; we want enum to be a brace list.
 
 
 ;; Type modifier keywords. They appear anywhere in types, but modify
@@ -1286,7 +1286,7 @@ a square parentasis block [ ... ]."
 (c-lang-defconst c-protection-kwds
   csharp nil
   ;; csharp '("private" "protected" "public" "internal")
-)
+  )
 
 (c-lang-defconst c-opt-op-identifier-prefix
   "Regexp matching the token before the ones in
@@ -1371,37 +1371,37 @@ This regexp is assumed to not match any non-operator identifier."
 
 (c-lang-defconst c-cpp-matchers
   csharp (cons
-      ;; Use the eval form for `font-lock-keywords' to be able to use
-      ;; the `c-preprocessor-face-name' variable that maps to a
-      ;; suitable face depending on the (X)Emacs version.
-      '(eval . (list "^\\s *\\(#pragma\\|undef\\|define\\)\\>\\(.*\\)"
-                     (list 1 c-preprocessor-face-name)
-                     '(2 font-lock-string-face)))
-      ;; There are some other things in `c-cpp-matchers' besides the
-      ;; preprocessor support, so include it.
-      (c-lang-const c-cpp-matchers)))
+          ;; Use the eval form for `font-lock-keywords' to be able to use
+          ;; the `c-preprocessor-face-name' variable that maps to a
+          ;; suitable face depending on the (X)Emacs version.
+          '(eval . (list "^\\s *\\(#pragma\\|undef\\|define\\)\\>\\(.*\\)"
+                         (list 1 c-preprocessor-face-name)
+                         '(2 font-lock-string-face)))
+          ;; There are some other things in `c-cpp-matchers' besides the
+          ;; preprocessor support, so include it.
+          (c-lang-const c-cpp-matchers)))
 
 
 
 ;; Custom variables
 ;;;###autoload
 (defcustom csharp-mode-hook nil
-    "*Hook called by `csharp-mode'."
-    :type 'hook
-    :group 'csharp)
+  "*Hook called by `csharp-mode'."
+  :type 'hook
+  :group 'csharp)
 
-  ;; The following fn allows this:
-  ;;    (csharp-log 3 "scan result...'%s'" state)
+;; The following fn allows this:
+;;    (csharp-log 3 "scan result...'%s'" state)
 
 (defcustom csharp-log-level 0
-    "The current log level for CSharp-mode-specific operations.
+  "The current log level for CSharp-mode-specific operations.
 This is used in particular by the verbatim-literal
 string scanning.
 
 Most other csharp functions are not instrumented.
 0 = NONE, 1 = Info, 2 = VERBOSE, 3 = DEBUG, 4 = SHUTUP ALREADY. "
-    :type 'integer
-    :group 'csharp)
+  :type 'integer
+  :group 'csharp)
 
 
 ;;;###autoload
@@ -1441,8 +1441,8 @@ Most other csharp functions are not instrumented.
     ("finally" "finally" c-electric-continued-statement 0)))
 
 (defvar csharp-mode-map (let ((map (c-make-inherited-keymap)))
-                      ;; Add bindings which are only useful for C#
-                      map)
+                          ;; Add bindings which are only useful for C#
+                          map)
   "Keymap used in csharp-mode buffers.")
 
 
@@ -2095,7 +2095,7 @@ Upon entry, it's assumed that the parens included in S.
              (state 0)  ;; 0 => ws, 1=>slurping param...
              c
              cs
-	     quoting
+             quoting
              nesting
              need-type
              ix2
@@ -2115,11 +2115,11 @@ Upon entry, it's assumed that the parens included in S.
              ;; more ws. = is equal to whitespace in the sense that its follows a param-name.
              ((string-match "[ \t\f\v\n\r=]" cs)
               t)
-	     ((string-match "[\"']" cs)
-	      ;; a quote means we're probably dealing with a stringy default-value
-	      ;; back out until we're back into unquoted context
-	      (setq quoting cs
-		    state 5))
+             ((string-match "[\"']" cs)
+              ;; a quote means we're probably dealing with a stringy default-value
+              ;; back out until we're back into unquoted context
+              (setq quoting cs
+                    state 5))
              ;; a legal char for an identifier
              ((string-match "[A-Za-z_0-9]" cs)
               (setq state 1))
@@ -2133,12 +2133,12 @@ Upon entry, it's assumed that the parens included in S.
              ;; ws signifies the end of the param
              ((string-match "[ \t\f\v\n\r]" cs)
               (setq state 2))
-	     ((string-match "[=]" cs)
-	      ;; = means what we slurped was a default-value for a param
-	      ;; go back to slurping param-name
-	      (setq state 0))
+             ((string-match "[=]" cs)
+              ;; = means what we slurped was a default-value for a param
+              ;; go back to slurping param-name
+              (setq state 0))
              ;; a legal char for an identifier
-	     ;; (or . for object-access in default value)
+             ;; (or . for object-access in default value)
              ((string-match "[A-Za-z_0-9\.]" cs)
               t)
              (t
@@ -2150,10 +2150,10 @@ Upon entry, it's assumed that the parens included in S.
             (cond
              ((string-match "[ \t\f\v\n\r]" cs)
               t)
-	     ((string-match "[=]" cs)
-	      ;; = means what we slurped was a default-value for a param
-	      ;; go back to slurping param-name
-	      (setq state 0))
+             ((string-match "[=]" cs)
+              ;; = means what we slurped was a default-value for a param
+              ;; go back to slurping param-name
+              (setq state 0))
              ;; non-ws indicates the type spec is beginning
              (t
               (cl-incf i)
@@ -2222,15 +2222,15 @@ Upon entry, it's assumed that the parens included in S.
              (t
               (error "unexpected char (C)"))))
 
-	   ;; in a quoted context of a default-value.
-	   ;; we're basically waiting for a matching quote, to go back to slurping param-name
-	   ((= state 5)
-	    (cond
-	     ((equal quoting cs)
-	      ;; we're back to unquoted! slurp param-name!
-	      (setq state 0))
-	     (t
-	      t)))
+           ;; in a quoted context of a default-value.
+           ;; we're basically waiting for a matching quote, to go back to slurping param-name
+           ((= state 5)
+            (cond
+             ((equal quoting cs)
+              ;; we're back to unquoted! slurp param-name!
+              (setq state 0))
+             (t
+              t)))
            )
 
           (cl-decf i))
@@ -2445,17 +2445,17 @@ more open-curlies are found.
            ;; (must come before class / namespace )
            ((or (csharp--on-intf-open-curly-p)
                 (csharp--on-enum-open-curly-p))
-              (setq consider-namespaces nil
-                    consider-usings nil
-                    this-menu
-                    (append this-menu
-                            (list
-                             (cons (concat
-                                    (match-string-no-properties 1) ;; thing flavor
-                                    " "
-                                    (match-string-no-properties 2)) ;; intf name
-                                   (match-beginning 1)))))
-              (forward-sexp 1))
+            (setq consider-namespaces nil
+                  consider-usings nil
+                  this-menu
+                  (append this-menu
+                          (list
+                           (cons (concat
+                                  (match-string-no-properties 1) ;; thing flavor
+                                  " "
+                                  (match-string-no-properties 2)) ;; intf name
+                                 (match-beginning 1)))))
+            (forward-sexp 1))
 
 
            ;; case 5: at the start of a container (class, namespace)
@@ -2529,14 +2529,14 @@ more open-curlies are found.
            ;; case 7: an indexer
            ((csharp--on-indexer-open-curly-p)
             (setq consider-namespaces nil
-                    consider-usings nil
-                    this-menu
-                    (append this-menu
-                            (list
-                             (cons (concat
-                                    "indexer "
-                                    (match-string-no-properties 4)) ;; index type
-                                   (match-beginning 1)))))
+                  consider-usings nil
+                  this-menu
+                  (append this-menu
+                          (list
+                           (cons (concat
+                                  "indexer "
+                                  (match-string-no-properties 4)) ;; index type
+                                 (match-beginning 1)))))
             (forward-sexp 1))
 
 
@@ -3028,52 +3028,52 @@ attempts to disable the weird re-jiggering that imenu performs.
   ;; marked modified when the scan completes.
 
   (c-save-buffer-state ()
-      (save-excursion
-        (save-restriction
-          (widen)
-          (goto-char (point-min))
+    (save-excursion
+      (save-restriction
+        (widen)
+        (goto-char (point-min))
 
-          (let ((index-alist
-                 (csharp--imenu-create-index-helper nil "" t t)))
+        (let ((index-alist
+               (csharp--imenu-create-index-helper nil "" t t)))
 
-            (csharp--imenu-reorg-alist-intelligently index-alist)
+          (csharp--imenu-reorg-alist-intelligently index-alist)
 
-            ;;index-alist
+          ;;index-alist
 
-            ;; What follows is No longer used.
-            ;; =======================================================
+          ;; What follows is No longer used.
+          ;; =======================================================
 
-            ;; If the index menu contains exactly one element, and it is
-            ;; a namespace menu, then remove it.  This simplifies the
-            ;; menu, and results in no loss of information: all types
-            ;; get fully-qualified names anyway. This will probably
-            ;; cover the majority of cases; often a C# source module
-            ;; defines either one class, or a set of related classes
-            ;; inside a single namespace.
+          ;; If the index menu contains exactly one element, and it is
+          ;; a namespace menu, then remove it.  This simplifies the
+          ;; menu, and results in no loss of information: all types
+          ;; get fully-qualified names anyway. This will probably
+          ;; cover the majority of cases; often a C# source module
+          ;; defines either one class, or a set of related classes
+          ;; inside a single namespace.
 
-            ;; To remove that namespace, we need to prune & graft the tree.
-            ;; Remove the ns hierarchy level, but also remove the 1st and
-            ;; last elements in the sub-menu, which represent the top and
-            ;; bottom of the namespace.
+          ;; To remove that namespace, we need to prune & graft the tree.
+          ;; Remove the ns hierarchy level, but also remove the 1st and
+          ;; last elements in the sub-menu, which represent the top and
+          ;; bottom of the namespace.
 
-            ;; (if (and
-            ;;      (= 1 (length index-alist))
-            ;;      (consp (car index-alist))
-            ;;      (let ((tokens (split-string
-            ;;                     (car (car index-alist))
-            ;;                     "[ \t]" t)))
-            ;;        (and (<= 1 (length tokens))
-            ;;             (string= (downcase
-            ;;                       (nth 0 tokens)) "namespace"))))
-            ;;
-            ;;     (let (elt
-            ;;           (newlist (cdar index-alist)))
-            ;;       (setf (car (car newlist))  (car (car index-alist)))
-            ;;       newlist)
-            ;;
-            ;;   index-alist)
+          ;; (if (and
+          ;;      (= 1 (length index-alist))
+          ;;      (consp (car index-alist))
+          ;;      (let ((tokens (split-string
+          ;;                     (car (car index-alist))
+          ;;                     "[ \t]" t)))
+          ;;        (and (<= 1 (length tokens))
+          ;;             (string= (downcase
+          ;;                       (nth 0 tokens)) "namespace"))))
+          ;;
+          ;;     (let (elt
+          ;;           (newlist (cdar index-alist)))
+          ;;       (setf (car (car newlist))  (car (car index-alist)))
+          ;;       newlist)
+          ;;
+          ;;   index-alist)
 
-            )))))
+          )))))
 
 
 ;; ==================================================================
@@ -4223,88 +4223,88 @@ use Imenu, you can turn this off with the variable `csharp-want-imenu'.
 
 Key bindings:
 \\{csharp-mode-map}"
-    (make-local-variable 'beginning-of-defun-function)
-    (make-local-variable 'end-of-defun-function)
-    (c-initialize-cc-mode t)
+  (make-local-variable 'beginning-of-defun-function)
+  (make-local-variable 'end-of-defun-function)
+  (c-initialize-cc-mode t)
 
-    ;; define underscore as part of a word in the Csharp syntax table
-    (modify-syntax-entry ?_ "w" csharp-mode-syntax-table)
+  ;; define underscore as part of a word in the Csharp syntax table
+  (modify-syntax-entry ?_ "w" csharp-mode-syntax-table)
 
-    ;; ensure #region and #pragma directives are not treated as computational
-    ;; expressions and thus wont have string and character rules applied to
-    ;; them.
-    (modify-syntax-entry ?# "< b" csharp-mode-syntax-table)
-    (modify-syntax-entry ?\n "> b" csharp-mode-syntax-table)
+  ;; ensure #region and #pragma directives are not treated as computational
+  ;; expressions and thus wont have string and character rules applied to
+  ;; them.
+  (modify-syntax-entry ?# "< b" csharp-mode-syntax-table)
+  (modify-syntax-entry ?\n "> b" csharp-mode-syntax-table)
 
-    ;; define @ as an expression prefix in Csharp syntax table
-    (modify-syntax-entry ?@ "'" csharp-mode-syntax-table)
+  ;; define @ as an expression prefix in Csharp syntax table
+  (modify-syntax-entry ?@ "'" csharp-mode-syntax-table)
 
-    ;; `c-init-language-vars' is a macro that is expanded at compile
-    ;; time to a large `setq' with all the language variables and their
-    ;; customized values for our language.
-    (c-init-language-vars csharp-mode)
+  ;; `c-init-language-vars' is a macro that is expanded at compile
+  ;; time to a large `setq' with all the language variables and their
+  ;; customized values for our language.
+  (c-init-language-vars csharp-mode)
 
-    ;; Set style to c# style unless a file local variable or default
-    ;; style is found, in which case it should be set after
-    ;; calling `c-common-init' below.
-    (unless (or c-file-style
-                (stringp c-default-style)
-                (assq 'csharp-mode c-default-style))
-      (c-set-style "C#"))
+  ;; Set style to c# style unless a file local variable or default
+  ;; style is found, in which case it should be set after
+  ;; calling `c-common-init' below.
+  (unless (or c-file-style
+              (stringp c-default-style)
+              (assq 'csharp-mode c-default-style))
+    (c-set-style "C#"))
 
-    ;; `c-common-init' initializes most of the components of a CC Mode
-    ;; buffer, including setup of the mode menu, font-lock, etc.
-    ;; There's also a lower level routine `c-basic-common-init' that
-    ;; only makes the necessary initialization to get the syntactic
-    ;; analysis and similar things working.
-    (c-common-init 'csharp-mode)
+  ;; `c-common-init' initializes most of the components of a CC Mode
+  ;; buffer, including setup of the mode menu, font-lock, etc.
+  ;; There's also a lower level routine `c-basic-common-init' that
+  ;; only makes the necessary initialization to get the syntactic
+  ;; analysis and similar things working.
+  (c-common-init 'csharp-mode)
 
-    (define-key csharp-mode-map (kbd "/") 'csharp-maybe-insert-codedoc)
+  (define-key csharp-mode-map (kbd "/") 'csharp-maybe-insert-codedoc)
 
-    ;; Need the following for parse-partial-sexp to work properly with
-    ;; verbatim literal strings Setting this var to non-nil tells
-    ;; `parse-partial-sexp' to pay attention to the syntax text
-    ;; properties on the text in the buffer.  If csharp-mode attaches
-    ;; text syntax to @"..." then, `parse-partial-sexp' will treat those
-    ;; strings accordingly.
-    (set (make-local-variable 'parse-sexp-lookup-properties) t)
+  ;; Need the following for parse-partial-sexp to work properly with
+  ;; verbatim literal strings Setting this var to non-nil tells
+  ;; `parse-partial-sexp' to pay attention to the syntax text
+  ;; properties on the text in the buffer.  If csharp-mode attaches
+  ;; text syntax to @"..." then, `parse-partial-sexp' will treat those
+  ;; strings accordingly.
+  (set (make-local-variable 'parse-sexp-lookup-properties) t)
 
-    ;; scan the entire buffer for verblit strings
-    ;; This will happen on font; it's necessary only
-    ;; if font-lock is disabled. But it won't hurt.
-    (csharp-scan-for-verbatim-literals-and-set-props nil nil)
+  ;; scan the entire buffer for verblit strings
+  ;; This will happen on font; it's necessary only
+  ;; if font-lock is disabled. But it won't hurt.
+  (csharp-scan-for-verbatim-literals-and-set-props nil nil)
 
-    ;; Allow fill-paragraph to work on xml code doc
-    ;; This setting gets overwritten quietly by c-run-mode-hooks,
-    ;; so I put it afterwards to make it stick.
-    (make-local-variable 'paragraph-separate)
+  ;; Allow fill-paragraph to work on xml code doc
+  ;; This setting gets overwritten quietly by c-run-mode-hooks,
+  ;; so I put it afterwards to make it stick.
+  (make-local-variable 'paragraph-separate)
 
-    ;; Speedbar handling
-    (when (fboundp 'speedbar-add-supported-extension)
-      (speedbar-add-supported-extension '(".cs"))) ;; idempotent
+  ;; Speedbar handling
+  (when (fboundp 'speedbar-add-supported-extension)
+    (speedbar-add-supported-extension '(".cs"))) ;; idempotent
 
-    (c-update-modeline)
+  (c-update-modeline)
 
-    ;; maybe do imenu scan after hook returns
-    (when csharp-want-imenu
-      ;; There are two ways to do imenu indexing. One is to provide a
-      ;; function, via `imenu-create-index-function'.  The other is to
-      ;; provide imenu with a list of regexps via
-      ;; `imenu-generic-expression'; imenu will do a "generic scan" for you.
-      ;; csharp-mode uses the former method.
+  ;; maybe do imenu scan after hook returns
+  (when csharp-want-imenu
+    ;; There are two ways to do imenu indexing. One is to provide a
+    ;; function, via `imenu-create-index-function'.  The other is to
+    ;; provide imenu with a list of regexps via
+    ;; `imenu-generic-expression'; imenu will do a "generic scan" for you.
+    ;; csharp-mode uses the former method.
 
-      (setq imenu-create-index-function 'csharp-imenu-create-index)
-      (imenu-add-menubar-index))
+    (setq imenu-create-index-function 'csharp-imenu-create-index)
+    (imenu-add-menubar-index))
 
-    ;; The paragraph-separate variable was getting stomped by
-    ;; other hooks, so it must reside here.
-    (setq paragraph-separate
-          "[ \t]*\\(//+\\|\\**\\)\\([ \t]+\\|[ \t]+<.+?>\\)$\\|^\f")
+  ;; The paragraph-separate variable was getting stomped by
+  ;; other hooks, so it must reside here.
+  (setq paragraph-separate
+        "[ \t]*\\(//+\\|\\**\\)\\([ \t]+\\|[ \t]+<.+?>\\)$\\|^\f")
 
-    (setq beginning-of-defun-function 'csharp-move-back-to-beginning-of-defun)
-    ;; `end-of-defun-function' can remain forward-sexp !!
+  (setq beginning-of-defun-function 'csharp-move-back-to-beginning-of-defun)
+  ;; `end-of-defun-function' can remain forward-sexp !!
 
-    (set (make-local-variable 'comment-auto-fill-only-comments) t))
+  (set (make-local-variable 'comment-auto-fill-only-comments) t))
 
 (provide 'csharp-mode)
 
