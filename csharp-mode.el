@@ -2448,14 +2448,17 @@ more open-curlies are found.
                 (csharp--on-enum-open-curly-p))
             (setq consider-namespaces nil
                   consider-usings nil
-                  this-menu
-                  (append this-menu
-                          (list
-                           (cons (concat
-                                  (match-string-no-properties 1) ;; thing flavor
-                                  " "
-                                  (match-string-no-properties 2)) ;; intf name
-                                 (match-beginning 1)))))
+                  container-name (if parent-ns
+                                     (concat parent-ns ".")
+                                   nil)
+                  this-menu (append this-menu
+                                    (list
+                                     (cons (concat
+                                            (match-string-no-properties 1) ;; thing flavor
+                                            " "
+                                            container-name
+                                            (match-string-no-properties 2)) ;; intf name
+                                           (match-beginning 1)))))
             (forward-sexp 1))
 
 

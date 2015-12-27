@@ -223,6 +223,15 @@
          (ns-item        (car ns-entry)))
     (should (string-match-p "namespace ImenuTest" ns-item))))
 
+(def-imenutest imenu-parsing-provides-types-with-namespace-names
+  "./test-files/imenu-namespace-test.cs" imenu-index
+  (let* ((ns-entry       (cadr imenu-index))
+         (ns-items       (cdr ns-entry))
+         (imenu-items    (mapconcat 'car ns-items " ")))
+    (should (string-match-p "interface ImenuTest.ImenuTestInterface" imenu-items))
+    (should (string-match-p "class ImenuTest.ImenuTestClass" imenu-items))
+    (should (string-match-p "enum ImenuTest.ImenuTestEnum" imenu-items))))
+
 (defvar csharp-hook1 nil)
 (defvar csharp-hook2 nil)
 
