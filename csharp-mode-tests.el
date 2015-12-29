@@ -201,7 +201,7 @@
          (imenu-items    (mapconcat 'car class-entries " ")))
     (should (string-match-p "HasNoComment" imenu-items))
     (should (string-match-p "HasComment" imenu-items))
-    (should (string-match-p "HasCommentToo" imenu-items))))
+    (should (string-match-p "CommentedToo" imenu-items))))
 
 (def-imenutest imenu-parsing-supports-explicit-interface-properties
   "./test-files/imenu-interface-property-test.cs" imenu-index

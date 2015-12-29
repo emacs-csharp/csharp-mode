@@ -10,7 +10,7 @@ public class MyClass
     {
     }
 
-    public void HasCommentToo() /* test yes */
+    public void CommentedToo() /* test yes */
     {
     }
 }
