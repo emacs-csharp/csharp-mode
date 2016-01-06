@@ -5,10 +5,10 @@
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
 ;; Modified   : November 2015
-;; Version    : 0.8.11
+;; Version    : 0.8.12
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
-;; Last-saved : <2015-Nov-21 14:23:00>
+;; Last-saved : 2016-Jan-06
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -285,7 +285,8 @@
 ;;          - Fix error with string-values in #region directives.
 ;;
 ;;    0.8.12 2015 November 29nth
-;;          - Fix issues with imenu indexing.
+;;          - Various fixes and improvements for imenu indexing.
+;;          - Fix issues with compilation-mode and lines with arrays.
 
 (require 'cc-mode)
 (require 'cl-lib)
