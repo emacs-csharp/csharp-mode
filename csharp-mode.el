@@ -1385,7 +1385,6 @@ This regexp is assumed to not match any non-operator identifier."
 
 
 ;; Custom variables
-;;;###autoload
 (defcustom csharp-mode-hook nil
   "*Hook called by `csharp-mode'."
   :type 'hook
@@ -1405,7 +1404,6 @@ Most other csharp functions are not instrumented.
   :group 'csharp)
 
 
-;;;###autoload
 (defcustom csharp-want-imenu t
   "*Whether to generate a buffer index via imenu for C# buffers."
   :type 'boolean :group 'csharp)
