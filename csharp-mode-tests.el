@@ -85,6 +85,27 @@
                (equal-including-properties reference t1)
                (equal-including-properties reference t2))))))
 
+(ert-deftest fontification-of-compiler-directives-after-comments ()
+  (let* ((buffer (find-file-read-only "test-files/fontification-test-compiler-directives-with-comments.cs")))
+    ;; double-ensure mode is active
+    (csharp-mode)
+    (if (fboundp 'font-lock-ensure)
+        (font-lock-ensure))
+    (goto-char (point-min))
+
+    (let (reference
+          testee)
+
+      (search-forward "case 1")
+      (move-beginning-of-line 1)
+      (setq reference (face-at-point))
+
+      (search-forward "case 2")
+      (move-beginning-of-line 1)
+      (setq testee (face-at-point))
+
+      (should (equal reference testee)))))
+
 (defun list-repeat-once (mylist)
   (append mylist mylist))
 
@@ -194,7 +215,7 @@
     (should (string-match-p "TwoGeneric<T1,T2>" imenu-items))))
 
 (def-imenutest imenu-parsing-supports-comments
-  "./test-files/imenu-comment-test.cs" imenu-index 
+  "./test-files/imenu-comment-test.cs" imenu-index
   (let* ((class-entry    (cadr imenu-index))
          (class-entries  (cdr class-entry))
          (imenu-items    (mapconcat 'car class-entries " ")))
