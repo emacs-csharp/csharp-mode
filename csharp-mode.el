@@ -284,9 +284,13 @@
 ;;          - Fix all runtime warnings
 ;;          - Fix error with string-values in #region directives.
 ;;
-;;    0.8.12 2015 November 29nth
+;;    0.8.12 2016 January 6th
 ;;          - Various fixes and improvements for imenu indexing.
 ;;          - Fix issues with compilation-mode and lines with arrays.
+;;
+;;    0.8.13 2016 ...
+;;          - Fontification of compiler directives.
+;;
 
 (require 'cc-mode)
 (require 'cl-lib)
