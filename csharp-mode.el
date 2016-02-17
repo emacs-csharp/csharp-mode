@@ -4,11 +4,11 @@
 ;; Author     : Dylan R. E. Moonfire (original)
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
-;; Modified   : November 2015
-;; Version    : 0.8.12
+;; Modified   : 2016
+;; Version    : 0.8.13
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
-;; Last-saved : 2016-Jan-06
+;; Last-saved : 2016-Feb-17
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
