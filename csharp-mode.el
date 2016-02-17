@@ -286,9 +286,9 @@
 ;;
 ;;    0.8.12 2016 January 6th
 ;;          - Various fixes and improvements for imenu indexing.
-;;          - Fix issues with compilation-mode and lines with arrays.
 ;;
 ;;    0.8.13 2016 ...
+;;          - Fix issues with compilation-mode and lines with arrays.
 ;;          - Fontification of compiler directives.
 ;;
 
