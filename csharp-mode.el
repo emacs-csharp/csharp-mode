@@ -1132,7 +1132,14 @@ a square parentasis block [ ... ]."
 
            ))
 
-
+(defun csharp-mode-syntax-propertize-function (beg end)
+  "Highlight text after #region or #pragma as comment."
+  (save-excursion
+    (goto-char beg)
+    (while (re-search-forward "^\\s-*#\\(region\\|pragma\\) " end t)
+      (when (looking-at "\\w")
+        (put-text-property (point) (1+ (point))
+                           'syntax-table (string-to-syntax "< b"))))))
 
 ;; C# does generics.  Setting this to t tells the parser to put
 ;; parenthesis syntax on angle braces that surround a comma-separated
@@ -4239,12 +4246,6 @@ Key bindings:
   ;; define underscore as part of a word in the Csharp syntax table
   (modify-syntax-entry ?_ "w" csharp-mode-syntax-table)
 
-  ;; ensure #region and #pragma directives are not treated as computational
-  ;; expressions and thus wont have string and character rules applied to
-  ;; them.
-  (modify-syntax-entry ?# "< b" csharp-mode-syntax-table)
-  (modify-syntax-entry ?\n "> b" csharp-mode-syntax-table)
-
   ;; define @ as an expression prefix in Csharp syntax table
   (modify-syntax-entry ?@ "'" csharp-mode-syntax-table)
 
@@ -4313,7 +4314,10 @@ Key bindings:
   (setq beginning-of-defun-function 'csharp-move-back-to-beginning-of-defun)
   ;; `end-of-defun-function' can remain forward-sexp !!
 
-  (set (make-local-variable 'comment-auto-fill-only-comments) t))
+  (set (make-local-variable 'comment-auto-fill-only-comments) t)
+
+  (set (make-local-variable 'syntax-propertize-function)
+       'csharp-mode-syntax-propertize-function))
 
 (provide 'csharp-mode)
 
