@@ -295,6 +295,11 @@
 (require 'cc-mode)
 (require 'cl-lib)
 
+;; prevent warnings like
+;; csharp-mode.el:4134:21:Warning: reference to free variable
+;; `compilation-error-regexp-alist-alist'
+(require 'compile)
+
 ;; Work around emacs bug#23053
 (eval-when-compile
   (require 'cc-langs))
