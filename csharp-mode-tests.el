@@ -92,25 +92,21 @@
            )))
 
 (ert-deftest fontification-of-compiler-directives-after-comments ()
-  (let* ((buffer (find-file-read-only "test-files/fontification-test-compiler-directives-with-comments.cs")))
-    ;; double-ensure mode is active
-    (csharp-mode)
-    (if (fboundp 'font-lock-ensure)
-        (font-lock-ensure))
-    (goto-char (point-min))
-
-    (let (reference
-          testee)
-
-      (search-forward "case 1")
-      (move-beginning-of-line 1)
-      (setq reference (face-at-point))
-
-      (search-forward "case 2")
-      (move-beginning-of-line 1)
-      (setq testee (face-at-point))
-
-      (should (equal reference testee)))))
+  ;; this replaces the manual test of
+  ;; test-files/fontification-test-compiler-directives-with-comments.cs, but file
+  ;; has been kept around to assist manual testing/verification.
+  (require 'assess)
+  (let* ((test-string "#region case 1\n\n//this is a comment\n#region case2"))
+    (should (assess-face-at=
+             test-string
+             'csharp-mode
+             ;; should not be interpreted as string because of trailing \!
+             "case1" 'font-lock-comment-face))
+    (should (assess-face-at=
+             test-string
+             'csharp-mode
+             ;; should not be interpreted as string because of trailing \!
+             "case2" 'font-lock-comment-face))))
 
 (defun list-repeat-once (mylist)
   (append mylist mylist))
