@@ -20,9 +20,12 @@
     (setq end (point))
     (buffer-substring start end)))
 
-(add-to-list 'package-archives '("melpa"        . "https://melpa.org/packages/"))
-(package-initialize)
+;; development only packages, not declared as a package-dependency
 (setq csharp-test-packages '(assess))
+
+;; ensure development packages are installed.
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+(package-initialize)
 
 (defun csharp-test-packages-installed-p ()
   "Return nil if there are packages that are not installed."
@@ -54,27 +57,15 @@
 (defvar debug-res nil)
 
 (ert-deftest fontification-of-literals-detects-end-of-strings ()
-  ;; this test needs a double which also writes and generates the actual
-  ;; test-content itself by inserting into a new temp buffer.
-  (let* ((buffer (find-file-read-only "test-files/fontification-test.cs")))
-    ;; double-ensure mode is active
-    (csharp-mode)
-    (if (fboundp 'font-lock-ensure)
-        (font-lock-ensure))
-    (goto-char (point-min))
-    (let* ((buffer1)
-           (buffer2))
-      ;; get reference string
-      (move-to-line-after "Literal1")
-      (setq buffer1 (get-current-line-contents))
-
-      ;; get verification string
-      (move-to-line-after "Literal2")
-      (setq buffer2 (get-current-line-contents))
-
-      ;; check equality
-      (should
-       (equal-including-properties buffer1 buffer2)))))
+  ;; this replaces the manual test of fontification-test.cs, but file has been
+  ;; kept around to assist manual testing/verification.
+  (require 'assess)
+  (should (assess-face-at=
+           "string Literal = @\"with trailing slash\\\";\n public Type2 Reference = null;"
+           'csharp-mode
+           ;; should not be interpreted as string because of trailing \!
+           "Type2" 'font-lock-type-face
+           )))
 
 (ert-deftest fontification-of-compiler-directives ()
   (let* ((buffer (find-file-read-only "test-files/fontification-test-compiler-directives.cs")))
