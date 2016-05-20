@@ -68,38 +68,28 @@
            )))
 
 (ert-deftest fontification-of-compiler-directives ()
-  (let* ((buffer (find-file-read-only "test-files/fontification-test-compiler-directives.cs")))
-    ;; double-ensure mode is active
-    (csharp-mode)
-    (if (fboundp 'font-lock-ensure)
-        (font-lock-ensure))
-    (goto-char (point-min))
-    (let* ((reference)
-           (v1)
-           (t1)
-           (t2))
-      ;; get reference string
-      (move-to-line-after "reference")
-      (setq reference (get-current-line-contents))
-
-      ;; get verification string
-      (move-to-line-after "v1")
-      (setq v1 (get-current-line-contents))
-
-      ;; get test-case1
-      (move-to-line-after "t1")
-      (setq t1 (get-current-line-contents))
-
-      ;; get test-case2
-      (move-to-line-after "t2")
-      (setq t2 (get-current-line-contents))
-
-      ;; check equality
-      (setq debug-res (list reference v1 t1 t2))
-      (should (and
-               (equal-including-properties reference v1)
-               (equal-including-properties reference t1)
-               (equal-including-properties reference t2))))))
+  ;; this replaces the manual test of
+  ;; test-files/fontification-test-compiler-directives.cs, but file
+  ;; has been kept around to assist manual testing/verification.
+  (require 'assess)
+  (should (assess-face-at=
+           "#region test\nx = true;"
+           'csharp-mode
+           ;; should not be interpreted as string because of trailing \!
+           "true" 'font-lock-constant-face
+           ))
+  (should (assess-face-at=
+           "#region test'\nx = true;"
+           'csharp-mode
+           ;; should not be interpreted as string because of trailing \!
+           "true" 'font-lock-constant-face
+           ))
+  (should (assess-face-at=
+           "#region test\"\nx = true;"
+           'csharp-mode
+           ;; should not be interpreted as string because of trailing \!
+           "true" 'font-lock-constant-face
+           )))
 
 (ert-deftest fontification-of-compiler-directives-after-comments ()
   (let* ((buffer (find-file-read-only "test-files/fontification-test-compiler-directives-with-comments.cs")))
