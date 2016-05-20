@@ -1,6 +1,8 @@
 (require 'ert)
 (require 'cl-lib)
 (require 'csharp-mode)
+(require 'cl)
+(require 'package)
 
 ;;; test-helper functions
 
@@ -17,6 +19,29 @@
     (move-end-of-line 1)
     (setq end (point))
     (buffer-substring start end)))
+
+(add-to-list 'package-archives '("melpa"        . "https://melpa.org/packages/"))
+(package-initialize)
+(setq csharp-test-packages '(assess))
+
+(defun csharp-test-packages-installed-p ()
+  "Return nil if there are packages that are not installed."
+  (loop for p in csharp-test-packages
+        when (not (package-installed-p p)) do (return nil)
+        finally (return t)))
+
+(defun csharp-test-packages-install-packages ()
+  "Install missing packages."
+  (unless (csharp-test-packages-installed-p)
+    ;; Referesh package lists
+    (package-refresh-contents)
+    ;; Install missing
+    (dolist (p csharp-test-packages)
+      (when (not (package-installed-p p))
+        (ignore-errors
+          (package-install p))))))
+(csharp-test-packages-install-packages)
+
 
 ;;; actual tests
 
