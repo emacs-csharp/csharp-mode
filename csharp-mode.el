@@ -1145,9 +1145,41 @@ a square parentasis block [ ... ]."
 
            ))
 
+;; verbatim string literals can be multiline
+(c-lang-defconst c-multiline-string-start-char
+  csharp ?@)
+
 (defun csharp-mode-syntax-propertize-function (beg end)
-  "Highlight text after #region or #pragma as comment."
+  "Apply syntax table properties to special constructs.
+Currently handled:
+
+- Fontify verbatim literal strings correctly
+- Highlight text after #region or #pragma as comment"
   (save-excursion
+    (goto-char beg)
+    (while (search-forward "@\"" end t)
+      (let ((in-comment-or-string-p (save-excursion
+                                      (goto-char (match-beginning 0))
+                                      (or (nth 3 (syntax-ppss))
+                                          (nth 4 (syntax-ppss))))))
+        (when (not in-comment-or-string-p)
+          (let (done)
+            (while (and (not done) (< (point) end))
+              (skip-chars-forward "^\"\\\\" end)
+              (cond
+               ((= (following-char) ?\\)
+                (put-text-property (point) (1+ (point))
+                                   'syntax-table (string-to-syntax "."))
+                (forward-char 1))
+               ((= (following-char) ?\")
+                (forward-char 1)
+                (if (= (following-char) ?\")
+                    (progn
+                      (put-text-property (1- (point)) (point)
+                                         'syntax-table (string-to-syntax "/"))
+                      (forward-char 1))
+                  (setq done t)))))))))
+
     (goto-char beg)
     (while (re-search-forward "^\\s-*#\\(region\\|pragma\\) " end t)
       (when (looking-at "\\w")
