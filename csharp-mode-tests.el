@@ -4,46 +4,18 @@
 (require 'cl)
 (require 'package)
 
-;;; test-helper functions
-
-(defun move-to-line-after (text)
-  (search-forward text)
-  (move-beginning-of-line 1)
-  (forward-line 1))
-
-(defun get-current-line-contents ()
-  (let* ((start)
-         (end))
-    (move-beginning-of-line 1)
-    (setq start (point))
-    (move-end-of-line 1)
-    (setq end (point))
-    (buffer-substring start end)))
-
 ;; development only packages, not declared as a package-dependency
-(setq csharp-test-packages '(assess))
-
-;; ensure development packages are installed.
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (package-initialize)
-
-(defun csharp-test-packages-installed-p ()
-  "Return nil if there are packages that are not installed."
-  (loop for p in csharp-test-packages
-        when (not (package-installed-p p)) do (return nil)
-        finally (return t)))
-
-(defun csharp-test-packages-install-packages ()
-  "Install missing packages."
-  (unless (csharp-test-packages-installed-p)
-    ;; Referesh package lists
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+(dolist (p '(assess))
+  (when (not (package-installed-p p))
     (package-refresh-contents)
-    ;; Install missing
-    (dolist (p csharp-test-packages)
-      (when (not (package-installed-p p))
-        (ignore-errors
-          (package-install p))))))
-(csharp-test-packages-install-packages)
+    (package-install p)))
+
+;; load dev packages
+(require 'assess)
+
+;;; test-helper functions
 
 
 ;;; actual tests
@@ -59,7 +31,6 @@
 (ert-deftest fontification-of-literals-detects-end-of-strings ()
   ;; this replaces the manual test of fontification-test.cs, but file has been
   ;; kept around to assist manual testing/verification.
-  (require 'assess)
   (should (assess-face-at=
            "string Literal = @\"with trailing slash\\\";\n public Type2 Reference = null;"
            'csharp-mode
@@ -71,7 +42,6 @@
   ;; this replaces the manual test of
   ;; test-files/fontification-test-compiler-directives.cs, but file
   ;; has been kept around to assist manual testing/verification.
-  (require 'assess)
   (should (assess-face-at=
            "#region test\nx = true;"
            'csharp-mode
@@ -95,7 +65,6 @@
   ;; this replaces the manual test of
   ;; test-files/fontification-test-compiler-directives-with-comments.cs, but file
   ;; has been kept around to assist manual testing/verification.
-  (require 'assess)
   (let* ((test-string "#region case 1\n\n//this is a comment\n#region case2"))
     (should (assess-face-at=
              test-string
