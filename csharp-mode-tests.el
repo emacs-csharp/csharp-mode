@@ -49,7 +49,7 @@
                         "false"      'font-lock-constant-face
                         "bool2"      'font-lock-type-face
                         "Reference2" 'font-lock-variable-name-face
-                        "true"      'font-lock-constant-face
+                        "true"       'font-lock-constant-face
                         ))
 
 (ert-deftest fontification-of-compiler-directives ()
