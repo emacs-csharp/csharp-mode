@@ -17,6 +17,20 @@
 
 ;;; test-helper functions
 
+(defmacro assess-face-in-text= (testee &rest assessments)
+  (when assessments
+    (let* ((text (car assessments))
+           (face (cadr assessments))
+           (rest (cddr assessments)))
+      `(progn
+         (should (assess-face-at= ,testee 'csharp-mode ,text ,face))
+         (assess-face-in-text= ,testee ,@rest)))))
+
+(defmacro assess-face-in-file= (file-name &rest assessments)
+  (let* ((buffer (find-file-read-only file-name))
+         (contents (buffer-substring-no-properties (point-min) (point-max))))
+    (kill-buffer buffer)
+    `(assess-face-in-text= ,contents ,@assessments)))
 
 ;;; actual tests
 
@@ -29,25 +43,26 @@
 (defvar debug-res nil)
 
 (ert-deftest fontification-of-literals-detects-end-of-strings ()
-  ;; this replaces the manual test of fontification-test.cs, but file has been
-  ;; kept around to assist manual testing/verification.
-  (should (assess-face-at=
-           "string Literal = @\"with trailing slash\\\";\n public Type2 Reference = null;"
-           'csharp-mode
-           ;; should not be interpreted as string because of trailing \!
-           "Type2" 'font-lock-type-face
-           )))
+  (assess-face-in-file= "./test-files/fontification-test.cs"
+                        "bool1"      'font-lock-type-face
+                        "Reference1" 'font-lock-variable-name-face
+                        "false"      'font-lock-constant-face
+                        "bool2"      'font-lock-type-face
+                        "Reference2" 'font-lock-variable-name-face
+                        "true"      'font-lock-constant-face
+                        ))
 
 (ert-deftest fontification-of-compiler-directives ()
   ;; this replaces the manual test of
   ;; test-files/fontification-test-compiler-directives.cs, but file
   ;; has been kept around to assist manual testing/verification.
-  (should (assess-face-at=
-           "#region test\nx = true;"
-           'csharp-mode
-           ;; should not be interpreted as string because of trailing \!
-           "true" 'font-lock-constant-face
-           ))
+  (assess-face-in-text=
+   "#region test\nbool bar = true;"
+   ;; should not be interpreted as string because of trailing \!
+   "bool" 'font-lock-type-face
+   "bar"  'font-lock-variable-name-face
+   "true" 'font-lock-constant-face
+   )
   (should (assess-face-at=
            "#region test'\nx = true;"
            'csharp-mode
