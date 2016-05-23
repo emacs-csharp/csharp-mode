@@ -12,9 +12,6 @@
     (package-refresh-contents)
     (package-install p)))
 
-;; load dev packages
-(require 'assess)
-
 ;;; test-helper functions
 
 (defmacro assess-face-in-text= (testee &rest assessments)
@@ -23,6 +20,7 @@
            (face (cadr assessments))
            (rest (cddr assessments)))
       `(progn
+         (require 'assess)
          (should (assess-face-at= ,testee 'csharp-mode ,text ,face))
          (assess-face-in-text= ,testee ,@rest)))))
 
