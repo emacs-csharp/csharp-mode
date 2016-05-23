@@ -78,17 +78,9 @@
   ;; this replaces the manual test of
   ;; test-files/fontification-test-compiler-directives-with-comments.cs, but file
   ;; has been kept around to assist manual testing/verification.
-  (let* ((test-string "#region case 1\n\n//this is a comment\n#region case2"))
-    (should (assess-face-at=
-             test-string
-             'csharp-mode
-             ;; should not be interpreted as string because of trailing \!
-             "case1" 'font-lock-comment-face))
-    (should (assess-face-at=
-             test-string
-             'csharp-mode
-             ;; should not be interpreted as string because of trailing \!
-             "case2" 'font-lock-comment-face))))
+  (assess-face-in-file= "./test-files/fontification-test-compiler-directives-with-comments.cs"
+                        "case1" 'font-lock-comment-face
+                        "case2" 'font-lock-comment-face))
 
 (defun list-repeat-once (mylist)
   (append mylist mylist))
