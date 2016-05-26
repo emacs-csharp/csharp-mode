@@ -3108,7 +3108,7 @@ The return value is meaningless, and is ignored by cc-mode.
          ;; but that's a compiler problem, not a imenu-problem
          (access-modifier-list (concat "\\(?:" access-modifier space "\\)"))
          (access-modifiers (concat access-modifier-list "*"))
-         (return-type                    "\\(?:[[:alpha:]_][^=\t\(\n\r\f\v]+\\)")
+         (return-type                    "\\(?:[[:alpha:]_][^ =\t\(\n\r\f\v]+\\)")
          (identifier                     "[[:alpha:]_][[:alnum:]_]*")
          (optional-interface-prefix      (concat "\\(?:" identifier "\\.\\)?") ;; possible prefix interface
 )
