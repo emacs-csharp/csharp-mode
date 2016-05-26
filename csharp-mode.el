@@ -3092,6 +3092,8 @@ The return value is meaningless, and is ignored by cc-mode.
       (add-to-list 'compilation-error-regexp-alist (car regexp)))))
 
 (defun csharp--setup-imenu ()
+  "Sets up `imenu' for `csharp-mode'."
+  
   ;; There are two ways to do imenu indexing. One is to provide a
   ;; function, via `imenu-create-index-function'.  The other is to
   ;; provide imenu with a list of regexps via
@@ -3106,12 +3108,24 @@ The return value is meaningless, and is ignored by cc-mode.
          ;; but that's a compiler problem, not a imenu-problem
          (access-modifier-list (concat "\\(?:" access-modifier space "\\)"))
          (access-modifiers (concat access-modifier-list "*"))
+         (return-type                    "\\(?:[[:alpha:]_][^=\t\(\n\r\f\v]+\\)")
          (identifier                     "[[:alpha:]_][[:alnum:]_]*")
+         (optional-interface-prefix      (concat "\\(?:" identifier "\\.\\)?") ;; possible prefix interface
+)
          (generic-identifier (concat identifier
                                      ;; optional generic arguments
                                      "\\(?:<\\(?:" identifier "\\)\\(?:[, ]+" identifier "\\)*>\\)?"
                                      ))
-         (parameter-list "\\(?:\([^!\)]*\)\\)"))
+         ;; we want to avoid common boolean operations (==, ||, &&) in
+         ;; our param-list because this is typically if stuff where
+         ;; "else" gets picked up as return-type!
+         (parameter-list "\\(?:\([^!\(==)(||)( > )( < )(&&)]*\)\\)")
+         (inheritance-clause (concat "\\(?:"
+                                     optional-space
+                                     ":"
+                                     optional-space generic-identifier
+                                     "\\(?:" optional-space "," optional-space generic-identifier "\\)*"
+                                     "\\)?")))
 
     (setq imenu-generic-expression
           (list (list "namespace"
@@ -3121,25 +3135,23 @@ The return value is meaningless, and is ignored by cc-mode.
                       (concat bol
                               access-modifiers
                               "class" space
-                              "\\(" generic-identifier "\\)")  1)
+                              "\\(" generic-identifier inheritance-clause "\\)")  1)
                 (list "struct"
                       (concat bol
                               access-modifiers
                               "struct" space
-                              "\\(" generic-identifier "\\)")  1)
+                              "\\(" generic-identifier inheritance-clause "\\)")  1)
                 (list "interface"
                       (concat bol
                               access-modifiers
                               "interface" space
-                              "\\(" generic-identifier "\\)")  1)
+                              "\\(" generic-identifier inheritance-clause "\\)")  1)
                 (list "enum"
                       (concat bol
                               access-modifiers
                               "enum" space
-                              "\\(" generic-identifier "\\)")  1)
+                              "\\(" identifier "\\)")  1)
                 (list "ctor"
-                      ;; some ctors will be picked up as plain methods if not
-                      ;; picked here first!
                       (concat bol
                               ;; ctor MUST have access modifiers, or else we pick
                               ;; every if statement in the file...
@@ -3161,9 +3173,10 @@ The return value is meaningless, and is ignored by cc-mode.
                 (list "method"
                       (concat bol
                               access-modifiers
-                              ;; return type
-                              "\\(?:[[:alpha:]_][^=\t\(\n\r\f\v]+\\)" space
-                              "\\(" generic-identifier
+                              return-type space
+                              "\\("
+                              optional-interface-prefix
+                              generic-identifier
                               optional-space
                               parameter-list
                               "\\)"
@@ -3171,6 +3184,22 @@ The return value is meaningless, and is ignored by cc-mode.
                               "\\(?:[ \t]*/[/*].*\\)?"
                               optional-space
                               "{") 1)
+                (list "prop"
+                      (concat bol
+                              ;; must require access modifiers, or else we
+                              ;; pick up pretty much anything.
+                              access-modifier-list "+"
+                              "\\("
+                              return-type space
+                              optional-interface-prefix
+                              generic-identifier
+                              "\\)"
+                              optional-space "{" optional-space
+                              ;; unless we are super-specific and expect the accesors,
+                              ;; lots of weird things gets slurped into the name.
+                              ;; including the accessors themselves.
+                              (regexp-opt '("get" "set"))
+                              ) 1)
                 )))
   ;; TODO: fields, props, delegates
   (imenu-add-menubar-index))
