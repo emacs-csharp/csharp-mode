@@ -4316,7 +4316,51 @@ Key bindings:
     ;; `imenu-generic-expression'; imenu will do a "generic scan" for you.
     ;; csharp-mode uses the former method.
 
-    (setq imenu-create-index-function 'csharp-imenu-create-index)
+    (let* ((single-space                   "[ \t\n\r\f\v]")
+           (bol                            (concat "^" single-space "*"))
+           (space                          (concat single-space "+"))
+           (access-modifier (regexp-opt '( "public" "private" "protected" "internal"
+                                           "static" "sealed" "partial")))
+           ;; this will allow syntactically invalid combinations of identifiers
+           ;; but that's a compiler problem, not a imenu-problem
+           (access-modifiers (concat "\\(?:" access-modifier space "\\)*"))
+           (identifier                     "[[:alpha:]_][[:alnum:]_]*"))
+
+      (setq imenu-generic-expression
+            (list (list "namespace"
+                        (concat bol "namespace" space
+                                "\\(" identifier "\\)") 1)
+                  (list "class"
+                        (concat bol
+                                access-modifiers
+                                "class" space
+                                "\\(" identifier "\\)")  1)
+                  (list "struct"
+                        (concat bol
+                                access-modifiers
+                                "struct" space
+                                "\\(" identifier "\\)")  1)
+                  (list "interface"
+                        (concat bol
+                                access-modifiers
+                                "interface" space
+                                "\\(" identifier "\\)")  1)
+                  (list "enum"
+                        (concat bol
+                                access-modifiers
+                                "enum" space
+                                "\\(" identifier "\\)")  1)
+                  (list "method"
+                        (concat bol
+                                access-modifiers
+                                ;; return type
+                                "\\(?:[[:alpha:]_][^=\t\(\n\r\f\v]+\\)" space
+                                "\\(" identifier 
+                                "\\(?:<\\(?:" identifier "\\)\\(?:[, ]+" identifier "\\)*>\\)?"
+                                "\\)"
+                                "\\(\([^\)]*\)\\)"                           ;; 4. params w/parens
+
+                                ) 1))))
     (imenu-add-menubar-index))
 
   ;; The paragraph-separate variable was getting stomped by
