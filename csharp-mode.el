@@ -3093,7 +3093,7 @@ The return value is meaningless, and is ignored by cc-mode.
 
 (defun csharp--setup-imenu ()
   "Sets up `imenu' for `csharp-mode'."
-  
+
   ;; There are two ways to do imenu indexing. One is to provide a
   ;; function, via `imenu-create-index-function'.  The other is to
   ;; provide imenu with a list of regexps via
@@ -3110,15 +3110,18 @@ The return value is meaningless, and is ignored by cc-mode.
          (access-modifiers (concat access-modifier-list "*"))
          (return-type                    "\\(?:[[:alpha:]_][^ =\t\(\n\r\f\v]+\\)")
          (identifier                     "[[:alpha:]_][[:alnum:]_]*")
-         (optional-interface-prefix      (concat "\\(?:" identifier "\\.\\)?") ;; possible prefix interface
-)
+         (optional-interface-prefix      (concat "\\(?:" identifier "\\.\\)?")) ;; possible prefix interface
          (generic-identifier (concat identifier
                                      ;; optional generic arguments
-                                     "\\(?:<\\(?:" identifier "\\)\\(?:[, ]+" identifier "\\)*>\\)?"
+                                     "\\(?:<" optional-space identifier
+                                     "\\(?:" "," optional-space identifier optional-space "\\)*"
+                                     ">\\)?"
                                      ))
-         ;; we want to avoid common boolean operations (==, ||, &&) in
+         ;; we want to avoid common boolean operations (==, ||, &&, etc) in
          ;; our param-list because this is typically if stuff where
          ;; "else" gets picked up as return-type!
+         ;; including this actually makes us more restrictive, and speeds UP
+         ;; the search!
          (parameter-list "\\(?:\([^!\(==)(||)( > )( < )(&&)]*\)\\)")
          (inheritance-clause (concat "\\(?:"
                                      optional-space
@@ -3180,7 +3183,7 @@ The return value is meaningless, and is ignored by cc-mode.
                               optional-space
                               parameter-list
                               "\\)"
-                              ;; optional comment at end
+                              ;; optional // or /* comment at end
                               "\\(?:[ \t]*/[/*].*\\)?"
                               optional-space
                               "{") 1)
