@@ -3091,6 +3091,90 @@ The return value is meaningless, and is ignored by cc-mode.
       (add-to-list 'compilation-error-regexp-alist-alist regexp)
       (add-to-list 'compilation-error-regexp-alist (car regexp)))))
 
+(defun csharp--setup-imenu ()
+  ;; There are two ways to do imenu indexing. One is to provide a
+  ;; function, via `imenu-create-index-function'.  The other is to
+  ;; provide imenu with a list of regexps via
+  ;; `imenu-generic-expression'; imenu will do a "generic scan" for you.
+  (let* ((single-space                   "[ \t\n\r\f\v]")
+         (optional-space                 (concat single-space "*"))
+         (bol                            (concat "^" optional-space))
+         (space                          (concat single-space "+"))
+         (access-modifier (regexp-opt '( "public" "private" "protected" "internal"
+                                         "static" "sealed" "partial")))
+         ;; this will allow syntactically invalid combinations of modifiers
+         ;; but that's a compiler problem, not a imenu-problem
+         (access-modifier-list (concat "\\(?:" access-modifier space "\\)"))
+         (access-modifiers (concat access-modifier-list "*"))
+         (identifier                     "[[:alpha:]_][[:alnum:]_]*")
+         (generic-identifier (concat identifier
+                                     ;; optional generic arguments
+                                     "\\(?:<\\(?:" identifier "\\)\\(?:[, ]+" identifier "\\)*>\\)?"
+                                     ))
+         (parameter-list "\\(?:\([^!\)]*\)\\)"))
+
+    (setq imenu-generic-expression
+          (list (list "namespace"
+                      (concat bol "namespace" space
+                              "\\(" identifier "\\)") 1)
+                (list "class"
+                      (concat bol
+                              access-modifiers
+                              "class" space
+                              "\\(" generic-identifier "\\)")  1)
+                (list "struct"
+                      (concat bol
+                              access-modifiers
+                              "struct" space
+                              "\\(" generic-identifier "\\)")  1)
+                (list "interface"
+                      (concat bol
+                              access-modifiers
+                              "interface" space
+                              "\\(" generic-identifier "\\)")  1)
+                (list "enum"
+                      (concat bol
+                              access-modifiers
+                              "enum" space
+                              "\\(" generic-identifier "\\)")  1)
+                (list "ctor"
+                      ;; some ctors will be picked up as plain methods if not
+                      ;; picked here first!
+                      (concat bol
+                              ;; ctor MUST have access modifiers, or else we pick
+                              ;; every if statement in the file...
+                              access-modifier-list "+"
+                              "\\("
+                              identifier
+                              optional-space
+                              parameter-list
+                              "\\)"
+                              "\\(?:"
+                              optional-space
+                              ":"
+                              optional-space
+                              "\\(?:this\\|base\\)"
+                              optional-space
+                              parameter-list
+                              "\\)?"
+                              optional-space "{") 1)
+                (list "method"
+                      (concat bol
+                              access-modifiers
+                              ;; return type
+                              "\\(?:[[:alpha:]_][^=\t\(\n\r\f\v]+\\)" space
+                              "\\(" generic-identifier
+                              optional-space
+                              parameter-list
+                              "\\)"
+                              ;; optional comment at end
+                              "\\(?:[ \t]*/[/*].*\\)?"
+                              optional-space
+                              "{") 1)
+                )))
+  ;; TODO: fields, props, delegates
+  (imenu-add-menubar-index))
+
 ;;; Autoload mode trigger
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
@@ -3262,63 +3346,7 @@ Key bindings:
 
   ;; maybe do imenu scan after hook returns
   (when csharp-want-imenu
-    ;; There are two ways to do imenu indexing. One is to provide a
-    ;; function, via `imenu-create-index-function'.  The other is to
-    ;; provide imenu with a list of regexps via
-    ;; `imenu-generic-expression'; imenu will do a "generic scan" for you.
-    ;; csharp-mode uses the former method.
-
-    (let* ((single-space                   "[ \t\n\r\f\v]")
-           (bol                            (concat "^" single-space "*"))
-           (space                          (concat single-space "+"))
-           (access-modifier (regexp-opt '( "public" "private" "protected" "internal"
-                                           "static" "sealed" "partial")))
-           ;; this will allow syntactically invalid combinations of identifiers
-           ;; but that's a compiler problem, not a imenu-problem
-           (access-modifiers (concat "\\(?:" access-modifier space "\\)*"))
-           (identifier                     "[[:alpha:]_][[:alnum:]_]*")
-           (generic-identifier (concat identifier
-                                       ;; optional generic arguments
-                                       "\\(?:<\\(?:" identifier "\\)\\(?:[, ]+" identifier "\\)*>\\)?"
-                                       )))
-
-      (setq imenu-generic-expression
-            (list (list "namespace"
-                        (concat bol "namespace" space
-                                "\\(" identifier "\\)") 1)
-                  (list "class"
-                        (concat bol
-                                access-modifiers
-                                "class" space
-                                "\\(" generic-identifier "\\)")  1)
-                  (list "struct"
-                        (concat bol
-                                access-modifiers
-                                "struct" space
-                                "\\(" generic-identifier "\\)")  1)
-                  (list "interface"
-                        (concat bol
-                                access-modifiers
-                                "interface" space
-                                "\\(" generic-identifier "\\)")  1)
-                  (list "enum"
-                        (concat bol
-                                access-modifiers
-                                "enum" space
-                                "\\(" generic-identifier "\\)")  1)
-                  (list "method"
-                        (concat bol
-                                access-modifiers
-                                ;; return type
-                                "\\(?:[[:alpha:]_][^=\t\(\n\r\f\v]+\\)" space
-                                "\\(" generic-identifier
-                                space "*"
-                                "\\(?:\([^\)]*\)\\)"                           ;; 4. params w/parens
-                                "\\)"
-
-                                ) 1))))
-    ;; TODO: ctor, fields, props, delegates
-    (imenu-add-menubar-index))
+    (csharp--setup-imenu))
 
   ;; The paragraph-separate variable was getting stomped by
   ;; other hooks, so it must reside here.
