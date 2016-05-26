@@ -3200,8 +3200,46 @@ The return value is meaningless, and is ignored by cc-mode.
                               ;; including the accessors themselves.
                               (regexp-opt '("get" "set"))
                               ) 1)
+                ;; adding fields... too much?
+                (list "field"
+                      (concat bol
+                              access-modifier-list "+"
+                              "\\("
+                              return-type space
+                              generic-identifier
+                              "\\)"
+                              optional-space
+                              ";") 1)
+                (list "indexer"
+                      (concat bol
+                              access-modifiers
+                              return-type space
+                              "this" optional-space
+                              "\\("
+                              ;; opening bracket
+                              "\\[" optional-space
+                              ;; type
+                              "\\([^\]]+\\)" optional-space
+                              identifier
+                              ;; closing brackets
+                              "\\]"
+                              "\\)"
+                              optional-space "{" optional-space
+                              ;; unless we are super-specific and expect the accesors,
+                              ;; lots of weird things gets slurped into the name.
+                              ;; including the accessors themselves.
+                              (regexp-opt '("get" "set"))) 1)
+                (list "event"
+                      (concat bol
+                              access-modifier-list "+"
+                              optional-space "event" optional-space
+                              "\\("
+                              return-type space
+                              generic-identifier
+                              "\\)"
+                              optional-space
+                              ";") 1)
                 )))
-  ;; TODO: fields, props, delegates
   (imenu-add-menubar-index))
 
 ;;; Autoload mode trigger
