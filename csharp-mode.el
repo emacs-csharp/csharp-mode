@@ -3117,12 +3117,8 @@ The return value is meaningless, and is ignored by cc-mode.
                                      "\\(?:" "," optional-space identifier optional-space "\\)*"
                                      ">\\)?"
                                      ))
-         ;; we want to avoid common boolean operations (==, ||, &&, etc) in
-         ;; our param-list because this is typically if stuff where
-         ;; "else" gets picked up as return-type!
-         ;; including this actually makes us more restrictive, and speeds UP
-         ;; the search!
-         (parameter-list "\\(?:\([^!\(==)(||)( > )( < )(&&)]*\)\\)")
+         ;; param-list with parens
+         (parameter-list "\\(?:\([^!\)]*\)\\)")
          (inheritance-clause (concat "\\(?:"
                                      optional-space
                                      ":"
@@ -3175,7 +3171,10 @@ The return value is meaningless, and is ignored by cc-mode.
                               optional-space "{") 1)
                 (list "method"
                       (concat bol
-                              access-modifiers
+                              ;; we MUST require modifiers, or else we cannot reliably
+                              ;; identify declarations, without also dragging in lots of
+                              ;; if statements and what not.
+                              access-modifier-list "+"
                               return-type space
                               "\\("
                               optional-interface-prefix
