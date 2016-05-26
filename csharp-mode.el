@@ -4324,7 +4324,11 @@ Key bindings:
            ;; this will allow syntactically invalid combinations of identifiers
            ;; but that's a compiler problem, not a imenu-problem
            (access-modifiers (concat "\\(?:" access-modifier space "\\)*"))
-           (identifier                     "[[:alpha:]_][[:alnum:]_]*"))
+           (identifier                     "[[:alpha:]_][[:alnum:]_]*")
+           (generic-identifier (concat identifier
+                                       ;; optional generic arguments
+                                       "\\(?:<\\(?:" identifier "\\)\\(?:[, ]+" identifier "\\)*>\\)?"
+                                       )))
 
       (setq imenu-generic-expression
             (list (list "namespace"
@@ -4334,33 +4338,34 @@ Key bindings:
                         (concat bol
                                 access-modifiers
                                 "class" space
-                                "\\(" identifier "\\)")  1)
+                                "\\(" generic-identifier "\\)")  1)
                   (list "struct"
                         (concat bol
                                 access-modifiers
                                 "struct" space
-                                "\\(" identifier "\\)")  1)
+                                "\\(" generic-identifier "\\)")  1)
                   (list "interface"
                         (concat bol
                                 access-modifiers
                                 "interface" space
-                                "\\(" identifier "\\)")  1)
+                                "\\(" generic-identifier "\\)")  1)
                   (list "enum"
                         (concat bol
                                 access-modifiers
                                 "enum" space
-                                "\\(" identifier "\\)")  1)
+                                "\\(" generic-identifier "\\)")  1)
                   (list "method"
                         (concat bol
                                 access-modifiers
                                 ;; return type
                                 "\\(?:[[:alpha:]_][^=\t\(\n\r\f\v]+\\)" space
-                                "\\(" identifier 
-                                "\\(?:<\\(?:" identifier "\\)\\(?:[, ]+" identifier "\\)*>\\)?"
+                                "\\(" generic-identifier
+                                space "*"
+                                "\\(?:\([^\)]*\)\\)"                           ;; 4. params w/parens
                                 "\\)"
-                                "\\(\([^\)]*\)\\)"                           ;; 4. params w/parens
 
                                 ) 1))))
+    ;; TODO: ctor, fields, props, delegates
     (imenu-add-menubar-index))
 
   ;; The paragraph-separate variable was getting stomped by
