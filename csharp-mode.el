@@ -1487,71 +1487,70 @@ Most other csharp functions are not instrumented.
 ;; moving
 
 ;; alist of regexps for various structures in a csharp source file.
-(eval-and-compile
-  (defconst csharp--regexp-alist
-    (list
-     `(func-start
-       ,(concat
-         "^[ \t\n\r\f\v]*"                            ;; leading whitespace
-         "\\("
-         "public\\(?: static\\)?\\|"                  ;; 1. access modifier
-         "private\\(?: static\\)?\\|"
-         "protected\\(?: internal\\)?\\(?: static\\)?\\|"
-         "static\\|"
-         "\\)"
-         "[ \t\n\r\f\v]+"
-         "\\(?:override[ \t\n\r\f\v]+\\)?"            ;; optional
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2. return type - possibly generic
-         "[ \t\n\r\f\v]+"
-         "\\("                                        ;; 3. begin name of func
-         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"         ;; possible prefix interface
-         "[[:alpha:]_][[:alnum:]_]*"                  ;; actual func name
-         "\\(?:<\\(?:[[:alpha:]][[:alnum:]]*\\)\\(?:[, ]+[[:alpha:]][[:alnum:]]*\\)*>\\)?"  ;; (with optional generic type parameter(s)
-         "\\)"                                        ;; 3. end of name of func
-         "[ \t\n\r\f\v]*"
-         "\\(\([^\)]*\)\\)"                           ;; 4. params w/parens
-         "\\(?:[ \t]*/[/*].*\\)?"                     ;; optional comment at end of line
-         "[ \t\n\r\f\v]*"
-         ))
+(defconst csharp--regexp-alist
+  (list
+   `(func-start
+     ,(concat
+       "^[ \t\n\r\f\v]*"                            ;; leading whitespace
+       "\\("
+       "public\\(?: static\\)?\\|"                  ;; 1. access modifier
+       "private\\(?: static\\)?\\|"
+       "protected\\(?: internal\\)?\\(?: static\\)?\\|"
+       "static\\|"
+       "\\)"
+       "[ \t\n\r\f\v]+"
+       "\\(?:override[ \t\n\r\f\v]+\\)?"            ;; optional
+       "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2. return type - possibly generic
+       "[ \t\n\r\f\v]+"
+       "\\("                                        ;; 3. begin name of func
+       "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"         ;; possible prefix interface
+       "[[:alpha:]_][[:alnum:]_]*"                  ;; actual func name
+       "\\(?:<\\(?:[[:alpha:]][[:alnum:]]*\\)\\(?:[, ]+[[:alpha:]][[:alnum:]]*\\)*>\\)?"  ;; (with optional generic type parameter(s)
+       "\\)"                                        ;; 3. end of name of func
+       "[ \t\n\r\f\v]*"
+       "\\(\([^\)]*\)\\)"                           ;; 4. params w/parens
+       "\\(?:[ \t]*/[/*].*\\)?"                     ;; optional comment at end of line
+       "[ \t\n\r\f\v]*"
+       ))
 
-     `(class-start
-       ,(concat
-         "^[ \t]*"                                    ;; leading whitespace
-         "\\("
-         "public\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"  ;; access modifiers
-         "internal\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"
-         "static\\(?: internal\\)?[ \t]+\\|"
-         "sealed\\(?: internal\\)?[ \t]+\\|"
-         "static[ \t]+\\|"
-         "sealed[ \t]+\\|"
-         "\\)"
-         "\\(\\(?:partial[ \t]+\\)?class\\|struct\\)" ;; class/struct keyword
-         "[ \t]+"
-         "\\([[:alpha:]_][[:alnum:]]*\\)"             ;; type name
-         "\\("
-         "[ \t\n]*:[ \t\n]*"                          ;; colon
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; base / intf - poss generic
-         "\\("
-         "[ \t\n]*,[ \t\n]*"
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; addl interface - poss generic
-         "\\)*"
-         "\\)?"                                       ;; possibly
-         "[ \t\n\r\f\v]*"
-         ))
+   `(class-start
+     ,(concat
+       "^[ \t]*"                                    ;; leading whitespace
+       "\\("
+       "public\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"  ;; access modifiers
+       "internal\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"
+       "static\\(?: internal\\)?[ \t]+\\|"
+       "sealed\\(?: internal\\)?[ \t]+\\|"
+       "static[ \t]+\\|"
+       "sealed[ \t]+\\|"
+       "\\)"
+       "\\(\\(?:partial[ \t]+\\)?class\\|struct\\)" ;; class/struct keyword
+       "[ \t]+"
+       "\\([[:alpha:]_][[:alnum:]]*\\)"             ;; type name
+       "\\("
+       "[ \t\n]*:[ \t\n]*"                          ;; colon
+       "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; base / intf - poss generic
+       "\\("
+       "[ \t\n]*,[ \t\n]*"
+       "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; addl interface - poss generic
+       "\\)*"
+       "\\)?"                                       ;; possibly
+       "[ \t\n\r\f\v]*"
+       ))
 
-     `(namespace-start
-       ,(concat
-         "^[ \t\f\v]*"                                ;; leading whitespace
-         "\\(namespace\\)"
-         "[ \t\n\r\f\v]+"
-         "\\("
-         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"          ;; name of namespace
-         "[A-Za-z_][[:alnum:]]*"
-         "\\)"
-         "[ \t\n\r\f\v]*"
-         ))
+   `(namespace-start
+     ,(concat
+       "^[ \t\f\v]*"                                ;; leading whitespace
+       "\\(namespace\\)"
+       "[ \t\n\r\f\v]+"
+       "\\("
+       "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"          ;; name of namespace
+       "[A-Za-z_][[:alnum:]]*"
+       "\\)"
+       "[ \t\n\r\f\v]*"
+       ))
 
-     )))
+   ))
 
 
 (defun csharp--regexp (symbol)
