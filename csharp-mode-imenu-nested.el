@@ -878,6 +878,7 @@ more open-curlies are found.
             (forward-char 1)))))
 
     this-menu))
+
 (defcustom csharp-imenu-max-similar-items-before-extraction 6
   "The maximum number of things of a particular
 category (constructor, property, method, etc) that will be
@@ -1012,6 +1013,39 @@ returns a modified list, with the first word - the category name
               (cons (mapconcat 'identity (cdr tokens) " ")
                     (cdr elt))))
           menu-list))
+
+(defun string-indexof (s c)
+  "Returns the index of the first occurrence of character C in string S.
+Returns nil if not found.
+
+See also, `string-lastindexof'
+
+"
+  (let ((len (length s))
+        (i 0) ix c2)
+    (while (and (< i len) (not ix))
+      (setq c2 (aref s i))
+      (if (= c c2)
+          (setq ix i))
+      (cl-incf i))
+    ix))
+
+(defun string-lastindexof (s c)
+  "Returns the index of the last occurrence of character C in string S.
+Returns nil if not found.
+
+See also, `string-indexof'
+
+"
+  (let ((i (1- (length s)))
+        ix c2)
+    (while (and (>= i 0) (not ix))
+      (setq c2 (aref s i))
+      (if (= c c2)
+          (setq ix i))
+      (cl-decf i))
+    ix))
+
 
 (defun csharp--imenu-submenu-label (sig flavor)
   "generate a submenu label from the given signature, SIG.
