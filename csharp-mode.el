@@ -1955,39 +1955,9 @@ to the beginning of the prior namespace.
         container-p2
       container-p1)))
 
-;; (defun csharp--imenu-reformat-contained-names (items containers)
-;;   (mapcar #'(lambda (item)
-;;               (let ((container (csharp--imenu-get-container-name item containers)))
-;;                 (if container
-;;                     (cons (concat container "." (car item))
-;;                           (cdr item))
-;;                   item)))
-;;           items))
-
 (defun csharp--imenu-sort (items)
   (sort items #'(lambda (item1 item2)
                   (string< (car item1) (car item2)))))
-
-;; (defun csharp--imenu-reformat-sub-index (name plain-index containers)
-;;   (let* ((items   (assoc name plain-index))
-;;          (items-full (csharp--imenu-reformat-contained-names (cdr items) (cdr containers)))
-;;          (sorted-full (csharp--imenu-sort items-full)))
-;;     ;; dont emit empty menu when we have nothing to show.
-;;     (if (not (cdr items))
-;;         nil
-;;       (cons name sorted-full))))
-
-;; (defun csharp--imenu-transform-index (plain-index)
-;;   (let ((classes (assoc "class" plain-index)))
-;;     (list (assoc "namespace" plain-index)
-;;           classes
-;;           (csharp--imenu-reformat-sub-index "ctor" plain-index classes)
-;;           (csharp--imenu-reformat-sub-index "method" plain-index classes)
-;;           (csharp--imenu-reformat-sub-index "field" plain-index classes)
-;;           (csharp--imenu-reformat-sub-index "props" plain-index classes)
-;;           (csharp--imenu-reformat-sub-index "event" plain-index classes)
-;;           (csharp--imenu-reformat-sub-index "enum" plain-index classes)
-;;           (csharp--imenu-reformat-sub-index "indexer" plain-index classes))))
 
 (defun csharp--imenu-get-class-name (class namespaces)
   (let ((namespace (csharp--imenu-get-container-name class namespaces))
@@ -2070,9 +2040,6 @@ to the beginning of the prior namespace.
   (setq imenu-create-index-function #'csharp--imenu-create-index-function)
   (imenu-add-menubar-index))
 
-
-
-;; new new imenu
 
 
 
