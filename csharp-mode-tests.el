@@ -25,7 +25,8 @@
          (assess-face-in-text= ,testee ,@rest)))))
 
 (defmacro assess-face-in-file= (file-name &rest assessments)
-  (let* ((buffer (find-file-read-only file-name))
+  (let* ((find-file-hook nil) ;; disable vc-mode hooks
+         (buffer (find-file-read-only file-name))
          (contents (buffer-substring-no-properties (point-min) (point-max))))
     (kill-buffer buffer)
     `(assess-face-in-text= ,contents ,@assessments)))
@@ -140,10 +141,10 @@
            (times     (length matched-file-names))
            (find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
            (buffer (find-file-read-only file-name)))
-      (message (concat "Testing compilation-log: " file-name))
+      ;; (message (concat "Testing compilation-log: " file-name))
       (dotimes (number times)
         (let* ((expected (nth number matched-file-names)))
-          (message (concat "- Expecting match: " expected))
+          ;; (message (concat "- Expecting match: " expected))
           (re-search-forward regexp)
           (should
            (equal expected (match-string 1)))))
