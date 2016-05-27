@@ -1964,9 +1964,9 @@ to the beginning of the prior namespace.
 ;;                   item)))
 ;;           items))
 
-;; (defun csharp--imenu-sort (items)
-;;   (sort items #'(lambda (item1 item2)
-;;                   (string< (car item1) (car item2)))))
+(defun csharp--imenu-sort (items)
+  (sort items #'(lambda (item1 item2)
+                  (string< (car item1) (car item2)))))
 
 ;; (defun csharp--imenu-reformat-sub-index (name plain-index containers)
 ;;   (let* ((items   (assoc name plain-index))
@@ -2008,7 +2008,7 @@ to the beginning of the prior namespace.
                      (class-pos  (cdr class)))
                 (cons class-name
                       (list
-                       (cons "(top)" class-pos)))))
+                       (cons "( top )" class-pos)))))
           classes))
 
 (defun csharp--imenu-get-class-node (result item classes namespaces)
@@ -2040,8 +2040,14 @@ to the beginning of the prior namespace.
       (csharp--imenu-append-items-to-menu result type index classes namespaces))
 
     ;; TODO: fix and include enums (often not contained in class!)
-    ;; TODO: sort results
-    result))
+    ;; add enums to main result list, as own items. dont support nested types. EOS.
+
+    ;; sort individual sub-lists
+    (dolist (item result)
+      (setcdr item (csharp--imenu-sort (cdr item))))
+
+    ;; sort main list
+    (csharp--imenu-sort result)))
 
 (defun csharp--imenu-create-index-function ()
   (csharp--imenu-transform-index
