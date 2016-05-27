@@ -175,7 +175,7 @@
   `(ert-deftest ,testname ()
      (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
             (buffer         (find-file-read-only ,filename))
-            (,index         (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
+            (,index         (csharp--imenu-create-index-function))
             )
        ,@body
        (kill-buffer buffer))))
