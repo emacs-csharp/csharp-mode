@@ -1803,7 +1803,8 @@ to the beginning of the prior namespace.
          (access-modifiers (concat access-modifier-list "*"))
          (return-type                    "\\(?:[[:alpha:]_][^ =\t\(\n\r\f\v]+\\)")
          (identifier                     "[[:alpha:]_][[:alnum:]_]*")
-         (optional-interface-prefix      (concat "\\(?:" identifier "\\.\\)?")) ;; possible prefix interface
+         (interface-prefix               (concat "\\(?:" identifier "\\.\\)"))
+         (optional-interface-prefix      (concat interface-prefix "?")) ;; possible prefix interface
          (generic-identifier (concat identifier
                                      ;; optional generic arguments
                                      "\\(?:<" optional-space identifier
@@ -1863,6 +1864,19 @@ to the beginning of the prior namespace.
                         return-type space
                         "\\("
                         optional-interface-prefix
+                        generic-identifier
+                        optional-space
+                        parameter-list
+                        "\\)"
+                        ;; optional // or /* comment at end
+                        "\\(?:[ \t]*/[/*].*\\)?"
+                        optional-space
+                        "{") 1)
+          (list "interface-method"
+                (concat bol
+                        return-type space
+                        "\\("
+                        interface-prefix
                         generic-identifier
                         optional-space
                         parameter-list
@@ -2006,7 +2020,7 @@ to the beginning of the prior namespace.
          (class-nodes (csharp--imenu-get-class-nodes classes namespaces)))
     ;; be explicit about collection variable
     (setq result class-nodes)
-    (dolist (type '("ctor" "method" "prop" "field" "event" "indexer"))
+    (dolist (type '("ctor" "method" "interface-method" "prop" "field" "event" "indexer"))
       (csharp--imenu-append-items-to-menu result type index classes namespaces))
 
     ;; TODO: fix and include enums (often not contained in class!)
