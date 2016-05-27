@@ -2946,6 +2946,192 @@ The return value is meaningless, and is ignored by cc-mode.
       (add-to-list 'compilation-error-regexp-alist-alist regexp)
       (add-to-list 'compilation-error-regexp-alist (car regexp)))))
 
+(eval-and-compile
+  (defconst csharp--imenu-expression
+    (let* ((single-space                   "[ \t\n\r\f\v]")
+           (optional-space                 (concat single-space "*"))
+           (bol                            (concat "^" optional-space))
+           (space                          (concat single-space "+"))
+           (access-modifier (regexp-opt '( "public" "private" "protected" "internal"
+                                           "static" "sealed" "partial")))
+           ;; this will allow syntactically invalid combinations of modifiers
+           ;; but that's a compiler problem, not a imenu-problem
+           (access-modifier-list (concat "\\(?:" access-modifier space "\\)"))
+           (access-modifiers (concat access-modifier-list "*"))
+           (return-type                    "\\(?:[[:alpha:]_][^ =\t\(\n\r\f\v]+\\)")
+           (identifier                     "[[:alpha:]_][[:alnum:]_]*")
+           (optional-interface-prefix      (concat "\\(?:" identifier "\\.\\)?")) ;; possible prefix interface
+           (generic-identifier (concat identifier
+                                       ;; optional generic arguments
+                                       "\\(?:<" optional-space identifier
+                                       "\\(?:" "," optional-space identifier optional-space "\\)*"
+                                       ">\\)?"
+                                       ))
+           ;; param-list with parens
+           (parameter-list "\\(?:\([^!\)]*\)\\)")
+           (inheritance-clause (concat "\\(?:"
+                                       optional-space
+                                       ":"
+                                       optional-space generic-identifier
+                                       "\\(?:" optional-space "," optional-space generic-identifier "\\)*"
+                                       "\\)?")))
+
+      (list (list "namespace"
+                  (concat bol "namespace" space
+                          "\\(" identifier "\\)") 1)
+            ;; not all these are classes, but they can hold other
+            ;; members, so they are treated uniformly.
+            (list "class"
+                  (concat bol
+                          access-modifiers
+                          "\\("
+                          (regexp-opt '("class" "struct" "interface")) space
+                          generic-identifier inheritance-clause "\\)")  1)
+            (list "enum"
+                  (concat bol
+                          access-modifiers
+                          "enum" space
+                          "\\(" identifier "\\)")  1)
+            (list "ctor"
+                  (concat bol
+                          ;; ctor MUST have access modifiers, or else we pick
+                          ;; every if statement in the file...
+                          access-modifier-list "+"
+                          "\\("
+                          identifier
+                          optional-space
+                          parameter-list
+                          "\\)"
+                          "\\(?:"
+                          optional-space
+                          ":"
+                          optional-space
+                          "\\(?:this\\|base\\)"
+                          optional-space
+                          parameter-list
+                          "\\)?"
+                          optional-space "{") 1)
+            (list "method"
+                  (concat bol
+                          ;; we MUST require modifiers, or else we cannot reliably
+                          ;; identify declarations, without also dragging in lots of
+                          ;; if statements and what not.
+                          access-modifier-list "+"
+                          return-type space
+                          "\\("
+                          optional-interface-prefix
+                          generic-identifier
+                          optional-space
+                          parameter-list
+                          "\\)"
+                          ;; optional // or /* comment at end
+                          "\\(?:[ \t]*/[/*].*\\)?"
+                          optional-space
+                          "{") 1)
+            (list "prop"
+                  (concat bol
+                          ;; must require access modifiers, or else we
+                          ;; pick up pretty much anything.
+                          access-modifier-list "+"
+                          "\\("
+                          return-type space
+                          optional-interface-prefix
+                          generic-identifier
+                          "\\)"
+                          optional-space "{" optional-space
+                          ;; unless we are super-specific and expect the accesors,
+                          ;; lots of weird things gets slurped into the name.
+                          ;; including the accessors themselves.
+                          (regexp-opt '("get" "set"))
+                          ) 1)
+            ;; adding fields... too much?
+            (list "field"
+                  (concat bol
+                          access-modifier-list "+"
+                          "\\("
+                          return-type space
+                          generic-identifier
+                          "\\)"
+                          optional-space
+                          ";") 1)
+            (list "indexer"
+                  (concat bol
+                          access-modifiers
+                          return-type space
+                          "this" optional-space
+                          "\\("
+                          ;; opening bracket
+                          "\\[" optional-space
+                          ;; type
+                          "\\([^\]]+\\)" optional-space
+                          identifier
+                          ;; closing brackets
+                          "\\]"
+                          "\\)"
+                          optional-space "{" optional-space
+                          ;; unless we are super-specific and expect the accesors,
+                          ;; lots of weird things gets slurped into the name.
+                          ;; including the accessors themselves.
+                          (regexp-opt '("get" "set"))) 1)
+            (list "event"
+                  (concat bol
+                          access-modifier-list "+"
+                          optional-space "event" optional-space
+                          "\\("
+                          return-type space
+                          generic-identifier
+                          "\\)"
+                          optional-space
+                          ";") 1)
+            ))
+    ))
+
+(defun csharp--imenu-get-pos (pair)
+  (let* ((pos (cdr pair)))
+    (if (markerp pos)
+        (marker-position pos)
+      pos)))
+
+(defun csharp--imenu-get-container-name (item containers previous)
+  (if (not containers)
+      previous
+    (let* ((item-pos (csharp--imenu-get-pos item))
+           (container (car containers))
+           (container-name (cadr (split-string (car container))))
+           (container-pos (csharp--imenu-get-pos container))
+           (rest      (cdr containers)))
+      (if (< item-pos container-pos)
+          previous
+        (csharp--imenu-get-container-name item rest container-name)))))
+
+(defun csharp--imenu-reformat-contained-names (items containers)
+  (cl-map 'list #'(lambda (item)
+                  (let* ((container (csharp--imenu-get-container-name item containers nil)))
+                    (if container
+                        (cons (concat container "." (car item))
+                              (cdr item))
+                      item)))
+              items))
+
+(defun csharp--imenu-reformat-sub-index (name plain-index containers)
+  (let* ((items   (assoc name plain-index))
+         (items-full (csharp--imenu-reformat-contained-names (cdr items) (cdr containers))))
+    (cons name items-full)))
+
+(defun csharp--imenu-create-index-function ()
+  (let* ((imenu-generic-expression csharp--imenu-expression)
+         (plain-index (imenu-default-create-index-function))
+         (classes (assoc "class" plain-index)))
+    (list (assoc "namespace" plain-index)
+          classes
+          (csharp--imenu-reformat-sub-index "method" plain-index classes)
+          (csharp--imenu-reformat-sub-index "props" plain-index classes)
+          (csharp--imenu-reformat-sub-index "enum" plain-index classes)
+          (csharp--imenu-reformat-sub-index "field" plain-index classes)
+          (csharp--imenu-reformat-sub-index "event" plain-index classes)
+          (csharp--imenu-reformat-sub-index "ctor" plain-index classes)
+          (csharp--imenu-reformat-sub-index "indexer" plain-index classes))))
+
 (defun csharp--setup-imenu ()
   "Sets up `imenu' for `csharp-mode'."
 
@@ -2953,150 +3139,14 @@ The return value is meaningless, and is ignored by cc-mode.
   ;; function, via `imenu-create-index-function'.  The other is to
   ;; provide imenu with a list of regexps via
   ;; `imenu-generic-expression'; imenu will do a "generic scan" for you.
-  (let* ((single-space                   "[ \t\n\r\f\v]")
-         (optional-space                 (concat single-space "*"))
-         (bol                            (concat "^" optional-space))
-         (space                          (concat single-space "+"))
-         (access-modifier (regexp-opt '( "public" "private" "protected" "internal"
-                                         "static" "sealed" "partial")))
-         ;; this will allow syntactically invalid combinations of modifiers
-         ;; but that's a compiler problem, not a imenu-problem
-         (access-modifier-list (concat "\\(?:" access-modifier space "\\)"))
-         (access-modifiers (concat access-modifier-list "*"))
-         (return-type                    "\\(?:[[:alpha:]_][^ =\t\(\n\r\f\v]+\\)")
-         (identifier                     "[[:alpha:]_][[:alnum:]_]*")
-         (optional-interface-prefix      (concat "\\(?:" identifier "\\.\\)?")) ;; possible prefix interface
-         (generic-identifier (concat identifier
-                                     ;; optional generic arguments
-                                     "\\(?:<" optional-space identifier
-                                     "\\(?:" "," optional-space identifier optional-space "\\)*"
-                                     ">\\)?"
-                                     ))
-         ;; param-list with parens
-         (parameter-list "\\(?:\([^!\)]*\)\\)")
-         (inheritance-clause (concat "\\(?:"
-                                     optional-space
-                                     ":"
-                                     optional-space generic-identifier
-                                     "\\(?:" optional-space "," optional-space generic-identifier "\\)*"
-                                     "\\)?")))
-
-    (setq imenu-generic-expression
-          (list (list "namespace"
-                      (concat bol "namespace" space
-                              "\\(" identifier "\\)") 1)
-                (list "class"
-                      (concat bol
-                              access-modifiers
-                              "class" space
-                              "\\(" generic-identifier inheritance-clause "\\)")  1)
-                (list "struct"
-                      (concat bol
-                              access-modifiers
-                              "struct" space
-                              "\\(" generic-identifier inheritance-clause "\\)")  1)
-                (list "interface"
-                      (concat bol
-                              access-modifiers
-                              "interface" space
-                              "\\(" generic-identifier inheritance-clause "\\)")  1)
-                (list "enum"
-                      (concat bol
-                              access-modifiers
-                              "enum" space
-                              "\\(" identifier "\\)")  1)
-                (list "ctor"
-                      (concat bol
-                              ;; ctor MUST have access modifiers, or else we pick
-                              ;; every if statement in the file...
-                              access-modifier-list "+"
-                              "\\("
-                              identifier
-                              optional-space
-                              parameter-list
-                              "\\)"
-                              "\\(?:"
-                              optional-space
-                              ":"
-                              optional-space
-                              "\\(?:this\\|base\\)"
-                              optional-space
-                              parameter-list
-                              "\\)?"
-                              optional-space "{") 1)
-                (list "method"
-                      (concat bol
-                              ;; we MUST require modifiers, or else we cannot reliably
-                              ;; identify declarations, without also dragging in lots of
-                              ;; if statements and what not.
-                              access-modifier-list "+"
-                              return-type space
-                              "\\("
-                              optional-interface-prefix
-                              generic-identifier
-                              optional-space
-                              parameter-list
-                              "\\)"
-                              ;; optional // or /* comment at end
-                              "\\(?:[ \t]*/[/*].*\\)?"
-                              optional-space
-                              "{") 1)
-                (list "prop"
-                      (concat bol
-                              ;; must require access modifiers, or else we
-                              ;; pick up pretty much anything.
-                              access-modifier-list "+"
-                              "\\("
-                              return-type space
-                              optional-interface-prefix
-                              generic-identifier
-                              "\\)"
-                              optional-space "{" optional-space
-                              ;; unless we are super-specific and expect the accesors,
-                              ;; lots of weird things gets slurped into the name.
-                              ;; including the accessors themselves.
-                              (regexp-opt '("get" "set"))
-                              ) 1)
-                ;; adding fields... too much?
-                (list "field"
-                      (concat bol
-                              access-modifier-list "+"
-                              "\\("
-                              return-type space
-                              generic-identifier
-                              "\\)"
-                              optional-space
-                              ";") 1)
-                (list "indexer"
-                      (concat bol
-                              access-modifiers
-                              return-type space
-                              "this" optional-space
-                              "\\("
-                              ;; opening bracket
-                              "\\[" optional-space
-                              ;; type
-                              "\\([^\]]+\\)" optional-space
-                              identifier
-                              ;; closing brackets
-                              "\\]"
-                              "\\)"
-                              optional-space "{" optional-space
-                              ;; unless we are super-specific and expect the accesors,
-                              ;; lots of weird things gets slurped into the name.
-                              ;; including the accessors themselves.
-                              (regexp-opt '("get" "set"))) 1)
-                (list "event"
-                      (concat bol
-                              access-modifier-list "+"
-                              optional-space "event" optional-space
-                              "\\("
-                              return-type space
-                              generic-identifier
-                              "\\)"
-                              optional-space
-                              ";") 1)
-                )))
+  ;;
+  ;; We use both.
+  ;;
+  ;; First we use the `imenu-generic-expression' to build a index for
+  ;; us, but we do so inside a `imenu-create-index-function'
+  ;; implementation which allows us to tweak the results slightly
+  ;; before returning it to Emacs.
+  (setq imenu-create-index-function #'csharp--imenu-create-index-function)
   (imenu-add-menubar-index))
 
 ;;; Autoload mode trigger
