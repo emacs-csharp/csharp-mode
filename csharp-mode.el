@@ -2989,7 +2989,7 @@ The return value is meaningless, and is ignored by cc-mode.
     ))
 
 (defun csharp--imenu-get-pos (pair)
-  (let* ((pos (cdr pair)))
+  (let ((pos (cdr pair)))
     (if (markerp pos)
         (marker-position pos)
       pos)))
@@ -3007,8 +3007,8 @@ The return value is meaningless, and is ignored by cc-mode.
         (csharp--imenu-get-container-name item rest container-name)))))
 
 (defun csharp--imenu-reformat-contained-names (items containers)
-  (cl-map 'list #'(lambda (item)
-                  (let* ((container (csharp--imenu-get-container-name item containers nil)))
+  (mapcar #'(lambda (item)
+                  (let ((container (csharp--imenu-get-container-name item containers nil)))
                     (if container
                         (cons (concat container "." (car item))
                               (cdr item))
@@ -3021,8 +3021,7 @@ The return value is meaningless, and is ignored by cc-mode.
     (cons name items-full)))
 
 (defun csharp--imenu-create-index-function ()
-  (let* ((imenu-generic-expression csharp--imenu-expression)
-         (plain-index (imenu-default-create-index-function))
+  (let* ((plain-index (imenu--generic-function csharp--imenu-expression))
          (classes (assoc "class" plain-index)))
     (list (assoc "namespace" plain-index)
           classes
