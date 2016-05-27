@@ -1933,56 +1933,115 @@ to the beginning of the prior namespace.
         (marker-position pos)
       pos)))
 
-(defun csharp--imenu-get-container-name (item containers previous)
+(defun csharp--imenu-get-container (item containers previous)
   (if (not containers)
       previous
     (let* ((item-pos (csharp--imenu-get-pos item))
            (container (car containers))
-           ;; namespace
-           (container-p1 (car (split-string (car container))))
-           ;; class/interface
-           (container-p2 (cadr (split-string (car container))))
-           ;; use p1 (namespace) when there is no p2
-           (container-name (if container-p2 container-p2 container-p1))
            (container-pos (csharp--imenu-get-pos container))
            (rest      (cdr containers)))
       (if (< item-pos container-pos)
           previous
-        (csharp--imenu-get-container-name item rest container-name)))))
+        (csharp--imenu-get-container item rest container)))))
 
-(defun csharp--imenu-reformat-contained-names (items containers)
-  (mapcar #'(lambda (item)
-              (let ((container (csharp--imenu-get-container-name item containers nil)))
-                (if container
-                    (cons (concat container "." (car item))
-                          (cdr item))
-                  item)))
-          items))
+(defun csharp--imenu-get-container-name (item containers)
+  (let* ((container (csharp--imenu-get-container item containers nil))
+         ;; namespace
+         (container-p1 (car (split-string (car container))))
+         ;; class/interface
+         (container-p2 (cadr (split-string (car container)))))
+    ;; use p1 (namespace) when there is no p2
+    (if container-p2
+        container-p2
+      container-p1)))
 
-(defun csharp--imenu-sort (items)
-  (sort items #'(lambda (item1 item2)
-                  (string< (car item1) (car item2)))))
+;; (defun csharp--imenu-reformat-contained-names (items containers)
+;;   (mapcar #'(lambda (item)
+;;               (let ((container (csharp--imenu-get-container-name item containers)))
+;;                 (if container
+;;                     (cons (concat container "." (car item))
+;;                           (cdr item))
+;;                   item)))
+;;           items))
 
-(defun csharp--imenu-reformat-sub-index (name plain-index containers)
-  (let* ((items   (assoc name plain-index))
-         (items-full (csharp--imenu-reformat-contained-names (cdr items) (cdr containers)))
-         (sorted-full (csharp--imenu-sort items-full)))
-    ;; dont emit empty menu when we have nothing to show.
-    (if (not (cdr items))
-        nil
-      (cons name sorted-full))))
+;; (defun csharp--imenu-sort (items)
+;;   (sort items #'(lambda (item1 item2)
+;;                   (string< (car item1) (car item2)))))
 
-(defun csharp--imenu-transform-index (plain-index)
-  (let ((classes (assoc "class" plain-index)))
-    (list (assoc "namespace" plain-index)
-          classes
-          (csharp--imenu-reformat-sub-index "ctor" plain-index classes)
-          (csharp--imenu-reformat-sub-index "method" plain-index classes)
-          (csharp--imenu-reformat-sub-index "field" plain-index classes)
-          (csharp--imenu-reformat-sub-index "props" plain-index classes)
-          (csharp--imenu-reformat-sub-index "event" plain-index classes)
-          (csharp--imenu-reformat-sub-index "enum" plain-index classes)
-          (csharp--imenu-reformat-sub-index "indexer" plain-index classes))))
+;; (defun csharp--imenu-reformat-sub-index (name plain-index containers)
+;;   (let* ((items   (assoc name plain-index))
+;;          (items-full (csharp--imenu-reformat-contained-names (cdr items) (cdr containers)))
+;;          (sorted-full (csharp--imenu-sort items-full)))
+;;     ;; dont emit empty menu when we have nothing to show.
+;;     (if (not (cdr items))
+;;         nil
+;;       (cons name sorted-full))))
+
+;; (defun csharp--imenu-transform-index (plain-index)
+;;   (let ((classes (assoc "class" plain-index)))
+;;     (list (assoc "namespace" plain-index)
+;;           classes
+;;           (csharp--imenu-reformat-sub-index "ctor" plain-index classes)
+;;           (csharp--imenu-reformat-sub-index "method" plain-index classes)
+;;           (csharp--imenu-reformat-sub-index "field" plain-index classes)
+;;           (csharp--imenu-reformat-sub-index "props" plain-index classes)
+;;           (csharp--imenu-reformat-sub-index "event" plain-index classes)
+;;           (csharp--imenu-reformat-sub-index "enum" plain-index classes)
+;;           (csharp--imenu-reformat-sub-index "indexer" plain-index classes))))
+
+(defun csharp--imenu-get-class-name (class namespaces)
+  (let ((namespace (csharp--imenu-get-container-name class namespaces))
+        (class-name (car class)))
+    (if (not namespace)
+        class-name
+      ;; reformat to include namespace
+      (let* ((words (split-string class-name))
+             (type  (car words))
+             (name  (cadr words)))
+        (concat type " " namespace "." name)))))
+
+(defun csharp--imenu-get-class-nodes (classes namespaces)
+  "Creates a new alist with classes as root nodes with namespaces added."
+
+  (mapcar #'(lambda (class)
+              (let* ((class-name (csharp--imenu-get-class-name class namespaces))
+                     (class-pos  (cdr class)))
+                (cons class-name
+                      (list
+                       (cons "(top)" class-pos)))))
+          classes))
+
+(defun csharp--imenu-get-class-node (result item classes namespaces)
+  (let* ((class-item (csharp--imenu-get-container item classes nil))
+         (class-name (csharp--imenu-get-class-name class-item namespaces)))
+    (assoc class-name result)))
+
+(defun csharp--imenu-format-item-node (item type)
+  (cons
+   (concat "(" type ") " (car item))
+   (cdr item)))
+
+(defun csharp--imenu-append-items-to-menu (result type index classes namespaces)
+  ;; items = all methods, all events, etc based on "type"
+  (let* ((items (cdr (assoc type index))))
+    (dolist (item items)
+      (let ((class-node (csharp--imenu-get-class-node result item classes namespaces))
+            (item-node  (csharp--imenu-format-item-node item type)))
+        (nconc class-node (list item-node))))))
+
+(defun csharp--imenu-transform-index (index)
+  (let* ((result nil)
+         (namespaces (cdr (assoc "namespace" index)))
+         (classes    (cdr (assoc "class"     index)))
+         (class-nodes (csharp--imenu-get-class-nodes classes namespaces)))
+    ;; be explicit about collection variable
+    (setq result class-nodes)
+    (dolist (type '("ctor" "method" "prop" "field" "event" "indexer"))
+      (csharp--imenu-append-items-to-menu result type index classes namespaces))
+
+    ;; TODO: fix and include enums (often not contained in class!)
+    ;; TODO: sort results
+    result))
 
 (defun csharp--imenu-create-index-function ()
   (csharp--imenu-transform-index
@@ -2007,22 +2066,7 @@ to the beginning of the prior namespace.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+;; new new imenu
 
 
 
