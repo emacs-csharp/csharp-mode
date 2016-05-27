@@ -3008,29 +3008,37 @@ The return value is meaningless, and is ignored by cc-mode.
 
 (defun csharp--imenu-reformat-contained-names (items containers)
   (mapcar #'(lambda (item)
-                  (let ((container (csharp--imenu-get-container-name item containers nil)))
-                    (if container
-                        (cons (concat container "." (car item))
-                              (cdr item))
-                      item)))
-              items))
+              (let ((container (csharp--imenu-get-container-name item containers nil)))
+                (if container
+                    (cons (concat container "." (car item))
+                          (cdr item))
+                  item)))
+          items))
+
+(defun csharp--imenu-sort (items)
+  (sort items #'(lambda (item1 item2)
+                  (string< (car item1) (car item2)))))
 
 (defun csharp--imenu-reformat-sub-index (name plain-index containers)
   (let* ((items   (assoc name plain-index))
-         (items-full (csharp--imenu-reformat-contained-names (cdr items) (cdr containers))))
-    (cons name items-full)))
+         (items-full (csharp--imenu-reformat-contained-names (cdr items) (cdr containers)))
+         (sorted-full (csharp--imenu-sort items-full)))
+    ;; dont emit empty menu when we have nothing to show.
+    (if (not (cdr items))
+        nil
+      (cons name sorted-full))))
 
 (defun csharp--imenu-create-index-function ()
   (let* ((plain-index (imenu--generic-function csharp--imenu-expression))
          (classes (assoc "class" plain-index)))
     (list (assoc "namespace" plain-index)
           classes
-          (csharp--imenu-reformat-sub-index "method" plain-index classes)
-          (csharp--imenu-reformat-sub-index "props" plain-index classes)
-          (csharp--imenu-reformat-sub-index "enum" plain-index classes)
-          (csharp--imenu-reformat-sub-index "field" plain-index classes)
-          (csharp--imenu-reformat-sub-index "event" plain-index classes)
           (csharp--imenu-reformat-sub-index "ctor" plain-index classes)
+          (csharp--imenu-reformat-sub-index "method" plain-index classes)
+          (csharp--imenu-reformat-sub-index "field" plain-index classes)
+          (csharp--imenu-reformat-sub-index "props" plain-index classes)
+          (csharp--imenu-reformat-sub-index "event" plain-index classes)
+          (csharp--imenu-reformat-sub-index "enum" plain-index classes)
           (csharp--imenu-reformat-sub-index "indexer" plain-index classes))))
 
 (defun csharp--setup-imenu ()
