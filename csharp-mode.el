@@ -1970,8 +1970,8 @@ to the beginning of the prior namespace.
       container-p1)))
 
 (defun csharp--imenu-sort (items)
-  (sort items #'(lambda (item1 item2)
-                  (string< (car item1) (car item2)))))
+  (sort items (lambda (item1 item2)
+                (string< (car item1) (car item2)))))
 
 (defun csharp--imenu-get-class-name (class namespaces)
   (let ((namespace (csharp--imenu-get-container-name class namespaces))
@@ -1987,12 +1987,12 @@ to the beginning of the prior namespace.
 (defun csharp--imenu-get-class-nodes (classes namespaces)
   "Creates a new alist with classes as root nodes with namespaces added."
 
-  (mapcar #'(lambda (class)
-              (let* ((class-name (csharp--imenu-get-class-name class namespaces))
-                     (class-pos  (cdr class)))
-                (cons class-name
-                      (list
-                       (cons "( top )" class-pos)))))
+  (mapcar (lambda (class)
+            (let* ((class-name (csharp--imenu-get-class-name class namespaces))
+                   (class-pos  (cdr class)))
+              (cons class-name
+                    (list
+                     (cons "( top )" class-pos)))))
           classes))
 
 (defun csharp--imenu-get-class-node (result item classes namespaces)
