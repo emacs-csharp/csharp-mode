@@ -3270,7 +3270,9 @@ Key bindings:
 
   ;; maybe do imenu scan after hook returns
   (when csharp-want-imenu
-    (csharp--setup-imenu))
+    (if (fboundp 'csharp-mode-imenu-nested-setup)
+        (csharp-mode-imenu-nested-setup)
+      (csharp--setup-imenu)))
 
   ;; The paragraph-separate variable was getting stomped by
   ;; other hooks, so it must reside here.

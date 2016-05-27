@@ -1320,5 +1320,8 @@ attempts to disable the weird re-jiggering that imenu performs.
 
           )))))
 
+(defun csharp-mode-imenu-nested-setup ()
+  (setq imenu-create-index-function 'csharp-imenu-create-index)
+  (imenu-add-menubar-index))
 
 (provide 'csharp-mode-imenu-nested)
