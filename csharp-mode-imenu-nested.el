@@ -1,5 +1,231 @@
+;;; csharp-mode-imenu-nested -- Summary:
+;;;
+;;; Commentary:
+;;;
+;;; This used to be the main imenu-code for `csharp-mode'.
+
 (require 'csharp-mode)
 (require 'imenu)
+
+;;; Code:
+
+(eval-and-compile
+  (defconst csharp-imenu--regexp-alist
+    (list
+
+     `(func-start
+       ,(concat
+         "^[ \t\n\r\f\v]*"                            ;; leading whitespace
+         "\\("
+         "public\\(?: static\\)?\\|"                  ;; 1. access modifier
+         "private\\(?: static\\)?\\|"
+         "protected\\(?: internal\\)?\\(?: static\\)?\\|"
+         "static\\|"
+         "\\)"
+         "[ \t\n\r\f\v]+"
+         "\\(?:override[ \t\n\r\f\v]+\\)?"            ;; optional
+         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2. return type - possibly generic
+         "[ \t\n\r\f\v]+"
+         "\\("                                        ;; 3. begin name of func
+         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"         ;; possible prefix interface
+         "[[:alpha:]_][[:alnum:]_]*"                  ;; actual func name
+         "\\(?:<\\(?:[[:alpha:]][[:alnum:]]*\\)\\(?:[, ]+[[:alpha:]][[:alnum:]]*\\)*>\\)?"  ;; (with optional generic type parameter(s)
+         "\\)"                                        ;; 3. end of name of func
+         "[ \t\n\r\f\v]*"
+         "\\(\([^\)]*\)\\)"                           ;; 4. params w/parens
+         "\\(?:[ \t]*/[/*].*\\)?"                     ;; optional comment at end of line
+         "[ \t\n\r\f\v]*"
+         ))
+
+     `(ctor-start
+       ,(concat
+         "^[ \t\n\r\f\v]*"                            ;; leading whitespace
+         "\\("
+         "public\\|"                                  ;; 1. access modifier
+         "private\\|"
+         "protected\\(?: internal\\)?\\|"
+         "static\\|"
+         "\\)"
+         "[ \t\n\r\f\v]+"
+         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; 2. name of ctor
+         "[ \t\n\r\f\v]*"
+         "\\(\([^\)]*\)\\)"                           ;; 3. parameter list (with parens)
+         "\\("                                        ;; 4. ctor dependency
+         "[ \t\n]*:[ \t\n]*"                          ;; colon
+         "\\(?:this\\|base\\)"                        ;; this or base
+         "[ \t\n\r\f\v]*"
+         "\\(?:\([^\)]*\)\\)"                         ;; parameter list (with parens)
+         "\\)?"                                       ;; possibly
+         "[ \t\n\r\f\v]*"
+         ))
+
+
+     `(using-stmt
+       ,(concat
+         ;;"^[ \t\n\r\f\v]*"
+         "\\(\\<using\\)"
+         "[ \t\n\r\f\v]+"
+         "\\(?:"
+         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; alias
+         "[ \t\n\r\f\v]*"
+         "="
+         "[ \t\n\r\f\v]*"
+         "\\)?"
+         "\\("
+         "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
+         "[A-Za-z_][[:alnum:]]*"
+         "\\)"                                        ;; imported namespace
+         "[ \t\n\r\f\v]*"
+         ";"
+         ))
+
+     `(class-start
+       ,(concat
+         "^[ \t]*"                                    ;; leading whitespace
+         "\\("
+         "public\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"  ;; access modifiers
+         "internal\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"
+         "static\\(?: internal\\)?[ \t]+\\|"
+         "sealed\\(?: internal\\)?[ \t]+\\|"
+         "static[ \t]+\\|"
+         "sealed[ \t]+\\|"
+         "\\)"
+         "\\(\\(?:partial[ \t]+\\)?class\\|struct\\)" ;; class/struct keyword
+         "[ \t]+"
+         "\\([[:alpha:]_][[:alnum:]]*\\)"             ;; type name
+         "\\("
+         "[ \t\n]*:[ \t\n]*"                          ;; colon
+         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; base / intf - poss generic
+         "\\("
+         "[ \t\n]*,[ \t\n]*"
+         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; addl interface - poss generic
+         "\\)*"
+         "\\)?"                                       ;; possibly
+         "[ \t\n\r\f\v]*"
+         ))
+
+     `(genclass-start
+       ,(concat
+         "^[ \t]*"                                    ;; leading whitespace
+         "\\("
+         "public\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"  ;; access modifiers
+         "internal\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"
+         "static\\(?: internal\\)?[ \t]+\\|"
+         "sealed\\(?: internal\\)?[ \t]+\\|"
+         "static[ \t]+\\|"
+         "sealed[ \t]+\\|"
+         "\\)"
+         "\\(\\(?:partial[ \t]+\\)?class\\|struct\\)" ;; class/struct keyword
+         "[ \t]+"
+         "\\([[:alpha:]_][[:alnum:]_<>, ]*\\)"        ;; type name (generic)
+         "\\("
+         "[ \t\n]*:[ \t\n]*"                          ;; colon
+         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; base / intf - poss generic
+         "\\("
+         "[ \t\n]*,[ \t\n]*"
+         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; addl interface - poss generic
+         "\\)*"
+         "\\)?"                                       ;; possibly
+         "[ \t\n\r\f\v]*"
+         ))
+
+     `(enum-start
+       ,(concat
+         "^[ \t\f\v]*"                                ;; leading whitespace
+         "\\("
+         "public[ \t]+enum\\|"                        ;; enum keyword
+         "enum"
+         "\\)"
+         "[ \t\n\r\f\v]+"
+         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; name of enum
+         "[ \t\n\r\f\v]*"
+         "\\(:[ \t\n\r\f\v]*"
+         "\\("
+         "sbyte\\|byte\\|short\\|ushort\\|int\\|uint\\|long\\|ulong"
+         "\\)"
+         "[ \t\n\r\f\v]*"
+         "\\)?"                                       ;; possibly
+         "[ \t\n\r\f\v]*"
+         ))
+
+
+     `(intf-start
+       ,(concat
+         "^[ \t\f\v]*"                                ;; leading whitespace
+         "\\(?:"
+         "public\\|internal\\|"                       ;; access modifier
+         "\\)"
+         "[ \t\n\r\f\v]+"
+         "\\(interface\\)"
+         "[ \t\n\r\f\v]+"
+         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; name of interface
+         "[ \t\n\r\f\v]*"
+         ))
+
+     `(prop-start
+       ,(concat
+         "^[ \t\f\v]*"                                ;; leading whitespace
+         "\\("
+         "public\\|"                                  ;; 1: access modifier
+         "private\\|"
+         "protected internal\\|"
+         "internal protected\\|"
+         "internal\\|"
+         "\\)"
+         "[ \t\n\r\f\v]+"
+         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2: return type - possibly generic
+         "[ \t\n\r\f\v]+"
+         "\\("
+         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"          ;; possible prefix interface
+         "[[:alpha:]_][[:alnum:]_]*"                  ;; 3: name of prop
+         "\\)"
+         "[ \t\n\r\f\v]*"
+         ))
+
+     `(indexer-start
+       ,(concat
+         "^[ \t\f\v]*"                                ;; leading whitespace
+         "\\("
+         "public\\|"                                  ;; 1: access modifier
+         "private\\|"
+         "protected internal\\|"
+         "internal protected\\|"
+         "internal\\|"
+         "\\)"
+         "[ \t\n\r\f\v]+"
+         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2: return type - possibly generic
+         "[ \t\n\r\f\v]+"
+         "\\(this\\)"                                 ;; 3: 'this' keyword
+         "[ \t\n\r\f\v]*"
+         "\\["                                        ;; open square bracket
+         "[ \t\n\r\f\v]*"
+         "\\([^\]]+\\)"                               ;; 4: index type
+         "[ \t\n\r\f\v]+"
+         "[[:alpha:]_][[:alnum:]_]*"                  ;; index name - a simple identifier
+         "\\]"                                        ;; closing sq bracket
+         "[ \t\n\r\f\v]*"
+         ))
+
+     `(namespace-start
+       ,(concat
+         "^[ \t\f\v]*"                                ;; leading whitespace
+         "\\(namespace\\)"
+         "[ \t\n\r\f\v]+"
+         "\\("
+         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"          ;; name of namespace
+         "[A-Za-z_][[:alnum:]]*"
+         "\\)"
+         "[ \t\n\r\f\v]*"
+         ))
+
+     )))
+
+(defun csharp-imenu--regexp (symbol)
+  "Retrieves a regexp from the `csharp-imenu--regexp-alist' corresponding
+to the given symbol.
+"
+  (let ((elt (assoc symbol csharp-imenu--regexp-alist)))
+    (if elt (cadr elt) nil)))
 
 (defun csharp--on-defun-close-curly-p ()
    "return t when point is on the close-curly of a method."
@@ -7,9 +233,9 @@
         (save-excursion
           (and
            (progn (forward-char) (forward-sexp -1) t)
-           (not (looking-back (csharp--regexp 'class-start) nil))
-           (not (looking-back (csharp--regexp 'namespace-start) nil))
-           (looking-back (csharp--regexp 'func-start) nil)))))
+           (not (looking-back (csharp-imenu--regexp 'class-start) nil))
+           (not (looking-back (csharp-imenu--regexp 'namespace-start) nil))
+           (looking-back (csharp-imenu--regexp 'func-start) nil)))))
 
 (defun csharp--on-ctor-close-curly-p ()
   "return t when point is on the close-curly of a constructor."
@@ -17,7 +243,7 @@
        (save-excursion
          (and
           (progn (forward-char) (forward-sexp -1) t)
-          (looking-back (csharp--regexp 'ctor-start) nil)))))
+          (looking-back (csharp-imenu--regexp 'ctor-start) nil)))))
 
 (defun csharp--on-class-close-curly-p ()
   "return t when point is on the close-curly of a class or struct."
@@ -25,8 +251,8 @@
        (save-excursion
          (and
           (progn (forward-char) (forward-sexp -1) t)
-          (not (looking-back (csharp--regexp 'namespace-start) nil))
-          (looking-back (csharp--regexp 'class-start) nil)))))
+          (not (looking-back (csharp-imenu--regexp 'namespace-start) nil))
+          (looking-back (csharp-imenu--regexp 'class-start) nil)))))
 
 (defun csharp--on-intf-close-curly-p ()
   "return t when point is on the close-curly of an interface."
@@ -34,7 +260,7 @@
        (save-excursion
          (and
           (progn (forward-char) (forward-sexp -1) t)
-          (looking-back (csharp--regexp 'intf-start) nil)))))
+          (looking-back (csharp-imenu--regexp 'intf-start) nil)))))
 
 (defun csharp--on-enum-close-curly-p ()
   "return t when point is on the close-curly of an enum."
@@ -42,7 +268,7 @@
        (save-excursion
          (and
           (progn (forward-char) (forward-sexp -1) t)
-          (looking-back (csharp--regexp 'enum-start) nil)))))
+          (looking-back (csharp-imenu--regexp 'enum-start) nil)))))
 
 (defun csharp--on-namespace-close-curly-p ()
   "return t when point is on the close-curly of a namespace."
@@ -50,50 +276,50 @@
        (save-excursion
          (and
           (progn (forward-char) (forward-sexp -1) t)
-          (looking-back (csharp--regexp 'namespace-start) nil)))))
+          (looking-back (csharp-imenu--regexp 'namespace-start) nil)))))
 
 (defun csharp--on-defun-open-curly-p ()
   "return t when point is on the open-curly of a method."
   (and (looking-at "{")
-       (not (looking-back (csharp--regexp 'class-start) nil))
-       (not (looking-back (csharp--regexp 'namespace-start) nil))
-       (looking-back (csharp--regexp 'func-start) nil)))
+       (not (looking-back (csharp-imenu--regexp 'class-start) nil))
+       (not (looking-back (csharp-imenu--regexp 'namespace-start) nil))
+       (looking-back (csharp-imenu--regexp 'func-start) nil)))
 
 (defun csharp--on-genclass-open-curly-p ()
   "return t when point is on the open-curly of a generic class."
   (and (looking-at "{")
-       (looking-back (csharp--regexp 'genclass-start) nil)))
+       (looking-back (csharp-imenu--regexp 'genclass-start) nil)))
 
 (defun csharp--on-namespace-open-curly-p ()
   "return t when point is on the open-curly of a namespace."
   (and (looking-at "{")
-       (looking-back (csharp--regexp 'namespace-start) nil)))
+       (looking-back (csharp-imenu--regexp 'namespace-start) nil)))
 
 (defun csharp--on-ctor-open-curly-p ()
   "return t when point is on the open-curly of a ctor."
   (and (looking-at "{")
-       (looking-back (csharp--regexp 'ctor-start) nil)))
+       (looking-back (csharp-imenu--regexp 'ctor-start) nil)))
 
 (defun csharp--on-intf-open-curly-p ()
   "return t when point is on the open-curly of a interface."
   (and (looking-at "{")
-       (looking-back (csharp--regexp 'intf-start) nil)))
+       (looking-back (csharp-imenu--regexp 'intf-start) nil)))
 
 (defun csharp--on-prop-open-curly-p ()
   "return t when point is on the open-curly of a property."
   (and (looking-at "{")
-       (not (looking-back (csharp--regexp 'class-start) nil))
-       (looking-back (csharp--regexp 'prop-start) nil)))
+       (not (looking-back (csharp-imenu--regexp 'class-start) nil))
+       (looking-back (csharp-imenu--regexp 'prop-start) nil)))
 
 (defun csharp--on-indexer-open-curly-p ()
   "return t when point is on the open-curly of a C# indexer."
   (and (looking-at "{")
-       (looking-back (csharp--regexp 'indexer-start) nil)))
+       (looking-back (csharp-imenu--regexp 'indexer-start) nil)))
 
 (defun csharp--on-enum-open-curly-p ()
   "return t when point is on the open-curly of a interface."
   (and (looking-at "{")
-       (looking-back (csharp--regexp 'enum-start) nil)))
+       (looking-back (csharp-imenu--regexp 'enum-start) nil)))
 
 
 ;; define some advice for menu construction.
@@ -435,7 +661,7 @@ more open-curlies are found.
       (c-forward-syntactic-ws)
       (cond
        ((and consider-usings
-             (re-search-forward (csharp--regexp 'using-stmt) (point-max) t))
+             (re-search-forward (csharp-imenu--regexp 'using-stmt) (point-max) t))
         (goto-char (match-beginning 1))
         (setq found-usings t
               done nil))
@@ -499,7 +725,7 @@ more open-curlies are found.
                             (re-search-forward "{" (point-max) t)))))
 
               ;; count the using statements
-              (while (re-search-forward (csharp--regexp 'using-stmt) limit t)
+              (while (re-search-forward (csharp-imenu--regexp 'using-stmt) limit t)
                 (cl-incf count))
 
               (setq marquis (if (eq count 1) "using (1)"
@@ -1094,3 +1320,5 @@ attempts to disable the weird re-jiggering that imenu performs.
 
           )))))
 
+
+(provide 'csharp-mode-imenu-nested)

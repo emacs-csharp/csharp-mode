@@ -1490,7 +1490,6 @@ Most other csharp functions are not instrumented.
 (eval-and-compile
   (defconst csharp--regexp-alist
     (list
-
      `(func-start
        ,(concat
          "^[ \t\n\r\f\v]*"                            ;; leading whitespace
@@ -1515,48 +1514,6 @@ Most other csharp functions are not instrumented.
          "[ \t\n\r\f\v]*"
          ))
 
-     `(ctor-start
-       ,(concat
-         "^[ \t\n\r\f\v]*"                            ;; leading whitespace
-         "\\("
-         "public\\|"                                  ;; 1. access modifier
-         "private\\|"
-         "protected\\(?: internal\\)?\\|"
-         "static\\|"
-         "\\)"
-         "[ \t\n\r\f\v]+"
-         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; 2. name of ctor
-         "[ \t\n\r\f\v]*"
-         "\\(\([^\)]*\)\\)"                           ;; 3. parameter list (with parens)
-         "\\("                                        ;; 4. ctor dependency
-         "[ \t\n]*:[ \t\n]*"                          ;; colon
-         "\\(?:this\\|base\\)"                        ;; this or base
-         "[ \t\n\r\f\v]*"
-         "\\(?:\([^\)]*\)\\)"                         ;; parameter list (with parens)
-         "\\)?"                                       ;; possibly
-         "[ \t\n\r\f\v]*"
-         ))
-
-
-     `(using-stmt
-       ,(concat
-         ;;"^[ \t\n\r\f\v]*"
-         "\\(\\<using\\)"
-         "[ \t\n\r\f\v]+"
-         "\\(?:"
-         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; alias
-         "[ \t\n\r\f\v]*"
-         "="
-         "[ \t\n\r\f\v]*"
-         "\\)?"
-         "\\("
-         "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
-         "[A-Za-z_][[:alnum:]]*"
-         "\\)"                                        ;; imported namespace
-         "[ \t\n\r\f\v]*"
-         ";"
-         ))
-
      `(class-start
        ,(concat
          "^[ \t]*"                                    ;; leading whitespace
@@ -1579,108 +1536,6 @@ Most other csharp functions are not instrumented.
          "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; addl interface - poss generic
          "\\)*"
          "\\)?"                                       ;; possibly
-         "[ \t\n\r\f\v]*"
-         ))
-
-     `(genclass-start
-       ,(concat
-         "^[ \t]*"                                    ;; leading whitespace
-         "\\("
-         "public\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"  ;; access modifiers
-         "internal\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"
-         "static\\(?: internal\\)?[ \t]+\\|"
-         "sealed\\(?: internal\\)?[ \t]+\\|"
-         "static[ \t]+\\|"
-         "sealed[ \t]+\\|"
-         "\\)"
-         "\\(\\(?:partial[ \t]+\\)?class\\|struct\\)" ;; class/struct keyword
-         "[ \t]+"
-         "\\([[:alpha:]_][[:alnum:]_<>, ]*\\)"        ;; type name (generic)
-         "\\("
-         "[ \t\n]*:[ \t\n]*"                          ;; colon
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; base / intf - poss generic
-         "\\("
-         "[ \t\n]*,[ \t\n]*"
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; addl interface - poss generic
-         "\\)*"
-         "\\)?"                                       ;; possibly
-         "[ \t\n\r\f\v]*"
-         ))
-
-     `(enum-start
-       ,(concat
-         "^[ \t\f\v]*"                                ;; leading whitespace
-         "\\("
-         "public[ \t]+enum\\|"                        ;; enum keyword
-         "enum"
-         "\\)"
-         "[ \t\n\r\f\v]+"
-         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; name of enum
-         "[ \t\n\r\f\v]*"
-         "\\(:[ \t\n\r\f\v]*"
-         "\\("
-         "sbyte\\|byte\\|short\\|ushort\\|int\\|uint\\|long\\|ulong"
-         "\\)"
-         "[ \t\n\r\f\v]*"
-         "\\)?"                                       ;; possibly
-         "[ \t\n\r\f\v]*"
-         ))
-
-
-     `(intf-start
-       ,(concat
-         "^[ \t\f\v]*"                                ;; leading whitespace
-         "\\(?:"
-         "public\\|internal\\|"                       ;; access modifier
-         "\\)"
-         "[ \t\n\r\f\v]+"
-         "\\(interface\\)"
-         "[ \t\n\r\f\v]+"
-         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; name of interface
-         "[ \t\n\r\f\v]*"
-         ))
-
-     `(prop-start
-       ,(concat
-         "^[ \t\f\v]*"                                ;; leading whitespace
-         "\\("
-         "public\\|"                                  ;; 1: access modifier
-         "private\\|"
-         "protected internal\\|"
-         "internal protected\\|"
-         "internal\\|"
-         "\\)"
-         "[ \t\n\r\f\v]+"
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2: return type - possibly generic
-         "[ \t\n\r\f\v]+"
-         "\\("
-         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"          ;; possible prefix interface
-         "[[:alpha:]_][[:alnum:]_]*"                  ;; 3: name of prop
-         "\\)"
-         "[ \t\n\r\f\v]*"
-         ))
-
-     `(indexer-start
-       ,(concat
-         "^[ \t\f\v]*"                                ;; leading whitespace
-         "\\("
-         "public\\|"                                  ;; 1: access modifier
-         "private\\|"
-         "protected internal\\|"
-         "internal protected\\|"
-         "internal\\|"
-         "\\)"
-         "[ \t\n\r\f\v]+"
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2: return type - possibly generic
-         "[ \t\n\r\f\v]+"
-         "\\(this\\)"                                 ;; 3: 'this' keyword
-         "[ \t\n\r\f\v]*"
-         "\\["                                        ;; open square bracket
-         "[ \t\n\r\f\v]*"
-         "\\([^\]]+\\)"                               ;; 4: index type
-         "[ \t\n\r\f\v]+"
-         "[[:alpha:]_][[:alnum:]_]*"                  ;; index name - a simple identifier
-         "\\]"                                        ;; closing sq bracket
          "[ \t\n\r\f\v]*"
          ))
 
