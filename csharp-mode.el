@@ -2998,7 +2998,12 @@ The return value is meaningless, and is ignored by cc-mode.
       previous
     (let* ((item-pos (csharp--imenu-get-pos item))
            (container (car containers))
-           (container-name (cadr (split-string (car container))))
+           ;; namespace
+           (container-p1 (car (split-string (car container))))
+           ;; class/interface
+           (container-p2 (cadr (split-string (car container))))
+           ;; use p1 (namespace) when there is no p2
+           (container-name (if container-p2 container-p2 container-p1))
            (container-pos (csharp--imenu-get-pos container))
            (rest      (cdr containers)))
       (if (< item-pos container-pos)
@@ -3029,9 +3034,10 @@ The return value is meaningless, and is ignored by cc-mode.
 
 (defun csharp--imenu-create-index-function ()
   (let* ((plain-index (imenu--generic-function csharp--imenu-expression))
+         (namespaces (assoc "namespace" plain-index))
          (classes (assoc "class" plain-index)))
-    (list (assoc "namespace" plain-index)
-          classes
+    (list namespaces
+          (csharp--imenu-reformat-sub-index "class" plain-index namespaces)
           (csharp--imenu-reformat-sub-index "ctor" plain-index classes)
           (csharp--imenu-reformat-sub-index "method" plain-index classes)
           (csharp--imenu-reformat-sub-index "field" plain-index classes)
