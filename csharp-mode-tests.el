@@ -174,16 +174,16 @@
        (kill-buffer buffer))))
 
 (defun imenu-get-item (index haystack)
-  (setq result nil)
-  (dolist (item index)
-    (when (not result)
-      (let ((name (car item))
-            (value (cdr item)))
-        (if (string-prefix-p haystack name)
-            (setq result item)
-          (when (listp value)
+  (let ((result))
+    (dolist (item index)
+      (when (not result)
+        (let ((name (car item))
+              (value (cdr item)))
+          (if (string-prefix-p haystack name)
+              (setq result item)
+            (when (listp value)
               (setq result (imenu-get-item value haystack)))))))
-  result)
+    result))
 
 (def-imenutest imenu-parsing-supports-generic-parameters
   "./test-files/imenu-generics-test.cs" imenu-index

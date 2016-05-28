@@ -2015,20 +2015,22 @@ to the beginning of the prior namespace.
   (let ((container (csharp--imenu-get-container item containers nil)))
     (if (not container)
         nil
-      (let* (;; namespace
-             (container-p1 (car (split-string (car container))))
-             ;; class/interface
-             (container-p2 (cadr (split-string (car container)))))
+      (let ((container-p1 (car (split-string (car container))))   ;; namespace
+            (container-p2 (cadr (split-string (car container))))) ;; class/interface
         ;; use p1 (namespace) when there is no p2
         (if container-p2
             container-p2
           container-p1)))))
 
 (defun csharp--imenu-sort (items)
+  "Sorts an imenu-index list `ITMES' by the string-portion."
   (sort items (lambda (item1 item2)
                 (string< (car item1) (car item2)))))
 
 (defun csharp--imenu-get-class-name (class namespaces)
+  "Gets a name for a imenu-index `CLASS'.
+
+   Result is based on its own name and `NAMESPACES' found in the same file."
   (let ((namespace (csharp--imenu-get-container-name class namespaces))
         (class-name (car class)))
     (if (not namespace)
@@ -2043,19 +2045,24 @@ to the beginning of the prior namespace.
   "Creates a new alist with classes as root nodes with namespaces added."
 
   (mapcar (lambda (class)
-            (let* ((class-name (csharp--imenu-get-class-name class namespaces))
-                   (class-pos  (cdr class)))
+            (let ((class-name (csharp--imenu-get-class-name class namespaces))
+                  (class-pos  (cdr class)))
               (cons class-name
                     (list
                      (cons "( top )" class-pos)))))
           classes))
 
 (defun csharp--imenu-get-class-node (result item classes namespaces)
+  "Gets the class-node which a `ITEM' should be inserted into in `RESULT'.
+
+   For this calculation, the original index items `CLASSES' and `NAMESPACES'
+   is needed."
   (let* ((class-item (csharp--imenu-get-container item classes nil))
          (class-name (csharp--imenu-get-class-name class-item namespaces)))
     (assoc class-name result)))
 
 (defun csharp--imenu-format-item-node (item type)
+  "Formats a item with a specified type as a imenu item to be inserted into the index."
   (cons
    (concat "(" type ") " (car item))
    (cdr item)))
@@ -2069,6 +2076,10 @@ to the beginning of the prior namespace.
         (nconc class-node (list item-node))))))
 
 (defun csharp--imenu-transform-index (index)
+  "Transforms a imenu-index based on `IMENU-GENERIC-EXPRESSION'.
+
+  The resulting structure should be based on full type-names, with
+  type-members nested hierarchially below its parent."
   (let* ((result nil)
          (namespaces (cdr (assoc "namespace" index)))
          (classes    (cdr (assoc "class"     index)))
@@ -2080,6 +2091,11 @@ to the beginning of the prior namespace.
 
     ;; add enums to main result list, as own items.
     ;; We don't support nested types. EOS.
+    ;;
+    ;; This has the issue that it gets reported as "function" in
+    ;; `helm-imenu', but there's nothing we can do about that.
+    ;; The alternative is making it a menu with -1- submenu which
+    ;; says "( top )" but that will be very clicky...
     (dolist (enum (cdr (assoc "enum" index)))
       (let ((enum-name (csharp--imenu-get-class-name enum namespaces)))
         (setq result (cons (cons enum-name (cdr enum)) result))))
@@ -2087,9 +2103,11 @@ to the beginning of the prior namespace.
     ;; sort individual sub-lists
     (dolist (item result)
       (when (listp (cdr item))
-        (setcdr item (csharp--imenu-sort (cdr item)))))
+        (setf (cdr item) (csharp--imenu-sort (cdr item)))))
 
     ;; sort main list
+    ;; (Enums always sort last though, because they dont have
+    ;; sub-menus)
     (csharp--imenu-sort result)))
 
 (defun csharp--imenu-create-index-function ()
