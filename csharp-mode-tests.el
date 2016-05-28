@@ -185,10 +185,10 @@
     (when (not result)
       (let ((name (car item))
             (value (cdr item)))
-        (if (listp value)
-            (setq result (imenu-get-item value haystack))
-          (when (string-prefix-p haystack name)
-            (setq result item))))))
+        (if (string-prefix-p haystack name)
+            (setq result item)
+          (when (listp value)
+              (setq result (imenu-get-item value haystack)))))))
   result)
 
 (def-imenutest imenu-parsing-supports-generic-parameters
@@ -209,20 +209,11 @@
   "./test-files/imenu-interface-property-test.cs" imenu-index
   (should (imenu-get-item imenu-index "(method-inf) IImenuTest.MethodName")))
 
-(def-imenutest imenu-parsing-supports-namespaces
-  "./test-files/imenu-namespace-test.cs" imenu-index
-  (let* ((ns-entry       (cadr imenu-index))
-         (ns-item        (car ns-entry)))
-    (should (string-match-p "namespace ImenuTest" ns-item))))
-
 (def-imenutest imenu-parsing-provides-types-with-namespace-names
   "./test-files/imenu-namespace-test.cs" imenu-index
-  (let* ((ns-entry       (cadr imenu-index))
-         (ns-items       (cdr ns-entry))
-         (imenu-items    (mapconcat 'car ns-items " ")))
-    (should (string-match-p "interface ImenuTest.ImenuTestInterface" imenu-items))
-    (should (string-match-p "class ImenuTest.ImenuTestClass" imenu-items))
-    (should (string-match-p "enum ImenuTest.ImenuTestEnum" imenu-items))))
+  (should (imenu-get-item imenu-index "class ImenuTest.ImenuTestClass"))
+  (should (imenu-get-item imenu-index "interface ImenuTest.ImenuTestInterface"))
+  (should (imenu-get-item imenu-index "enum ImenuTest.ImenuTestEnum")))
 
 (defvar csharp-hook1 nil)
 (defvar csharp-hook2 nil)
