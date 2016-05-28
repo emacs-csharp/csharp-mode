@@ -150,27 +150,6 @@
            (equal expected (match-string 1)))))
       (kill-buffer buffer))))
 
-(ert-deftest imenu-parsing-supports-default-values ()
-  (dolist (test-case
-           '(;; should support bools
-             ("(bool a, bool b = true)"                  "(bool, bool)")
-             ("(bool a=true, bool b)"                    "(bool, bool)")
-             ;; should support strings
-             ("(string a, string b = \"quoted string\")" "(string, string)")
-             ("(string a = \"quoted string\", string b)" "(string, string)")
-             ;; should support chars
-             ("(char a, char b = 'b')"                   "(char, char)")
-             ("(char a = 'a', char b)"                   "(char, char)")
-             ;; should support self-object-access
-             ("(object o = Const)"                       "(object)")
-             ;; should support other-object-access
-             ("(object o = ConstObject.Const)"           "(object)")
-             ))
-    (let* ((test-value     (car test-case))
-           (expected-value (cadr test-case))
-           (result         (csharp--imenu-remove-param-names-from-paramlist test-value)))
-      (should (equal expected-value result)))))
-
 (defmacro def-imenutest (testname filename index &rest body)
   `(ert-deftest ,testname ()
      (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
