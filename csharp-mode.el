@@ -1796,7 +1796,8 @@ to the beginning of the prior namespace.
          (bol                            (concat "^" optional-space))
          (space                          (concat single-space "+"))
          (access-modifier (regexp-opt '( "public" "private" "protected" "internal"
-                                         "static" "sealed" "partial")))
+                                         "static" "sealed" "partial" "override"
+                                         "abstract")))
          ;; this will allow syntactically invalid combinations of modifiers
          ;; but that's a compiler problem, not a imenu-problem
          (access-modifier-list (concat "\\(?:" access-modifier space "\\)"))
