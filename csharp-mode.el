@@ -1959,20 +1959,23 @@ to the beginning of the prior namespace.
            (container (car containers))
            (container-pos (csharp--imenu-get-pos container))
            (rest      (cdr containers)))
-      (if (< item-pos container-pos)
+      (if (and container-pos
+               (< item-pos container-pos))
           previous
         (csharp--imenu-get-container item rest container)))))
 
 (defun csharp--imenu-get-container-name (item containers)
-  (let* ((container (csharp--imenu-get-container item containers nil))
-         ;; namespace
-         (container-p1 (car (split-string (car container))))
-         ;; class/interface
-         (container-p2 (cadr (split-string (car container)))))
-    ;; use p1 (namespace) when there is no p2
-    (if container-p2
-        container-p2
-      container-p1)))
+  (let ((container (csharp--imenu-get-container item containers nil)))
+    (if (not container)
+        nil
+      (let* (;; namespace
+             (container-p1 (car (split-string (car container))))
+             ;; class/interface
+             (container-p2 (cadr (split-string (car container)))))
+        ;; use p1 (namespace) when there is no p2
+        (if container-p2
+            container-p2
+          container-p1)))))
 
 (defun csharp--imenu-sort (items)
   (sort items (lambda (item1 item2)
