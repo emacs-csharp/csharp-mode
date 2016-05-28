@@ -1834,8 +1834,8 @@ to the beginning of the prior namespace.
           (list "enum"
                 (concat bol
                         access-modifiers
-                        "enum" space
-                        "\\(" identifier "\\)")  1)
+                        "\\(" "enum" space
+                        identifier "\\)")  1)
           (list "ctor"
                 (concat bol
                         ;; ctor MUST have access modifiers, or else we pick
@@ -2023,12 +2023,16 @@ to the beginning of the prior namespace.
     (dolist (type '("ctor" "method" "interface-method" "prop" "field" "event" "indexer"))
       (csharp--imenu-append-items-to-menu result type index classes namespaces))
 
-    ;; TODO: fix and include enums (often not contained in class!)
-    ;; add enums to main result list, as own items. dont support nested types. EOS.
+    ;; add enums to main result list, as own items.
+    ;; We don't support nested types. EOS.
+    (dolist (enum (cdr (assoc "enum" index)))
+      (let ((enum-name (csharp--imenu-get-class-name enum namespaces)))
+        (setq result (cons (cons enum-name (cdr enum)) result))))
 
     ;; sort individual sub-lists
     (dolist (item result)
-      (setcdr item (csharp--imenu-sort (cdr item))))
+      (when (listp (cdr item))
+        (setcdr item (csharp--imenu-sort (cdr item)))))
 
     ;; sort main list
     (csharp--imenu-sort result)))
