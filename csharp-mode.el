@@ -5,10 +5,10 @@
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
 ;; Modified   : 2016
-;; Version    : 0.8.13
+;; Version    : 0.9.0
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
-;; Last-saved : 2016-Feb-17
+;; Last-saved : 2016-May-28
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -287,7 +287,7 @@
 ;;    0.8.12 2016 January 6th
 ;;          - Various fixes and improvements for imenu indexing.
 ;;
-;;    0.8.13 2016 ...
+;;    0.9.0 2016 July...?
 ;;          - Fix issues with compilation-mode and lines with arrays.
 ;;          - Fontification of compiler directives.
 ;;          - Much faster, completely rewritten imenu-implementation.
