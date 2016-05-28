@@ -198,12 +198,8 @@
 
 (def-imenutest imenu-parsing-supports-comments
   "./test-files/imenu-comment-test.cs" imenu-index
-  (let* ((class-entry    (cadr imenu-index))
-         (class-entries  (cdr class-entry))
-         (imenu-items    (mapconcat 'car class-entries " ")))
-    (should (string-match-p "HasNoComment" imenu-items))
-    (should (string-match-p "HasComment" imenu-items))
-    (should (string-match-p "CommentedToo" imenu-items))))
+  (dolist (item '("HasNoComment(" "HasComment(" "CommentedToo("))
+    (should (imenu-get-item imenu-index (concat "(method) " item)))))
 
 (def-imenutest imenu-parsing-supports-explicit-interface-properties
   "./test-files/imenu-interface-property-test.cs" imenu-index
