@@ -175,21 +175,26 @@
   `(ert-deftest ,testname ()
      (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
             (buffer         (find-file-read-only ,filename))
-            (,index         (csharp--imenu-create-index-function))
-            )
+            (,index         (csharp--imenu-create-index-function)))
        ,@body
        (kill-buffer buffer))))
 
+(defun imenu-get-item (index haystack)
+  (setq result nil)
+  (dolist (item index)
+    (when (not result)
+      (let ((name (car item))
+            (value (cdr item)))
+        (if (listp value)
+            (setq result (imenu-get-item value haystack))
+          (when (string-prefix-p haystack name)
+            (setq result item))))))
+  result)
+
 (def-imenutest imenu-parsing-supports-generic-parameters
   "./test-files/imenu-generics-test.cs" imenu-index
-  (let* ((class-entry    (cadr imenu-index))
-         (class-entries  (cdr class-entry))
-         (imenu-items    (mapconcat 'car class-entries " ")))
-
-    ;; ("(top)" "method void NoGeneric(this IAppBuilder, params object[])" "method void OneGeneric<T>(this IAppBuilder, params object[])" "method void TwoGeneric<T1,T2>(this IAppBuilder, params object[])" "(bottom)")
-    (should (string-match-p "NoGeneric" imenu-items))
-    (should (string-match-p "OneGeneric<T>" imenu-items))
-    (should (string-match-p "TwoGeneric<T1,T2>" imenu-items))))
+  (dolist (item '("NoGeneric(" "OneGeneric<T>(" "TwoGeneric<T1,T2>("))
+    (should (imenu-get-item imenu-index (concat "(method) " item)))))
 
 (def-imenutest imenu-parsing-supports-comments
   "./test-files/imenu-comment-test.cs" imenu-index
