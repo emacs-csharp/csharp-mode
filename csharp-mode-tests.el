@@ -51,6 +51,21 @@
                         "true"       'font-lock-constant-face
                         ))
 
+(ert-deftest fontification-of-literals-allows-multi-line-strings ()
+  (require 'assess)
+  (should (assess-face-at=
+           "string Literal = \"multi-line\nstring\";"
+           'csharp-mode
+           ;; should be interpreted as error
+           18 'font-lock-warning-face
+           ))
+  (should (assess-face-at=
+           "string Literal = @\"multi-line\nstring\";"
+           'csharp-mode
+           ;; should not be interpreted as error because of @
+           19 'font-lock-string-face
+           )))
+
 (ert-deftest fontification-of-compiler-directives ()
   ;; this replaces the manual test of
   ;; test-files/fontification-test-compiler-directives.cs, but file
