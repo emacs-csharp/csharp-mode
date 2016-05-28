@@ -1913,6 +1913,8 @@ to the beginning of the prior namespace.
                         generic-identifier
                         "\\)"
                         optional-space
+                        ;; optional assignment
+                        "\\(?:=[^;]+\\)?"
                         ";") 1)
           (list "indexer"
                 (concat bol
