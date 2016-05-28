@@ -1873,7 +1873,7 @@ to the beginning of the prior namespace.
                         "\\(?:[ \t]*/[/*].*\\)?"
                         optional-space
                         "{") 1)
-          (list "interface-method"
+          (list "method-inf"
                 (concat bol
                         return-type space
                         "\\("
@@ -1891,8 +1891,8 @@ to the beginning of the prior namespace.
                         ;; must require access modifiers, or else we
                         ;; pick up pretty much anything.
                         access-modifiers
-                        "\\("
                         return-type space
+                        "\\("
                         optional-interface-prefix
                         generic-identifier
                         "\\)"
@@ -2028,7 +2028,7 @@ to the beginning of the prior namespace.
          (class-nodes (csharp--imenu-get-class-nodes classes namespaces)))
     ;; be explicit about collection variable
     (setq result class-nodes)
-    (dolist (type '("ctor" "method" "interface-method" "prop" "field" "event" "indexer"))
+    (dolist (type '("ctor" "method" "method-inf" "prop" "field" "event" "indexer"))
       (csharp--imenu-append-items-to-menu result type index classes namespaces))
 
     ;; add enums to main result list, as own items.

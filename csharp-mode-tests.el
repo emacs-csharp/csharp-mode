@@ -203,17 +203,11 @@
 
 (def-imenutest imenu-parsing-supports-explicit-interface-properties
   "./test-files/imenu-interface-property-test.cs" imenu-index
-  (let* ((class-entry    (cl-caddr imenu-index))
-         (class-entries  (cdr class-entry))
-         (imenu-items    (mapconcat 'car class-entries " ")))
-    (should (string-match-p "prop IIMenuTest.InterfaceString" imenu-items))))
+  (should (imenu-get-item imenu-index "(prop) IImenuTest.InterfaceString")))
 
 (def-imenutest imenu-parsing-supports-explicit-interface-methods
   "./test-files/imenu-interface-property-test.cs" imenu-index
-  (let* ((class-entry    (cl-caddr imenu-index))
-         (class-entries  (cdr class-entry))
-         (imenu-items    (mapconcat 'car class-entries " ")))
-    (should (string-match-p "method string IIMenuTest.MethodName" imenu-items))))
+  (should (imenu-get-item imenu-index "(method-inf) IImenuTest.MethodName")))
 
 (def-imenutest imenu-parsing-supports-namespaces
   "./test-files/imenu-namespace-test.cs" imenu-index

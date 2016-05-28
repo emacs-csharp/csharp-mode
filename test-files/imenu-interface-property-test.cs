@@ -9,8 +9,8 @@ public class ImenuTest : IImenuTest
 {
     string IImenuTest.InterfaceString { get { return "i"; }}
 
-    string IIMenuTest.MethodName(string param1, int param2)
+    string IImenuTest.MethodName(string param1, int param2)
     {
-        
+
     }
 }
