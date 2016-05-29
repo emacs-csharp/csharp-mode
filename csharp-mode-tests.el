@@ -209,6 +209,81 @@
   (should (imenu-get-item imenu-index "interface ImenuTest.ImenuTestInterface"))
   (should (imenu-get-item imenu-index "enum ImenuTest.ImenuTestEnum")))
 
+(ert-deftest imenu-indexing-resolves-correct-container ()
+  (let* ((testcase-no-namespace '( ("class Global" . 10)
+                                   (("namespace_a" . 20) ("namespace_b" . 30))
+                                   nil))
+         (testcase-namespace-a  '( ("class A" . 10)
+                                   (("namespace_a" . 0) ("namespace_b" . 30))
+                                   "namespace_a"))
+         (testcase-namespace-b  '( ("class B" . 40)
+                                   (("namespace_a" . 0) ("namespace_b" . 30))
+                                   "namespace_b"))
+         (testcases             (list testcase-no-namespace
+                                      testcase-namespace-a
+                                      testcase-namespace-b)))
+    (dolist (testcase testcases)
+      (let ((class      (car testcase))
+            (namespaces (cadr testcase))
+            (expected   (caddr testcase)))
+        (should (equal expected
+                       (csharp--imenu-get-container-name class namespaces)))))))
+
+(ert-deftest imenu-indexing-resolves-correct-name ()
+  (let* ((testcase-no-namespace '( ("class Global" . 10)
+                                   (("namespace_a" . 20) ("namespace_b" . 30))
+                                   "class Global"))
+         (testcase-namespace-a  '( ("class A" . 10)
+                                   (("namespace_a" . 0) ("namespace_b" . 30))
+                                   "class namespace_a.A"))
+         (testcase-namespace-b  '( ("class B" . 40)
+                                   (("namespace_a" . 0) ("namespace_b" . 30))
+                                   "class namespace_b.B"))
+         (testcases             (list testcase-no-namespace
+                                      testcase-namespace-a
+                                      testcase-namespace-b)))
+    (dolist (testcase testcases)
+      (let ((class      (car testcase))
+            (namespaces (cadr testcase))
+            (expected   (caddr testcase)))
+        (should (equal expected
+                       (csharp--imenu-get-class-name class namespaces)))))))
+
+(ert-deftest imenu-transforms-index-correctly ()
+  ;; this test-case checks for the following aspects of the transformation:
+  ;; 1. hierarchial nesting
+  ;; 2. sorting of members
+  (should (equalp
+           '(("class A" . (("( top )" . 20)
+                           ("(method) method_a1" . 30)
+                           ("(method) method_a2" . 25)))
+             ("class B" . (("( top )" . 0)
+                           ("(method) method_b1" . 15)
+                           ("(method) method_b2" . 10))))
+
+           (csharp--imenu-transform-index
+            '(("class" .  (("class B" . 0)  ("class A" . 20)))
+              ("method" . (("method_b2" . 10) ("method_b1" . 15)
+                           ("method_a2" . 25) ("method_a1" . 30))))))))
+
+(ert-deftest imenu-transforms-index-correctly-with-namespaces ()
+  ;; this test-case checks for the following aspects of the transformation:
+  ;; 1. hierarchial nesting
+  ;; 2. sorting of members
+  (should (equalp
+           '(("class ns.A" . (("( top )" . 20)
+                           ("(method) method_a1" . 30)
+                           ("(method) method_a2" . 25)))
+             ("class ns.B" . (("( top )" . 0)
+                           ("(method) method_b1" . 15)
+                           ("(method) method_b2" . 10))))
+
+           (csharp--imenu-transform-index
+            '(("namespace" . (("ns" . 0)))
+              ("class" .  (("class B" . 0)  ("class A" . 20)))
+              ("method" . (("method_b2" . 10) ("method_b1" . 15)
+                           ("method_a2" . 25) ("method_a1" . 30))))))))
+
 (defvar csharp-hook1 nil)
 (defvar csharp-hook2 nil)
 

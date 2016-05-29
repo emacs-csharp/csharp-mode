@@ -1994,12 +1994,25 @@ to the beginning of the prior namespace.
                         ";") 1))))
 
 (defun csharp--imenu-get-pos (pair)
+  "Takes a (title . position) cons-pair `PAIR' and returns position.
+
+   The position may be a integer, or a marker (as returned by
+   imenu-indexing). This function ensures what is returned is an
+   integer which can be used for easy comparison."
   (let ((pos (cdr pair)))
     (if (markerp pos)
         (marker-position pos)
       pos)))
 
 (defun csharp--imenu-get-container (item containers previous)
+  "Returns the container which `ITEM' belongs to.
+
+   `ITEM' is a (title . position) cons-pair. `CONTAINERS' is a
+   list of such.  `PREVIOUS' is the name of the previous
+   container found when recursing through `CONTAINERS'.
+
+   The final result is based on item's position relative to those
+   found in `CONTAINERS', or nil if none is found."
   (if (not containers)
       previous
     (let* ((item-pos (csharp--imenu-get-pos item))
@@ -2012,6 +2025,13 @@ to the beginning of the prior namespace.
         (csharp--imenu-get-container item rest container)))))
 
 (defun csharp--imenu-get-container-name (item containers)
+  "Returns the name of the container which `ITEM' belongs to.
+
+   `ITEM' is a (title . position) cons-pair.
+   `CONTAINERS' is a list of such.
+
+   The name is based on the results from
+   `csharp--imenu-get-container'."
   (let ((container (csharp--imenu-get-container item containers nil)))
     (if (not container)
         nil
@@ -2042,11 +2062,17 @@ to the beginning of the prior namespace.
         (concat type " " namespace "." name)))))
 
 (defun csharp--imenu-get-class-nodes (classes namespaces)
-  "Creates a new alist with classes as root nodes with namespaces added."
+  "Creates a new alist with classes as root nodes with namespaces added.
+
+   Each class will have one imenu index-entry \"( top)\" added by
+   default."
 
   (mapcar (lambda (class)
             (let ((class-name (csharp--imenu-get-class-name class namespaces))
                   (class-pos  (cdr class)))
+              ;; construct a new alist-entry where value is itself
+              ;; a list of alist-entries with -1- entry which the top
+              ;; of the class itself.
               (cons class-name
                     (list
                      (cons "( top )" class-pos)))))
@@ -2079,7 +2105,10 @@ to the beginning of the prior namespace.
   "Transforms a imenu-index based on `IMENU-GENERIC-EXPRESSION'.
 
   The resulting structure should be based on full type-names, with
-  type-members nested hierarchially below its parent."
+  type-members nested hierarchially below its parent.
+
+  See `csharp-mode-tests.el' for examples of expected behaviour
+  of such transformations."
   (let* ((result nil)
          (namespaces (cdr (assoc "namespace" index)))
          (classes    (cdr (assoc "class"     index)))
