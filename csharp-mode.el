@@ -1852,7 +1852,6 @@ to the beginning of the prior namespace.
          (return-type                    "\\(?:[[:alpha:]_][^ =\t\(\n\r\f\v]+\\)")
          (identifier                     "[[:alpha:]_][[:alnum:]_]*")
          (interface-prefix               (concat "\\(?:" identifier "\\.\\)"))
-         (optional-interface-prefix      (concat interface-prefix "?")) ;; possible prefix interface
          (generic-identifier (concat identifier
                                      ;; optional generic arguments
                                      "\\(?:<" optional-space identifier
@@ -1911,7 +1910,6 @@ to the beginning of the prior namespace.
                         access-modifier-list "+"
                         return-type space
                         "\\("
-                        optional-interface-prefix
                         generic-identifier
                         optional-space
                         parameter-list
@@ -1940,7 +1938,19 @@ to the beginning of the prior namespace.
                         access-modifiers
                         return-type space
                         "\\("
-                        optional-interface-prefix
+                        generic-identifier
+                        "\\)"
+                        optional-space "{" optional-space
+                        ;; unless we are super-specific and expect the accesors,
+                        ;; lots of weird things gets slurped into the name.
+                        ;; including the accessors themselves.
+                        (regexp-opt '("get" "set"))
+                        ) 1)
+          (list "prop-inf"
+                (concat bol
+                        return-type space
+                        "\\("
+                        interface-prefix
                         generic-identifier
                         "\\)"
                         optional-space "{" optional-space
@@ -2115,7 +2125,7 @@ to the beginning of the prior namespace.
          (class-nodes (csharp--imenu-get-class-nodes classes namespaces)))
     ;; be explicit about collection variable
     (setq result class-nodes)
-    (dolist (type '("ctor" "method" "method-inf" "prop" "field" "event" "indexer"))
+    (dolist (type '("ctor" "method" "method-inf" "prop" "prop-inf" "field" "event" "indexer"))
       (csharp--imenu-append-items-to-menu result type index classes namespaces))
 
     ;; add enums to main result list, as own items.
