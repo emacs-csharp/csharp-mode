@@ -197,11 +197,11 @@
 
 (def-imenutest imenu-parsing-supports-explicit-interface-properties
   "./test-files/imenu-interface-property-test.cs" imenu-index
-  (should (imenu-get-item imenu-index "(prop-inf) IImenuTest.InterfaceString")))
+  (should (imenu-get-item imenu-index "(prop) IImenuTest.InterfaceString")))
 
 (def-imenutest imenu-parsing-supports-explicit-interface-methods
   "./test-files/imenu-interface-property-test.cs" imenu-index
-  (should (imenu-get-item imenu-index "(method-inf) IImenuTest.MethodName")))
+  (should (imenu-get-item imenu-index "(method) IImenuTest.MethodName")))
 
 (def-imenutest imenu-parsing-provides-types-with-namespace-names
   "./test-files/imenu-namespace-test.cs" imenu-index

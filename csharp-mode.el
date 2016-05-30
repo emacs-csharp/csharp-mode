@@ -2103,12 +2103,12 @@ to the beginning of the prior namespace.
    (concat "(" type ") " (car item))
    (cdr item)))
 
-(defun csharp--imenu-append-items-to-menu (result type index classes namespaces)
+(defun csharp--imenu-append-items-to-menu (result key name index classes namespaces)
   ;; items = all methods, all events, etc based on "type"
-  (let* ((items (cdr (assoc type index))))
+  (let* ((items (cdr (assoc key index))))
     (dolist (item items)
       (let ((class-node (csharp--imenu-get-class-node result item classes namespaces))
-            (item-node  (csharp--imenu-format-item-node item type)))
+            (item-node  (csharp--imenu-format-item-node item name)))
         (nconc class-node (list item-node))))))
 
 (defun csharp--imenu-transform-index (index)
@@ -2125,8 +2125,17 @@ to the beginning of the prior namespace.
          (class-nodes (csharp--imenu-get-class-nodes classes namespaces)))
     ;; be explicit about collection variable
     (setq result class-nodes)
-    (dolist (type '("ctor" "method" "method-inf" "prop" "prop-inf" "field" "event" "indexer"))
-      (csharp--imenu-append-items-to-menu result type index classes namespaces))
+    (dolist (type '(("ctor")
+                    ("method")
+                    ("method-inf" "method")
+                    ("prop")
+                    ("prop-inf" "prop")
+                    ("field")
+                    ("event")
+                    ("indexer")))
+      (let* ((key (car type))
+             (name (car (last type))))
+        (csharp--imenu-append-items-to-menu result key name index classes namespaces)))
 
     ;; add enums to main result list, as own items.
     ;; We don't support nested types. EOS.
