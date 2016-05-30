@@ -5,10 +5,10 @@
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
 ;; Modified   : 2016
-;; Version    : 0.8.13
+;; Version    : 0.9.0
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
-;; Last-saved : 2016-Feb-17
+;; Last-saved : 2016-May-28
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -287,9 +287,10 @@
 ;;    0.8.12 2016 January 6th
 ;;          - Various fixes and improvements for imenu indexing.
 ;;
-;;    0.8.13 2016 ...
+;;    0.9.0 2016 July...?
 ;;          - Fix issues with compilation-mode and lines with arrays.
 ;;          - Fontification of compiler directives.
+;;          - Much faster, completely rewritten imenu-implementation.
 ;;
 
 (require 'cc-mode)
@@ -508,96 +509,6 @@ to work properly with code that includes attributes.
 
        (t nil))
       )))
-
-
-
-
-(defun csharp-lineup-region (langelem)
-  "Indent all #region and #endregion blocks inline with code while
-retaining normal column-zero indention for #if and the other
-processing blocks.
-
-To use this indenting just put the following in your emacs file:
-   (c-set-offset 'cpp-macro 'csharp-lineup-region)
-
-An alternative is to use `csharp-lineup-if-and-region'.
-"
-
-  (save-excursion
-    (back-to-indentation)
-    (if (re-search-forward "#\\(end\\)?region" (c-point 'eol) [0]) 0  [0])))
-
-
-
-
-
-(defun csharp-lineup-if-and-region (langelem)
-
-  "Indent all #region/endregion blocks and #if/endif blocks inline
-with code while retaining normal column-zero indention for any
-other processing blocks.
-
-To use this indenting just put the following in your emacs file:
-  (c-set-offset 'cpp-macro 'csharp-lineup-if-and-region)
-
-Another option is to use `csharp-lineup-region'.
-
-"
-  (save-excursion
-    (back-to-indentation)
-    (if (re-search-forward "#\\(\\(end\\)?\\(if\\|region\\)\\|else\\)" (c-point 'eol) [0]) 0  [0])))
-
-
-
-
-(defun csharp-in-literal (&optional lim detect-cpp)
-  "Return the type of literal point is in, if any.
-Basically this works like `c-in-literal' except it doesn't
-use or fill the cache (`c-in-literal-cache').
-
-The return value is a symbol: `c' if in a C-style comment, `c++'
-if in a C++ style comment, `string' if in a string literal,
-`pound' if DETECT-CPP is non-nil and in a preprocessor line, or
-nil if somewhere else.  Optional LIM is used as the backward
-limit of the search.  If omitted, or nil, `c-beginning-of-syntax'
-is used.
-
-Note that this function might do hidden buffer changes.  See the
-comment at the start of cc-engine.el for more info."
-
-  (let ((rtn
-         (save-excursion
-           (let* ((pos (point))
-                  (lim (or lim (progn
-                                 (c-beginning-of-syntax)
-                                 (point))))
-                  (state (parse-partial-sexp lim pos)))
-             (csharp-log 4 "parse lim(%d) state: %s" lim (prin1-to-string state))
-             (cond
-              ((elt state 3)
-               (csharp-log 4 "in literal string (%d)" pos)
-               'string)
-              ((elt state 4)
-               (csharp-log 4 "in literal comment (%d)" pos)
-               (if (elt state 7) 'c++ 'c))
-              ((and detect-cpp (c-beginning-of-macro lim)) 'pound)
-              (t nil))))))
-    rtn))
-
-
-(defun csharp-is-square-parentasis-block-p ()
-  "Attempts to safely assess if the current point is at the opening of
-a square parentasis block [ ... ]."
-  (let* ((start (point)) ;; variables used to hold our position, so that we know that
-         (end))          ;; our code isn't stuck trying to look for a non-existant sexp.
-    (and (eq (char-after) 91) ;; open square
-         (while (and (eq (char-after) 91)
-                     (not (eq start end)))
-           (c-safe (c-forward-sexp 1))
-           (setq end (point)))
-         (eq (char-before) 93))) ;; close square
-  )
-
 
 
 ;; ==================================================================
@@ -1534,216 +1445,70 @@ Most other csharp functions are not instrumented.
 ;; moving
 
 ;; alist of regexps for various structures in a csharp source file.
-(eval-and-compile
-  (defconst csharp--regexp-alist
-    (list
+(defconst csharp--regexp-alist
+  (list
+   `(func-start
+     ,(concat
+       "^[ \t\n\r\f\v]*"                            ;; leading whitespace
+       "\\("
+       "public\\(?: static\\)?\\|"                  ;; 1. access modifier
+       "private\\(?: static\\)?\\|"
+       "protected\\(?: internal\\)?\\(?: static\\)?\\|"
+       "static\\|"
+       "\\)"
+       "[ \t\n\r\f\v]+"
+       "\\(?:override[ \t\n\r\f\v]+\\)?"            ;; optional
+       "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2. return type - possibly generic
+       "[ \t\n\r\f\v]+"
+       "\\("                                        ;; 3. begin name of func
+       "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"         ;; possible prefix interface
+       "[[:alpha:]_][[:alnum:]_]*"                  ;; actual func name
+       "\\(?:<\\(?:[[:alpha:]][[:alnum:]]*\\)\\(?:[, ]+[[:alpha:]][[:alnum:]]*\\)*>\\)?"  ;; (with optional generic type parameter(s)
+       "\\)"                                        ;; 3. end of name of func
+       "[ \t\n\r\f\v]*"
+       "\\(\([^\)]*\)\\)"                           ;; 4. params w/parens
+       "\\(?:[ \t]*/[/*].*\\)?"                     ;; optional comment at end of line
+       "[ \t\n\r\f\v]*"
+       ))
 
-     `(func-start
-       ,(concat
-         "^[ \t\n\r\f\v]*"                            ;; leading whitespace
-         "\\("
-         "public\\(?: static\\)?\\|"                  ;; 1. access modifier
-         "private\\(?: static\\)?\\|"
-         "protected\\(?: internal\\)?\\(?: static\\)?\\|"
-         "static\\|"
-         "\\)"
-         "[ \t\n\r\f\v]+"
-         "\\(?:override[ \t\n\r\f\v]+\\)?"            ;; optional
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2. return type - possibly generic
-         "[ \t\n\r\f\v]+"
-         "\\("                                        ;; 3. begin name of func
-         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"         ;; possible prefix interface
-         "[[:alpha:]_][[:alnum:]_]*"                  ;; actual func name
-         "\\(?:<\\(?:[[:alpha:]][[:alnum:]]*\\)\\(?:[, ]+[[:alpha:]][[:alnum:]]*\\)*>\\)?"  ;; (with optional generic type parameter(s)
-         "\\)"                                        ;; 3. end of name of func
-         "[ \t\n\r\f\v]*"
-         "\\(\([^\)]*\)\\)"                           ;; 4. params w/parens
-         "\\(?:[ \t]*/[/*].*\\)?"                     ;; optional comment at end of line
-         "[ \t\n\r\f\v]*"
-         ))
+   `(class-start
+     ,(concat
+       "^[ \t]*"                                    ;; leading whitespace
+       "\\("
+       "public\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"  ;; access modifiers
+       "internal\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"
+       "static\\(?: internal\\)?[ \t]+\\|"
+       "sealed\\(?: internal\\)?[ \t]+\\|"
+       "static[ \t]+\\|"
+       "sealed[ \t]+\\|"
+       "\\)"
+       "\\(\\(?:partial[ \t]+\\)?class\\|struct\\)" ;; class/struct keyword
+       "[ \t]+"
+       "\\([[:alpha:]_][[:alnum:]]*\\)"             ;; type name
+       "\\("
+       "[ \t\n]*:[ \t\n]*"                          ;; colon
+       "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; base / intf - poss generic
+       "\\("
+       "[ \t\n]*,[ \t\n]*"
+       "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; addl interface - poss generic
+       "\\)*"
+       "\\)?"                                       ;; possibly
+       "[ \t\n\r\f\v]*"
+       ))
 
-     `(ctor-start
-       ,(concat
-         "^[ \t\n\r\f\v]*"                            ;; leading whitespace
-         "\\("
-         "public\\|"                                  ;; 1. access modifier
-         "private\\|"
-         "protected\\(?: internal\\)?\\|"
-         "static\\|"
-         "\\)"
-         "[ \t\n\r\f\v]+"
-         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; 2. name of ctor
-         "[ \t\n\r\f\v]*"
-         "\\(\([^\)]*\)\\)"                           ;; 3. parameter list (with parens)
-         "\\("                                        ;; 4. ctor dependency
-         "[ \t\n]*:[ \t\n]*"                          ;; colon
-         "\\(?:this\\|base\\)"                        ;; this or base
-         "[ \t\n\r\f\v]*"
-         "\\(?:\([^\)]*\)\\)"                         ;; parameter list (with parens)
-         "\\)?"                                       ;; possibly
-         "[ \t\n\r\f\v]*"
-         ))
+   `(namespace-start
+     ,(concat
+       "^[ \t\f\v]*"                                ;; leading whitespace
+       "\\(namespace\\)"
+       "[ \t\n\r\f\v]+"
+       "\\("
+       "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"          ;; name of namespace
+       "[A-Za-z_][[:alnum:]]*"
+       "\\)"
+       "[ \t\n\r\f\v]*"
+       ))
 
-
-     `(using-stmt
-       ,(concat
-         ;;"^[ \t\n\r\f\v]*"
-         "\\(\\<using\\)"
-         "[ \t\n\r\f\v]+"
-         "\\(?:"
-         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; alias
-         "[ \t\n\r\f\v]*"
-         "="
-         "[ \t\n\r\f\v]*"
-         "\\)?"
-         "\\("
-         "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
-         "[A-Za-z_][[:alnum:]]*"
-         "\\)"                                        ;; imported namespace
-         "[ \t\n\r\f\v]*"
-         ";"
-         ))
-
-     `(class-start
-       ,(concat
-         "^[ \t]*"                                    ;; leading whitespace
-         "\\("
-         "public\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"  ;; access modifiers
-         "internal\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"
-         "static\\(?: internal\\)?[ \t]+\\|"
-         "sealed\\(?: internal\\)?[ \t]+\\|"
-         "static[ \t]+\\|"
-         "sealed[ \t]+\\|"
-         "\\)"
-         "\\(\\(?:partial[ \t]+\\)?class\\|struct\\)" ;; class/struct keyword
-         "[ \t]+"
-         "\\([[:alpha:]_][[:alnum:]]*\\)"             ;; type name
-         "\\("
-         "[ \t\n]*:[ \t\n]*"                          ;; colon
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; base / intf - poss generic
-         "\\("
-         "[ \t\n]*,[ \t\n]*"
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; addl interface - poss generic
-         "\\)*"
-         "\\)?"                                       ;; possibly
-         "[ \t\n\r\f\v]*"
-         ))
-
-     `(genclass-start
-       ,(concat
-         "^[ \t]*"                                    ;; leading whitespace
-         "\\("
-         "public\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"  ;; access modifiers
-         "internal\\(?: \\(?:static\\|sealed\\)\\)?[ \t]+\\|"
-         "static\\(?: internal\\)?[ \t]+\\|"
-         "sealed\\(?: internal\\)?[ \t]+\\|"
-         "static[ \t]+\\|"
-         "sealed[ \t]+\\|"
-         "\\)"
-         "\\(\\(?:partial[ \t]+\\)?class\\|struct\\)" ;; class/struct keyword
-         "[ \t]+"
-         "\\([[:alpha:]_][[:alnum:]_<>, ]*\\)"        ;; type name (generic)
-         "\\("
-         "[ \t\n]*:[ \t\n]*"                          ;; colon
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; base / intf - poss generic
-         "\\("
-         "[ \t\n]*,[ \t\n]*"
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; addl interface - poss generic
-         "\\)*"
-         "\\)?"                                       ;; possibly
-         "[ \t\n\r\f\v]*"
-         ))
-
-     `(enum-start
-       ,(concat
-         "^[ \t\f\v]*"                                ;; leading whitespace
-         "\\("
-         "public[ \t]+enum\\|"                        ;; enum keyword
-         "enum"
-         "\\)"
-         "[ \t\n\r\f\v]+"
-         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; name of enum
-         "[ \t\n\r\f\v]*"
-         "\\(:[ \t\n\r\f\v]*"
-         "\\("
-         "sbyte\\|byte\\|short\\|ushort\\|int\\|uint\\|long\\|ulong"
-         "\\)"
-         "[ \t\n\r\f\v]*"
-         "\\)?"                                       ;; possibly
-         "[ \t\n\r\f\v]*"
-         ))
-
-
-     `(intf-start
-       ,(concat
-         "^[ \t\f\v]*"                                ;; leading whitespace
-         "\\(?:"
-         "public\\|internal\\|"                       ;; access modifier
-         "\\)"
-         "[ \t\n\r\f\v]+"
-         "\\(interface\\)"
-         "[ \t\n\r\f\v]+"
-         "\\([[:alpha:]_][[:alnum:]_]*\\)"            ;; name of interface
-         "[ \t\n\r\f\v]*"
-         ))
-
-     `(prop-start
-       ,(concat
-         "^[ \t\f\v]*"                                ;; leading whitespace
-         "\\("
-         "public\\|"                                  ;; 1: access modifier
-         "private\\|"
-         "protected internal\\|"
-         "internal protected\\|"
-         "internal\\|"
-         "\\)"
-         "[ \t\n\r\f\v]+"
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2: return type - possibly generic
-         "[ \t\n\r\f\v]+"
-         "\\("
-         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"          ;; possible prefix interface
-         "[[:alpha:]_][[:alnum:]_]*"                  ;; 3: name of prop
-         "\\)"
-         "[ \t\n\r\f\v]*"
-         ))
-
-     `(indexer-start
-       ,(concat
-         "^[ \t\f\v]*"                                ;; leading whitespace
-         "\\("
-         "public\\|"                                  ;; 1: access modifier
-         "private\\|"
-         "protected internal\\|"
-         "internal protected\\|"
-         "internal\\|"
-         "\\)"
-         "[ \t\n\r\f\v]+"
-         "\\([[:alpha:]_][^\t\(\n]+\\)"               ;; 2: return type - possibly generic
-         "[ \t\n\r\f\v]+"
-         "\\(this\\)"                                 ;; 3: 'this' keyword
-         "[ \t\n\r\f\v]*"
-         "\\["                                        ;; open square bracket
-         "[ \t\n\r\f\v]*"
-         "\\([^\]]+\\)"                               ;; 4: index type
-         "[ \t\n\r\f\v]+"
-         "[[:alpha:]_][[:alnum:]_]*"                  ;; index name - a simple identifier
-         "\\]"                                        ;; closing sq bracket
-         "[ \t\n\r\f\v]*"
-         ))
-
-     `(namespace-start
-       ,(concat
-         "^[ \t\f\v]*"                                ;; leading whitespace
-         "\\(namespace\\)"
-         "[ \t\n\r\f\v]+"
-         "\\("
-         "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"          ;; name of namespace
-         "[A-Za-z_][[:alnum:]]*"
-         "\\)"
-         "[ \t\n\r\f\v]*"
-         ))
-
-     )))
+   ))
 
 
 (defun csharp--regexp (symbol)
@@ -1819,106 +1584,11 @@ See also, `csharp-move-fwd-to-end-of-defun'.
           (goto-char found))))))
 
 
-(defun csharp--on-defun-close-curly-p ()
-  "return t when point is on the close-curly of a method."
-  (and (looking-at "}")
-       (save-excursion
-         (and
-          (progn (forward-char) (forward-sexp -1) t)
-          (not (looking-back (csharp--regexp 'class-start) nil))
-          (not (looking-back (csharp--regexp 'namespace-start) nil))
-          (looking-back (csharp--regexp 'func-start) nil)))))
-
-(defun csharp--on-ctor-close-curly-p ()
-  "return t when point is on the close-curly of a constructor."
-  (and (looking-at "}")
-       (save-excursion
-         (and
-          (progn (forward-char) (forward-sexp -1) t)
-          (looking-back (csharp--regexp 'ctor-start) nil)))))
-
-(defun csharp--on-class-close-curly-p ()
-  "return t when point is on the close-curly of a class or struct."
-  (and (looking-at "}")
-       (save-excursion
-         (and
-          (progn (forward-char) (forward-sexp -1) t)
-          (not (looking-back (csharp--regexp 'namespace-start) nil))
-          (looking-back (csharp--regexp 'class-start) nil)))))
-
-(defun csharp--on-intf-close-curly-p ()
-  "return t when point is on the close-curly of an interface."
-  (and (looking-at "}")
-       (save-excursion
-         (and
-          (progn (forward-char) (forward-sexp -1) t)
-          (looking-back (csharp--regexp 'intf-start) nil)))))
-
-(defun csharp--on-enum-close-curly-p ()
-  "return t when point is on the close-curly of an enum."
-  (and (looking-at "}")
-       (save-excursion
-         (and
-          (progn (forward-char) (forward-sexp -1) t)
-          (looking-back (csharp--regexp 'enum-start) nil)))))
-
-(defun csharp--on-namespace-close-curly-p ()
-  "return t when point is on the close-curly of a namespace."
-  (and (looking-at "}")
-       (save-excursion
-         (and
-          (progn (forward-char) (forward-sexp -1) t)
-          (looking-back (csharp--regexp 'namespace-start) nil)))))
-
-(defun csharp--on-defun-open-curly-p ()
-  "return t when point is on the open-curly of a method."
-  (and (looking-at "{")
-       (not (looking-back (csharp--regexp 'class-start) nil))
-       (not (looking-back (csharp--regexp 'namespace-start) nil))
-       (looking-back (csharp--regexp 'func-start) nil)))
-
 (defun csharp--on-class-open-curly-p ()
   "return t when point is on the open-curly of a class."
   (and (looking-at "{")
        (not (looking-back (csharp--regexp 'namespace-start) nil))
        (looking-back (csharp--regexp 'class-start) nil)))
-
-(defun csharp--on-genclass-open-curly-p ()
-  "return t when point is on the open-curly of a generic class."
-  (and (looking-at "{")
-       (looking-back (csharp--regexp 'genclass-start) nil)))
-
-(defun csharp--on-namespace-open-curly-p ()
-  "return t when point is on the open-curly of a namespace."
-  (and (looking-at "{")
-       (looking-back (csharp--regexp 'namespace-start) nil)))
-
-(defun csharp--on-ctor-open-curly-p ()
-  "return t when point is on the open-curly of a ctor."
-  (and (looking-at "{")
-       (looking-back (csharp--regexp 'ctor-start) nil)))
-
-(defun csharp--on-intf-open-curly-p ()
-  "return t when point is on the open-curly of a interface."
-  (and (looking-at "{")
-       (looking-back (csharp--regexp 'intf-start) nil)))
-
-(defun csharp--on-prop-open-curly-p ()
-  "return t when point is on the open-curly of a property."
-  (and (looking-at "{")
-       (not (looking-back (csharp--regexp 'class-start) nil))
-       (looking-back (csharp--regexp 'prop-start) nil)))
-
-(defun csharp--on-indexer-open-curly-p ()
-  "return t when point is on the open-curly of a C# indexer."
-  (and (looking-at "{")
-       (looking-back (csharp--regexp 'indexer-start) nil)))
-
-(defun csharp--on-enum-open-curly-p ()
-  "return t when point is on the open-curly of a interface."
-  (and (looking-at "{")
-       (looking-back (csharp--regexp 'enum-start) nil)))
-
 
 
 (defun csharp-move-fwd-to-end-of-defun ()
@@ -2077,1076 +1747,348 @@ to the beginning of the prior namespace.
 ;; ==================================================================
 ;;; imenu stuff
 
-;; define some advice for menu construction.
-
-;; The way imenu constructs menus from the index alist, in
-;; `imenu--split-menu', is ... ah ... perplexing.  If the csharp
-;; create-index fn returns an ordered menu, and the imenu "sort" fn has
-;; been set to nil, imenu still sorts the menu, according to the rule
-;; that all submenus must appear at the top of any menu. Why?  I don't
-;; know. This advice disables that weirdness in C# buffers.
-
-(defadvice imenu--split-menu (around
-                              csharp--imenu-split-menu-patch
-                              activate compile)
-  ;; This advice will run in all buffers.  Let's may sure we
-  ;; actually execute the important bits only when a C# buffer is active.
-  (if (and (string-match "\\.[Cc][Ss]$"  (file-relative-name buffer-file-name))
-           (boundp 'csharp-want-imenu)
-           csharp-want-imenu)
-      (let ((menulist (copy-sequence menulist))
-            keep-at-top)
-        (if (memq imenu--rescan-item menulist)
-            (setq keep-at-top (list imenu--rescan-item)
-                  menulist (delq imenu--rescan-item menulist)))
-        ;; This is the part from the original imenu code
-        ;; that puts submenus at the top.  huh? why?
-        ;; --------------------------------------------
-        ;; (setq tail menulist)
-        ;; (dolist (item tail)
-        ;;   (when (imenu--subalist-p item)
-        ;;     (push item keep-at-top)
-        ;;     (setq menulist (delq item menulist))))
-        (if imenu-sort-function
-            (setq menulist (sort menulist imenu-sort-function)))
-        (if (> (length menulist) imenu-max-items)
-            (setq menulist
-                  (mapcar
-                   (lambda (menu)
-                     (cons (format "From: %s" (caar menu)) menu))
-                   (imenu--split menulist imenu-max-items))))
-        (setq ad-return-value
-              (cons title
-                    (nconc (nreverse keep-at-top) menulist))))
-    ;; else
-    ad-do-it))
-
-
-;;
-;; I used this to examine the performance of the imenu scanning.
-;; It's not necessary during normal operation.
-;;
-;; (defun csharp-imenu-begin-profile ()
-;;   "turn on profiling"
-;;   (interactive)
-;;   (let ((fns '(csharp--on-class-open-curly-p
-;;              csharp--on-namespace-open-curly-p
-;;              csharp--on-ctor-open-curly-p
-;;              csharp--on-enum-open-curly-p
-;;              csharp--on-intf-open-curly-p
-;;              csharp--on-prop-open-curly-p
-;;              csharp--on-indexer-open-curly-p
-;;              csharp--on-defun-open-curly-p
-;;              csharp--imenu-create-index-helper
-;;              looking-back
-;;              looking-at)))
-;;     (if (fboundp 'elp-reset-all)
-;;         (elp-reset-all))
-;;     (mapc 'elp-instrument-function fns)))
-
-
-
-(defun csharp--imenu-remove-param-names-from-paramlist (s)
-  "The input string S is a parameter list, of the form seen in a
-C# method.  TYPE1 NAME1 [, TYPE2 NAME2 ...]
-
-This fn returns a string of the form TYPE1 [, TYPE2...]
-
-Upon entry, it's assumed that the parens included in S.
-
-"
-  (if (string= s "()")
-      s
-    (save-match-data
-      (let* (new
-             (state 0)  ;; 0 => ws, 1=>slurping param...
-             c
-             cs
-             quoting
-             nesting
-             need-type
-             ix2
-             (s2 (substring s 1 -1))
-             (len (length s2))
-             (i (1- len)))
-
-        (while (> i 0)
-          (setq c (aref s2 i) ;; current character
-                cs (char-to-string c)) ;; s.t. as a string
-
-          (cond
-
-           ;; backing over whitespace "after" the param
-           ((= state 0)
-            (cond
-             ;; more ws. = is equal to whitespace in the sense that its follows a param-name.
-             ((string-match "[ \t\f\v\n\r=]" cs)
-              t)
-             ((string-match "[\"']" cs)
-              ;; a quote means we're probably dealing with a stringy default-value
-              ;; back out until we're back into unquoted context
-              (setq quoting cs
-                    state 5))
-             ;; a legal char for an identifier
-             ((string-match "[A-Za-z_0-9]" cs)
-              (setq state 1))
-             (t
-              (error "unexpected char (A)"))))
-
-
-           ;; slurping param name
-           ((= state 1)
-            (cond
-             ;; ws signifies the end of the param
-             ((string-match "[ \t\f\v\n\r]" cs)
-              (setq state 2))
-             ((string-match "[=]" cs)
-              ;; = means what we slurped was a default-value for a param
-              ;; go back to slurping param-name
-              (setq state 0))
-             ;; a legal char for an identifier
-             ;; (or . for object-access in default value)
-             ((string-match "[A-Za-z_0-9\.]" cs)
-              t)
-             (t
-              (error "unexpected char (B)"))))
-
-
-           ;; ws between typespec and param name
-           ((= state 2)
-            (cond
-             ((string-match "[ \t\f\v\n\r]" cs)
-              t)
-             ((string-match "[=]" cs)
-              ;; = means what we slurped was a default-value for a param
-              ;; go back to slurping param-name
-              (setq state 0))
-             ;; non-ws indicates the type spec is beginning
-             (t
-              (cl-incf i)
-              (setq state 3
-                    need-type nil
-                    nesting 0
-                    ix2 i))))
-
-
-           ;; slurping type
-           ((= state 3)
-            (cond
-             ((= ?> c) (cl-incf nesting))
-             ((= ?< c)
-              (cl-decf nesting)
-              (setq need-type t))
-
-             ;; ws or comma maybe signifies the end of the typespec
-             ((string-match "[ \t\f\v\n\r,]" cs)
-              (if (and (= nesting 0) (not need-type))
-                  (progn
-                    (setq new (cons (substring s2 (1+ i) ix2) new))
-                    (setq state
-                          (if (= c ?,) 0 4)))))
-
-             ((string-match "[A-Za-z_0-9]" cs)
-              (setq need-type nil))))
-
-
-           ;; awaiting comma or b-o-s
-           ((= state 4)
-            (cond
-
-             ((= ?, c)
-              (if  (= nesting 0)
-                  (setq state 0)))
-
-             ((string-match "[ \t\f\v\n\r]" cs)
-              t)
-
-             ((= 93 c) (cl-incf nesting)) ;; sq brack
-             ((= 91 c)  ;; open sq brack
-              (cl-decf nesting))
-
-             ;; handle this (extension methods), out, ref, params
-             ((and (>= i 5)
-                   (string= (substring s2 (- i 5) (1+ i)) "params"))
-              (setf (car new) (concat "params " (car new)))
-              (setq i (- i 5)))
-
-             ((and (>= i 3)
-                   (string= (substring s2 (- i 3) (1+ i)) "this"))
-              (setf (car new) (concat "this " (car new)))
-              (setq i (- i 3)))
-
-             ((and (>= i 2)
-                   (string= (substring s2 (- i 2) (1+ i)) "ref"))
-              (setf (car new) (concat "ref " (car new)))
-              (setq i (- i 2)))
-
-             ((and (>= i 2)
-                   (string= (substring s2 (- i 2) (1+ i)) "out"))
-              (setf (car new) (concat "out " (car new)))
-              (setq i (- i 2)))
-
-             (t
-              (error "unexpected char (C)"))))
-
-           ;; in a quoted context of a default-value.
-           ;; we're basically waiting for a matching quote, to go back to slurping param-name
-           ((= state 5)
-            (cond
-             ((equal quoting cs)
-              ;; we're back to unquoted! slurp param-name!
-              (setq state 0))
-             (t
-              t)))
-           )
-
-          (cl-decf i))
-
-        (if (and (= state 3) (= nesting 0))
-            (setq new (cons (substring s2 i ix2) new)))
-
-        (concat "("
-                (if new
-                    (mapconcat 'identity new ", ")
-                  "")
-                ")")))))
-
-
-(defun csharp--imenu-item-basic-comparer (a b)
-  "Compares the car of each element, assumed to be a string."
-  (string-lessp (car a) (car b)))
-
-
-(defun csharp--imenu-get-method-name-from-sig (sig)
-  "Extract a method name with its parameter list from a method
-signature, SIG. This is used to aid in sorting methods by name,
-and secondarily by parameter list.
-
-For this input:
-
-    private Dict<String, int>  DoSomething(int, string)
-
-...the output is:
-
-   DoSomething(int, string)
-
-"
-  (let* (c
-         result
-         (state 0)
-         (len (length sig))
-         (i (1- len)))
-    (while (> i 0)
-      (setq c (aref sig i))
-
-      (cond
-       ((and (= state 0) (= c 40))
-        (setq state 1))
-
-       ((and (= state 1) (or (= c 9) (= c 32)))
-        (setq result (substring sig (1+ i))
-              i 0)))
-      (cl-decf i))
-    result))
-
-
-
-(defun csharp--imenu-item-method-name-comparer (a b)
-  "Compares the method names in the respective cars of each element.
-
-The car of each element is assumed to be a string with multiple
-tokens in it, representing a method signature, including access
-modifier, return type, and parameter list (surrounded by parens).
-If the method takes no params, then it's just an empty pair of
-parens.
-
-This fn extracts the method name and param list from that
-signature and compares *that*.
-
-"
-  (let ((methoda (csharp--imenu-get-method-name-from-sig (car a)))
-        (methodb (csharp--imenu-get-method-name-from-sig (car b))))
-    ;;(csharp-log -1 "compare '%s' <> '%s'" methoda methodb)
-    (string-lessp methoda methodb)))
-
-
-
-(defun csharp--imenu-create-index-helper (&optional parent-ns indent-level
-                                                    consider-usings consider-namespaces)
-  "Helper fn for `csharp-imenu-create-index'.
-
-Scans a possibly narrowed section of a c# buffer.  It finds
-namespaces, classes, structs, enums, interfaces, and methods
-within classes and structs.
-
-The way it works: it looks for an open-curly.  If the open-curly
-is a namespace or a class, it narrows to whatever is inside the
-curlies, then recurses.
-
-Otherwise (the open-curly is neither of those things), this fn
-tries to recognize the open-curly as the beginning of an enum,
-method, or interface.
-
-If it succeeds, then a menu item is created for the thing. Then
-it jumps to the matching close-curly, and continues. Stop when no
-more open-curlies are found.
-
-"
-
-  ;; A C# module consists of zero of more explicitly denoted (and
-  ;; possibly nested) namespaces. In the absence of an
-  ;; explicitly-denoted namespace, the global namespace is implicitly
-  ;; applied.  Within each namespace there can be zero or more
-  ;; "container" things - like class, struct, or interface; each with
-  ;; zero or more indexable items - like methods, constructors.
-  ;; and so on.
-
-  ;; This fn parses the module and indexes those items, creating a
-  ;; hierarchically organized list to describe them.  Each container
-  ;; (ns/class/struct/etc) is represented on a separate submenu.
-
-  ;; It works like this:
-  ;; (start at the top of the module)
-  ;;
-  ;; 1. look for a using clause
-  ;;    yes - insert an item in the menu; move past all using clauses.
-  ;;
-  ;; 2. go to next open curly
-  ;;
-  ;; 2. beginning of a container? (a class or namespace)
-  ;;
-  ;;    yes - narrow, and recurse
-  ;;
-  ;;    no - create a menu item for the thing, whatever it is.  add to
-  ;;         the submenu. Go to the end of the thing (to the matching
-  ;;         close curly) then goto step 1.
-  ;;
-
-  (let (container-name
-        (pos-last-curly -1)
-        this-flavor
-        this-item
-        this-menu
-        found-usings
-        done)
-
-    (while (not done)
-
-      ;; move to the next thing
-      (c-forward-syntactic-ws)
-      (cond
-       ((and consider-usings
-             (re-search-forward (csharp--regexp 'using-stmt) (point-max) t))
-        (goto-char (match-beginning 1))
-        (setq found-usings t
-              done nil))
-
-       ((re-search-forward "{" (point-max) t)
-        (if (= pos-last-curly (point))
-            (progn
-              ;;(csharp-log -1 "imenu: No advance? quitting (%d)" (point))
-              (setq done t)) ;; haven't advanced- likely a loop
-
-          (setq pos-last-curly (point))
-          (let ((literal (csharp-in-literal)))
-            ;; skip over comments?
-            (cond
-
-             ((memq literal '(c c++))
-              (while (memq literal '(c c++))
-                (end-of-line)
-                (forward-char 1)
-                (setq literal (csharp-in-literal)))
-              (if (re-search-forward "{" (point-max) t)
-                  (forward-char -1)
-                ;;(csharp-log -1 "imenu: No more curlies (A) (%d)" (point))
-                (setq done t)))
-
-             ((eq literal 'string)
-              (if  (re-search-forward "\"" (point-max) t)
-                  (forward-char 1)
-                ;;(csharp-log -1 "imenu: Never-ending string? posn(%d)" (point))
-                (setq done t)))
-
-             (t
-              (forward-char -1)))))) ;; backup onto the curly
-
-       (t
-        ;;(csharp-log -1 "imenu: No more curlies (B) posn(%d)" (point))
-        (setq done t)))
-
-
-      (if (not done)
-          (cond
-
-           ;; case 1: open curly for an array initializer
-           ((looking-back "\\[\\][ \t\n\r]*" nil)
-            (forward-sexp 1))
-
-           ;; case 2: just jumped over a string
-           ((looking-back "\"" nil)
-            (forward-char 1))
-
-           ;; case 3: at the head of a block of using statements
-           (found-usings
-            (setq found-usings nil
-                  consider-usings nil) ;; only one batch
-            (let ((first-using (match-beginning 1))
-                  (count 0)
-                  marquis
-                  ;; don't search beyond next open curly
-                  (limit (1-
-                          (save-excursion
-                            (re-search-forward "{" (point-max) t)))))
-
-              ;; count the using statements
-              (while (re-search-forward (csharp--regexp 'using-stmt) limit t)
-                (cl-incf count))
-
-              (setq marquis (if (eq count 1) "using (1)"
-                              (format "usings (%d)" count)))
-              (push (cons marquis first-using) this-menu)))
-
-
-           ;; case 4: an interface or enum inside the container
-           ;; (must come before class / namespace )
-           ((or (csharp--on-intf-open-curly-p)
-                (csharp--on-enum-open-curly-p))
-            (setq consider-namespaces nil
-                  consider-usings nil
-                  container-name (if parent-ns
-                                     (concat parent-ns ".")
-                                   nil)
-                  this-menu (append this-menu
-                                    (list
-                                     (cons (concat
-                                            (match-string-no-properties 1) ;; thing flavor
-                                            " "
-                                            container-name
-                                            (match-string-no-properties 2)) ;; intf name
-                                           (match-beginning 1)))))
-            (forward-sexp 1))
-
-
-           ;; case 5: at the start of a container (class, namespace)
-           ((or (and consider-namespaces (csharp--on-namespace-open-curly-p))
-                (csharp--on-class-open-curly-p)
-                (csharp--on-genclass-open-curly-p))
-
-            ;; produce a fully-qualified name for this thing
-            (if (string= (match-string-no-properties 1) "namespace")
-                (setq this-flavor (match-string-no-properties 1)
-                      this-item (match-string-no-properties 2))
-              (setq this-flavor (match-string-no-properties 2)
-                    this-item (match-string-no-properties 3)
-                    consider-usings nil
-                    consider-namespaces nil))
-
-            (setq container-name (if parent-ns
-                                     (concat parent-ns "." this-item)
-                                   this-item))
-
-            ;; create a submenu
-            (let (submenu
-                  (top (match-beginning 1))
-                  (open-curly (point))
-                  (close-curly (save-excursion
-                                 (forward-sexp 1)
-                                 (point))))
-              (setq submenu
+(defconst csharp--imenu-expression
+  (let* ((single-space                   "[ \t\n\r\f\v]")
+         (optional-space                 (concat single-space "*"))
+         (bol                            (concat "^" optional-space))
+         (space                          (concat single-space "+"))
+         (access-modifier (regexp-opt '( "public" "private" "protected" "internal"
+                                         "static" "sealed" "partial" "override" "virtual"
+                                         "abstract")))
+         ;; this will allow syntactically invalid combinations of modifiers
+         ;; but that's a compiler problem, not a imenu-problem
+         (access-modifier-list (concat "\\(?:" access-modifier space "\\)"))
+         (access-modifiers (concat access-modifier-list "*"))
+         (return-type                    "\\(?:[[:alpha:]_][^ =\t\(\n\r\f\v]+\\)")
+         (identifier                     "[[:alpha:]_][[:alnum:]_]*")
+         (interface-prefix               (concat "\\(?:" identifier "\\.\\)"))
+         (generic-identifier (concat identifier
+                                     ;; optional generic arguments
+                                     "\\(?:<" optional-space identifier
+                                     "\\(?:" "," optional-space identifier optional-space "\\)*"
+                                     ">\\)?"
+                                     ))
+         ;; param-list with parens
+         (parameter-list "\\(?:\([^!\)]*\)\\)")
+         (inheritance-clause (concat "\\(?:"
+                                     optional-space
+                                     ":"
+                                     optional-space generic-identifier
+                                     "\\(?:" optional-space "," optional-space generic-identifier "\\)*"
+                                     "\\)?")))
+
+    (list (list "namespace"
+                (concat bol "namespace" space
+                        "\\(" identifier "\\)") 1)
+          ;; not all these are classes, but they can hold other
+          ;; members, so they are treated uniformly.
+          (list "class"
+                (concat bol
+                        access-modifiers
+                        "\\("
+                        (regexp-opt '("class" "struct" "interface")) space
+                        generic-identifier inheritance-clause "\\)")  1)
+          (list "enum"
+                (concat bol
+                        access-modifiers
+                        "\\(" "enum" space
+                        identifier "\\)")  1)
+          (list "ctor"
+                (concat bol
+                        ;; ctor MUST have access modifiers, or else we pick
+                        ;; every if statement in the file...
+                        access-modifier-list "+"
+                        "\\("
+                        identifier
+                        optional-space
+                        parameter-list
+                        "\\)"
+                        "\\(?:"
+                        optional-space
+                        ":"
+                        optional-space
+                        "\\(?:this\\|base\\)"
+                        optional-space
+                        parameter-list
+                        "\\)?"
+                        optional-space "{") 1)
+          (list "method"
+                (concat bol
+                        ;; we MUST require modifiers, or else we cannot reliably
+                        ;; identify declarations, without also dragging in lots of
+                        ;; if statements and what not.
+                        access-modifier-list "+"
+                        return-type space
+                        "\\("
+                        generic-identifier
+                        optional-space
+                        parameter-list
+                        "\\)"
+                        ;; optional // or /* comment at end
+                        "\\(?:[ \t]*/[/*].*\\)?"
+                        optional-space
+                        "{") 1)
+          (list "method-inf"
+                (concat bol
+                        return-type space
+                        "\\("
+                        interface-prefix
+                        generic-identifier
+                        optional-space
+                        parameter-list
+                        "\\)"
+                        ;; optional // or /* comment at end
+                        "\\(?:[ \t]*/[/*].*\\)?"
+                        optional-space
+                        "{") 1)
+          (list "prop"
+                (concat bol
+                        ;; must require access modifiers, or else we
+                        ;; pick up pretty much anything.
+                        access-modifiers
+                        return-type space
+                        "\\("
+                        generic-identifier
+                        "\\)"
+                        optional-space "{" optional-space
+                        ;; unless we are super-specific and expect the accesors,
+                        ;; lots of weird things gets slurped into the name.
+                        ;; including the accessors themselves.
+                        (regexp-opt '("get" "set"))
+                        ) 1)
+          (list "prop-inf"
+                (concat bol
+                        return-type space
+                        "\\("
+                        interface-prefix
+                        generic-identifier
+                        "\\)"
+                        optional-space "{" optional-space
+                        ;; unless we are super-specific and expect the accesors,
+                        ;; lots of weird things gets slurped into the name.
+                        ;; including the accessors themselves.
+                        (regexp-opt '("get" "set"))
+                        ) 1)
+          ;; adding fields... too much?
+          (list "field"
+                (concat bol
+                        access-modifier-list "+"
+                        ;; fields can be readonly/const
+                        "\\(?:" (regexp-opt '("readonly" "const")) space "\\)?"
+                        "\\("
+                        return-type space
+                        generic-identifier
+                        "\\)"
+                        optional-space
+                        ;; optional assignment
+                        "\\(?:=[^;]+\\)?"
+                        ";") 1)
+          (list "indexer"
+                (concat bol
+                        access-modifiers
+                        return-type space
+                        "this" optional-space
+                        "\\("
+                        ;; opening bracket
+                        "\\[" optional-space
+                        ;; type
+                        "\\([^\]]+\\)" optional-space
+                        identifier
+                        ;; closing brackets
+                        "\\]"
+                        "\\)"
+                        optional-space "{" optional-space
+                        ;; unless we are super-specific and expect the accesors,
+                        ;; lots of weird things gets slurped into the name.
+                        ;; including the accessors themselves.
+                        (regexp-opt '("get" "set"))) 1)
+          (list "event"
+                (concat bol
+                        access-modifier-list "+"
+                        optional-space "event" optional-space
+                        "\\("
+                        return-type space
+                        generic-identifier
+                        "\\)"
+                        optional-space
+                        ";") 1))))
+
+(defun csharp--imenu-get-pos (pair)
+  "Takes a (title . position) cons-pair `PAIR' and returns position.
+
+   The position may be a integer, or a marker (as returned by
+   imenu-indexing). This function ensures what is returned is an
+   integer which can be used for easy comparison."
+  (let ((pos (cdr pair)))
+    (if (markerp pos)
+        (marker-position pos)
+      pos)))
+
+(defun csharp--imenu-get-container (item containers previous)
+  "Returns the container which `ITEM' belongs to.
+
+   `ITEM' is a (title . position) cons-pair. `CONTAINERS' is a
+   list of such.  `PREVIOUS' is the name of the previous
+   container found when recursing through `CONTAINERS'.
+
+   The final result is based on item's position relative to those
+   found in `CONTAINERS', or nil if none is found."
+  (if (not containers)
+      previous
+    (let* ((item-pos (csharp--imenu-get-pos item))
+           (container (car containers))
+           (container-pos (csharp--imenu-get-pos container))
+           (rest      (cdr containers)))
+      (if (and container-pos
+               (< item-pos container-pos))
+          previous
+        (csharp--imenu-get-container item rest container)))))
+
+(defun csharp--imenu-get-container-name (item containers)
+  "Returns the name of the container which `ITEM' belongs to.
+
+   `ITEM' is a (title . position) cons-pair.
+   `CONTAINERS' is a list of such.
+
+   The name is based on the results from
+   `csharp--imenu-get-container'."
+  (let ((container (csharp--imenu-get-container item containers nil)))
+    (if (not container)
+        nil
+      (let ((container-p1 (car (split-string (car container))))   ;; namespace
+            (container-p2 (cadr (split-string (car container))))) ;; class/interface
+        ;; use p1 (namespace) when there is no p2
+        (if container-p2
+            container-p2
+          container-p1)))))
+
+(defun csharp--imenu-sort (items)
+  "Sorts an imenu-index list `ITMES' by the string-portion."
+  (sort items (lambda (item1 item2)
+                (string< (car item1) (car item2)))))
+
+(defun csharp--imenu-get-class-name (class namespaces)
+  "Gets a name for a imenu-index `CLASS'.
+
+   Result is based on its own name and `NAMESPACES' found in the same file."
+  (let ((namespace (csharp--imenu-get-container-name class namespaces))
+        (class-name (car class)))
+    (if (not namespace)
+        class-name
+      ;; reformat to include namespace
+      (let* ((words (split-string class-name))
+             (type  (car words))
+             (name  (cadr words)))
+        (concat type " " namespace "." name)))))
+
+(defun csharp--imenu-get-class-nodes (classes namespaces)
+  "Creates a new alist with classes as root nodes with namespaces added.
+
+   Each class will have one imenu index-entry \"( top)\" added by
+   default."
+
+  (mapcar (lambda (class)
+            (let ((class-name (csharp--imenu-get-class-name class namespaces))
+                  (class-pos  (cdr class)))
+              ;; construct a new alist-entry where value is itself
+              ;; a list of alist-entries with -1- entry which the top
+              ;; of the class itself.
+              (cons class-name
                     (list
-                     (concat this-flavor " " container-name)
-                     (cons "(top)" top)))
+                     (cons "( top )" class-pos)))))
+          classes))
+
+(defun csharp--imenu-get-class-node (result item classes namespaces)
+  "Gets the class-node which a `ITEM' should be inserted into in `RESULT'.
+
+   For this calculation, the original index items `CLASSES' and `NAMESPACES'
+   is needed."
+  (let* ((class-item (csharp--imenu-get-container item classes nil))
+         (class-name (csharp--imenu-get-class-name class-item namespaces)))
+    (assoc class-name result)))
+
+(defun csharp--imenu-format-item-node (item type)
+  "Formats a item with a specified type as a imenu item to be inserted into the index."
+  (cons
+   (concat "(" type ") " (car item))
+   (cdr item)))
+
+(defun csharp--imenu-append-items-to-menu (result key name index classes namespaces)
+  ;; items = all methods, all events, etc based on "type"
+  (let* ((items (cdr (assoc key index))))
+    (dolist (item items)
+      (let ((class-node (csharp--imenu-get-class-node result item classes namespaces))
+            (item-node  (csharp--imenu-format-item-node item name)))
+        (nconc class-node (list item-node))))))
+
+(defun csharp--imenu-transform-index (index)
+  "Transforms a imenu-index based on `IMENU-GENERIC-EXPRESSION'.
+
+  The resulting structure should be based on full type-names, with
+  type-members nested hierarchially below its parent.
+
+  See `csharp-mode-tests.el' for examples of expected behaviour
+  of such transformations."
+  (let* ((result nil)
+         (namespaces (cdr (assoc "namespace" index)))
+         (classes    (cdr (assoc "class"     index)))
+         (class-nodes (csharp--imenu-get-class-nodes classes namespaces)))
+    ;; be explicit about collection variable
+    (setq result class-nodes)
+    (dolist (type '(("ctor")
+                    ("method")
+                    ("method-inf" "method")
+                    ("prop")
+                    ("prop-inf" "prop")
+                    ("field")
+                    ("event")
+                    ("indexer")))
+      (let* ((key (car type))
+             (name (car (last type))))
+        (csharp--imenu-append-items-to-menu result key name index classes namespaces)))
+
+    ;; add enums to main result list, as own items.
+    ;; We don't support nested types. EOS.
+    ;;
+    ;; This has the issue that it gets reported as "function" in
+    ;; `helm-imenu', but there's nothing we can do about that.
+    ;; The alternative is making it a menu with -1- submenu which
+    ;; says "( top )" but that will be very clicky...
+    (dolist (enum (cdr (assoc "enum" index)))
+      (let ((enum-name (csharp--imenu-get-class-name enum namespaces)))
+        (setq result (cons (cons enum-name (cdr enum)) result))))
+
+    ;; sort individual sub-lists
+    (dolist (item result)
+      (when (listp (cdr item))
+        (setf (cdr item) (csharp--imenu-sort (cdr item)))))
+
+    ;; sort main list
+    ;; (Enums always sort last though, because they dont have
+    ;; sub-menus)
+    (csharp--imenu-sort result)))
+
+(defun csharp--imenu-create-index-function ()
+  (csharp--imenu-transform-index
+   (imenu--generic-function csharp--imenu-expression)))
+
+(defun csharp--setup-imenu ()
+  "Sets up `imenu' for `csharp-mode'."
+
+  ;; There are two ways to do imenu indexing. One is to provide a
+  ;; function, via `imenu-create-index-function'.  The other is to
+  ;; provide imenu with a list of regexps via
+  ;; `imenu-generic-expression'; imenu will do a "generic scan" for you.
+  ;;
+  ;; We use both.
+  ;;
+  ;; First we use the `imenu-generic-expression' to build a index for
+  ;; us, but we do so inside a `imenu-create-index-function'
+  ;; implementation which allows us to tweak the results slightly
+  ;; before returning it to Emacs.
+  (setq imenu-create-index-function #'csharp--imenu-create-index-function)
+  (imenu-add-menubar-index))
 
-              ;; find all contained items
-              (save-restriction
-                (narrow-to-region (1+ open-curly) (1- close-curly))
-
-                (let* ((yok (string= this-flavor "namespace"))
-                       (child-menu
-                        (csharp--imenu-create-index-helper container-name
-                                                           (concat indent-level "  ")
-                                                           yok yok)))
-                  (if child-menu
-                      (setq submenu
-                            (append submenu
-                                    (sort child-menu
-                                          'csharp--imenu-item-basic-comparer))))))
-              (setq submenu
-                    (append submenu
-                            (list (cons "(bottom)" close-curly))))
-
-              (setq this-menu
-                    (append this-menu (list submenu)))
-
-              (goto-char close-curly)))
-
-
-           ;; case 6: a property
-           ((csharp--on-prop-open-curly-p)
-            (setq consider-namespaces nil
-                  consider-usings nil
-                  this-menu
-                  (append this-menu
-                          (list
-                           (cons (concat
-                                  "prop "
-                                  (match-string-no-properties 3)) ;; prop name
-                                 (match-beginning 1)))))
-            (forward-sexp 1))
-
-
-           ;; case 7: an indexer
-           ((csharp--on-indexer-open-curly-p)
-            (setq consider-namespaces nil
-                  consider-usings nil
-                  this-menu
-                  (append this-menu
-                          (list
-                           (cons (concat
-                                  "indexer "
-                                  (match-string-no-properties 4)) ;; index type
-                                 (match-beginning 1)))))
-            (forward-sexp 1))
-
-
-           ;; case 8: a constructor inside the container
-           ((csharp--on-ctor-open-curly-p)
-            (setq consider-namespaces nil
-                  consider-usings nil
-                  this-menu
-                  (append this-menu
-                          (list
-                           (cons (concat
-                                  "ctor "
-                                  (match-string-no-properties 2) ;; ctor name
-                                  (csharp--imenu-remove-param-names-from-paramlist
-                                   (match-string-no-properties 3))) ;; ctor params
-                                 (match-beginning 1)))))
-            (forward-sexp 1))
-
-
-           ;; case 9: a method inside the container
-           ((csharp--on-defun-open-curly-p)
-            (setq consider-namespaces nil
-                  consider-usings nil
-                  this-menu
-                  (append this-menu
-                          (list
-                           (cons (concat
-                                  "method "
-                                  (match-string-no-properties 2) ;; return type
-                                  " "
-                                  (match-string-no-properties 3) ;; func name
-                                  (csharp--imenu-remove-param-names-from-paramlist
-                                   (match-string-no-properties 4))) ;; fn params
-                                 (match-beginning 1)))))
-            (forward-sexp 1))
-
-
-           ;; case 10: unknown open curly - just jump over it.
-           ((looking-at "{")
-            (forward-sexp 1))
-
-           ;; case 11: none of the above. shouldn't happen?
-           (t
-            (forward-char 1)))))
-
-    this-menu))
-
-
-;; =======================================================
-;; DPC Thu, 19 May 2011  11:25
-;; There are two challenges with the imenu support: generating the
-;; index, and generating a reasonable display for the index.  The index
-;; generation is pretty straightforward: use regexi to locate
-;; interesting stuff in the buffer.
-;;
-;; The menu generation is a little trickier.  Long lists of methods
-;; mixed with properties and interfaces (etc) will be displayed in the
-;; menu but will look Very Bad. Better to organize the menu into
-;; submenus, organized primarily by category.  Also the menus should be
-;; sorted, for ease of human scanning.  The next section of logic is
-;; designed to do the stuff for the menu generation.
-
-
-(defcustom csharp-imenu-max-similar-items-before-extraction 6
-  "The maximum number of things of a particular
-category (constructor, property, method, etc) that will be
-separely displayed on an imenu without factoring them into a
-separate submenu.
-
-For example, if a module has 3 consructors, 5 methods, and 7
-properties, and the value of this variable is 4, then upon
-refactoring, the constructors will remain in the toplevel imenu
-and the methods and properties will each get their own
-category-specific submenu.
-
-See also `csharp-imenu-min-size-for-sub-submenu'.
-
-For more information on how csharp-mode uses imenu,
-see `csharp-want-imenu', and `csharp-mode'.
-"
-  :type 'integer
-  :group 'csharp)
-
-
-(defcustom csharp-imenu-min-size-for-sub-submenu 18
-  "The minimum number of imenu items  of a particular
-category (constructor, property, method, etc) that will be
-broken out into sub-submenus.
-
-For example, if a module has 28 properties, then the properties will
-be placed in a submenu, and then that submenu with be further divided
-into smaller submenus.
-
-See also `csharp-imenu-max-similar-items-before-extraction'
-
-For more information on how csharp-mode uses imenu,
-see `csharp-want-imenu', and `csharp-mode'.
-"
-  :type 'integer
-  :group 'csharp)
-
-
-(defun csharp--first-word (s)
-  "gets the first word from the given string.
-It had better be a string!"
-  (car (split-string s nil t)))
-
-
-(defun csharp--make-plural (s)
-  "make a word plural. For use within the generated imenu."
-  (cond
-   ((string= s "prop") "properties")
-   ((string= s "class") "classes")
-   ((string= s "ctor") "constructors")
-   (t (concat s "s"))))
-
-
-(defun csharp--imenu-counts (list)
-  "Returns an alist, each item is a cons cell where the car is a
-unique first substring of an element of LIST, and the cdr is the
-number of occurrences of that substring in elements in the
-list.
-
-For a complicated imenu generated for a large C# module, the result of
-this fn will be something like this:
-
-    ((\"(top)\"        . 1)
-     (\"properties\"   . 38)
-     (\"methods\"      . 12)
-     (\"constructors\" . 7)
-     (\"(bottom)\"     . 1))
-
-"
-  (letrec ((helper
-            (lambda (list new)
-              (if (null list) new
-                (let* ((elt (car list))
-                       (topic (csharp--make-plural
-                               (csharp--first-word(car elt))))
-                       (xelt (assoc topic new)))
-                  (funcall helper (cdr list)
-                           (if xelt
-                               (progn (cl-incf (cdr xelt)) new)
-                             (cons (cons topic 1) new))))))))
-    (nreverse (funcall helper list nil))))
-
-
-
-(defun csharp--imenu-get-submenu-size (n)
-  "Gets the preferred size of submenus given N, the size of the
-flat, unparceled menu.
-
-Suppose there are 50 properties in a given C# module. This fn maps
-from that number, to the maximum size of the submenus into which the
-large set of properties should be broken.
-
-Currently the submenu size for 50 is 12.  To change this, change
-the lookup table.
-
-The reason it's a lookup table and not a simple arithmetic
-function: I think it would look silly to have 2 submenus each
-with 24 items.  Sixteen or 18 items on a submenu seems fine when
-you're working through 120 items total. But if you have only 28
-items, better to have 3 submenus with 10 and 9 items each.  So
-it's not a linear function. That's what this lookup tries to do.
-
-"
-  (let ((size-pairs '((100 . 22)
-                      (80 . 20)
-                      (60 . 18)
-                      (40 . 15)
-                      (30 . 14)
-                      (24 . 11)
-                      (0  . 9)))
-        elt
-        (r 0))
-
-    (while (and size-pairs (eq r 0))
-      (setq elt (car size-pairs))
-      (if (> n (car elt))
-          (setq r (cdr elt)))
-      (setq size-pairs (cdr size-pairs)))
-    r))
-
-
-
-(defun csharp--imenu-remove-category-names (menu-list)
-  "Input is a list, each element is (LABEL . LOCATION). This fn
-returns a modified list, with the first word - the category name
-- removed from each label.
-
-"
-  (mapcar (lambda (elt)
-            (let ((tokens (split-string (car elt) "[ \t]" t)))
-              (cons (mapconcat 'identity (cdr tokens) " ")
-                    (cdr elt))))
-          menu-list))
-
-(defun string-indexof (s c)
-  "Returns the index of the first occurrence of character C in string S.
-Returns nil if not found.
-
-See also, `string-lastindexof'
-
-"
-  (let ((len (length s))
-        (i 0) ix c2)
-    (while (and (< i len) (not ix))
-      (setq c2 (aref s i))
-      (if (= c c2)
-          (setq ix i))
-      (cl-incf i))
-    ix))
-
-(defun string-lastindexof (s c)
-  "Returns the index of the last occurrence of character C in string S.
-Returns nil if not found.
-
-See also, `string-indexof'
-
-"
-  (let ((i (1- (length s)))
-        ix c2)
-    (while (and (>= i 0) (not ix))
-      (setq c2 (aref s i))
-      (if (= c c2)
-          (setq ix i))
-      (cl-decf i))
-    ix))
-
-
-(defun csharp--imenu-submenu-label (sig flavor)
-  "generate a submenu label from the given signature, SIG.
-The sig is a method signature, property type-and-name,
-constructor, and so on, indicated by FLAVOR.
-
-This fn returns a simple name that can be used in the label for a
-break out submenu.
-
-"
-  (if (string= flavor "method")
-      (let ((method-name (csharp--imenu-get-method-name-from-sig sig)))
-        (substring method-name 0 (string-indexof method-name 40)))
-    (substring sig (1+ (string-lastindexof sig 32)))))
-
-
-
-
-(defun csharp--imenu-break-one-menu-into-submenus (menu-list)
-  "Parcels a flat list MENU-LIST up into smaller sublists. It tries
-to balance the number of sublists and the size of each sublist.
-
-The max size of any sublist will be about 20 (arbitrary) and the
-min size will be 7 or so. See `csharp--imenu-get-submenu-size'
-for how this is done.
-
-It does this destructively, using `nbutlast'.
-
-Returns a new list, containing sublists.
-"
-
-  (let ((len (length menu-list))
-        (counts (csharp--imenu-counts menu-list)))
-
-    (cond
-     ;; a small number, and all the same flavor
-     ((and (< len csharp-imenu-min-size-for-sub-submenu) (= (length counts) 1))
-      (csharp--imenu-remove-category-names
-       (sort menu-list
-             (if (string= (caar counts) "methods")
-                 'csharp--imenu-item-method-name-comparer
-               'csharp--imenu-item-basic-comparer))))
-
-     ;; is the length already pretty short?
-     ((< len csharp-imenu-min-size-for-sub-submenu)
-      menu-list)
-
-     ((/= (length counts) 1)
-      menu-list)
-
-     (t
-      (let* ((lst    (sort menu-list
-                           (if (string= (caar counts) "methods")
-                               'csharp--imenu-item-method-name-comparer
-                             'csharp--imenu-item-basic-comparer)))
-             new
-             (sz     (csharp--imenu-get-submenu-size len)) ;; goal max size of sublist
-             (n      (ceiling (/ (* 1.0 len) sz))) ;; total number of sublists
-             (adj-sz (ceiling (/ (* 1.0 len) n)))  ;; maybe a little less than sz
-             (nsmall (mod (- adj-sz (mod len adj-sz)) adj-sz)) ;; num of (n-1) lists
-             (i      0)
-             (base-name (csharp--first-word (caar lst)))
-             label
-             chunksz
-             this-chunk)
-
-        (while lst
-          (setq chunksz (if (> nsmall i) (1- adj-sz) adj-sz)
-                this-chunk (csharp--imenu-remove-category-names
-                            (nthcdr (- len chunksz) lst))
-                lst (nbutlast lst chunksz)
-                ;;label (format "%s %d" plural-name (- n i))
-                label (concat "from " (csharp--imenu-submenu-label (caar this-chunk) base-name))
-                new (cons (cons label this-chunk) new)
-                len (- len chunksz))
-          (cl-incf i))
-        new)))))
-
-
-
-(defun csharp--imenu-break-into-submenus (menu-list)
-  "For an imenu menu-list with category-based submenus,
-possibly break a submenu into smaller sublists, based on size.
-
-"
-  (mapcar (lambda (elt)
-            (if (imenu--subalist-p elt)
-                (cons (car elt)
-                      (csharp--imenu-break-one-menu-into-submenus (cdr elt)))
-              elt))
-          menu-list))
-
-
-
-
-
-(defun csharp--imenu-reorg-alist-intelligently (menu-alist)
-  "Accepts an imenu alist. Returns an alist, reorganized.
-Things get sorted, factored out into category submenus,
-and split into multiple submenus, where conditions warrant.
-
-For example, suppose this imenu alist is generated from a scan:
-
-    ((\"usings (4)\" . 1538)
-     (\"namespace Ionic.Zip\"
-      (\"(top)\" . 1651)
-      (\"partial class Ionic.Zip.ZipFile\"
-       (\"(top)\" . 5473)
-       (\"prop FullScan\" . 8036)
-           ...
-       (\"prop Comment\" . 21118)
-       (\"prop Verbose\" . 32278)
-       (\"method override String ToString\" . 96577)
-       (\"method internal void NotifyEntryChanged\" . 97608)
-          ....
-       (\"method internal void Reset\" . 98231)
-       (\"ctor ZipFile\" . 103598)
-           ...
-       (\"ctor ZipFile\" . 109723)
-       (\"ctor ZipFile\" . 116487)
-       (\"indexer int\" . 121232)
-       (\"indexer String\" . 124933)
-       (\"(bottom)\" . 149777))
-      (\"public enum Zip64Option\" . 153839)
-      (\"enum AddOrUpdateAction\" . 154815)
-      (\"(bottom)\" . 154893)))
-
-
-This is displayed as a toplevel menu with 2 items; the namespace
-menu has 5 items (top, bottom, the 2 enums, and the class).  The
-class menu has 93 items. It needs to be reorganized to be more usable.
-
-After transformation of the alist through this fn, the result is:
-
-    ((\"usings (4)\" . 1538)
-     (\"namespace Ionic.Zip\"
-      (\"(top)\" . 1651)
-      (\"partial class Ionic.Zip.ZipFile\"
-       (\"(top)\" . 5473)
-       (\"properties\"
-        (\"WriteStream\" . 146489)
-        (\"Count\" . 133827)
-            ....
-        (\"BufferSize\" . 12837)
-        (\"FullScan\" . 8036))
-       (\"methods\"
-        (\"virtual void Dispose\" . 144389)
-        (\"void RemoveEntry\" . 141027)
-           ....
-        (\"method override String ToString\" . 96577)
-        (\"method bool ContainsEntry\" . 32517))
-       (\"constructors\"
-        (\"ZipFile\" . 116487)
-           ....
-        (\"ZipFile\" . 105698)
-        (\"ZipFile\" . 103598))
-       (\"indexer int\" . 121232)
-       (\"indexer String\" . 124933)
-       (\"(bottom)\" . 149777))
-      (\"public enum Zip64Option\" . 153839)
-      (\"enum AddOrUpdateAction\" . 154815)
-      (\"(bottom)\" . 154893)))
-
-All menus are the same except the class menu, which has been
-organized into subtopics, each of which gets its own cascaded
-submenu.  If the submenu itself holds more than
-`csharp-imenu-max-similar-items-before-extraction' items that are
-all the same flavor (properties, methods, etc), thos get split
-out into multiple submenus.
-
-"
-  (let ((counts (csharp--imenu-counts menu-alist)))
-    (letrec ((helper
-              (lambda (list new)
-                (if (null list)
-                    new
-                  (let* ((elt (car list))
-                         (topic (csharp--make-plural
-                                 (csharp--first-word (car elt))))
-                         (xelt (assoc topic new)))
-                    (funcall
-                     helper (cdr list)
-                     (if xelt
-                         (progn
-                           (rplacd xelt (cons elt (cdr xelt)))
-                           new)
-                       (cons
-
-                        (cond
-                         ((> (cdr (assoc topic counts))
-                             csharp-imenu-max-similar-items-before-extraction)
-                          (cons topic (list elt)))
-
-                         ((imenu--subalist-p elt)
-                          (cons (car elt)
-                                (csharp--imenu-reorg-alist-intelligently (cdr elt))))
-                         (t
-                          elt))
-
-                        new))))))))
-
-      (csharp--imenu-break-into-submenus
-       (nreverse (funcall helper menu-alist nil))))))
-
-
-
-
-(defun csharp-imenu-create-index ()
-  "This function is called by imenu to create an index for the
-current C# buffer, conforming to the format specified in
-`imenu--index-alist' .
-
-See `imenu-create-index-function' for background information.
-
-To produce the index, which lists the classes, functions,
-methods, and properties for the current buffer, this function
-scans the entire buffer.
-
-This can take a long time for a large buffer. The scan uses
-regular expressions that attempt to match on the general-case C#
-syntax, for classes and functions, generic types, base-classes,
-implemented interfaces, and so on. This can be time-consuming.
-For a large source file, say 160k, it can take 10 seconds or more.
-The UI hangs during the scan.
-
-imenu calls this fn when it feels like it, I suppose when it
-thinks the buffer has been updated. The user can also kick it off
-explicitly by selecting *Rescan* from the imenu menu.
-
-After generating the hierarchical list of props, methods,
-interfaces, classes, and namespaces, csharp-mode re-organizes the
-list as appropriate:
-
- - it extracts sets of like items into submenus. All properties
-   will be placed on a submenu. See
-   `csharp-imenu-max-similar-items-before-extraction' for a way
-   to tune this.
-
- - it converts those submenus into sub-submenus, if there are more than
-   `csharp-imenu-min-size-for-sub-submenu' items.
-
- - it sorts each set of items on the outermost menus lexicographically.
-
-The result of these transformations is what is provided to imenu
-to generate the visible menus.  Just FYI - the reorganization of
-the scan results is much much faster than the actual generation
-of the scan results. If you're looking to save time, the re-org
-logic is not where the cost is.
-
-imenu itself likes to sort the menus. See `imenu--split-menu' and
-also `csharp--imenu-split-menu-patch', which is advice that
-attempts to disable the weird re-jiggering that imenu performs.
-
-"
-  ;; I think widen/narrow causes the buffer to be marked as
-  ;; modified. This is a bit surprising, but I have no other
-  ;; explanation for the source of the problem.
-  ;; So I use `c-save-buffer-state' so that the buffer is not
-  ;; marked modified when the scan completes.
-
-  (c-save-buffer-state ()
-    (save-excursion
-      (save-restriction
-        (widen)
-        (goto-char (point-min))
-
-        (let ((index-alist
-               (csharp--imenu-create-index-helper nil "" t t)))
-
-          (csharp--imenu-reorg-alist-intelligently index-alist)
-
-          ;;index-alist
-
-          ;; What follows is No longer used.
-          ;; =======================================================
-
-          ;; If the index menu contains exactly one element, and it is
-          ;; a namespace menu, then remove it.  This simplifies the
-          ;; menu, and results in no loss of information: all types
-          ;; get fully-qualified names anyway. This will probably
-          ;; cover the majority of cases; often a C# source module
-          ;; defines either one class, or a set of related classes
-          ;; inside a single namespace.
-
-          ;; To remove that namespace, we need to prune & graft the tree.
-          ;; Remove the ns hierarchy level, but also remove the 1st and
-          ;; last elements in the sub-menu, which represent the top and
-          ;; bottom of the namespace.
-
-          ;; (if (and
-          ;;      (= 1 (length index-alist))
-          ;;      (consp (car index-alist))
-          ;;      (let ((tokens (split-string
-          ;;                     (car (car index-alist))
-          ;;                     "[ \t]" t)))
-          ;;        (and (<= 1 (length tokens))
-          ;;             (string= (downcase
-          ;;                       (nth 0 tokens)) "namespace"))))
-          ;;
-          ;;     (let (elt
-          ;;           (newlist (cdar index-alist)))
-          ;;       (setf (car (car newlist))  (car (car index-alist)))
-          ;;       newlist)
-          ;;
-          ;;   index-alist)
-
-          )))))
-
-
-;; ==================================================================
 
 
 
@@ -3791,6 +2733,7 @@ your `csharp-mode-hook' function:
       (add-to-list 'compilation-error-regexp-alist-alist regexp)
       (add-to-list 'compilation-error-regexp-alist (car regexp)))))
 
+
 ;;; Autoload mode trigger
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
@@ -3957,14 +2900,7 @@ Key bindings:
 
   ;; maybe do imenu scan after hook returns
   (when csharp-want-imenu
-    ;; There are two ways to do imenu indexing. One is to provide a
-    ;; function, via `imenu-create-index-function'.  The other is to
-    ;; provide imenu with a list of regexps via
-    ;; `imenu-generic-expression'; imenu will do a "generic scan" for you.
-    ;; csharp-mode uses the former method.
-
-    (setq imenu-create-index-function 'csharp-imenu-create-index)
-    (imenu-add-menubar-index))
+    (csharp--setup-imenu))
 
   ;; The paragraph-separate variable was getting stomped by
   ;; other hooks, so it must reside here.

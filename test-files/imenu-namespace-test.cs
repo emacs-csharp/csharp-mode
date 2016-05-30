@@ -2,15 +2,15 @@ using System;
 
 namespace ImenuTest
 {
-    public interface IMenuTestInterface
+    public interface ImenuTestInterface
     {
     }
 
-    public class IMenuTestClass
+    public class ImenuTestClass
     {
     }
 
-    public enum IMenuTestEnum
+    public enum ImenuTestEnum
     {
     }
 }

@@ -165,84 +165,124 @@
            (equal expected (match-string 1)))))
       (kill-buffer buffer))))
 
-(ert-deftest imenu-parsing-supports-default-values ()
-  (dolist (test-case
-           '(;; should support bools
-             ("(bool a, bool b = true)"                  "(bool, bool)")
-             ("(bool a=true, bool b)"                    "(bool, bool)")
-             ;; should support strings
-             ("(string a, string b = \"quoted string\")" "(string, string)")
-             ("(string a = \"quoted string\", string b)" "(string, string)")
-             ;; should support chars
-             ("(char a, char b = 'b')"                   "(char, char)")
-             ("(char a = 'a', char b)"                   "(char, char)")
-             ;; should support self-object-access
-             ("(object o = Const)"                       "(object)")
-             ;; should support other-object-access
-             ("(object o = ConstObject.Const)"           "(object)")
-             ))
-    (let* ((test-value     (car test-case))
-           (expected-value (cadr test-case))
-           (result         (csharp--imenu-remove-param-names-from-paramlist test-value)))
-      (should (equal expected-value result)))))
-
 (defmacro def-imenutest (testname filename index &rest body)
   `(ert-deftest ,testname ()
      (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
             (buffer         (find-file-read-only ,filename))
-            (,index         (csharp--imenu-create-index-helper nil "" t t)) ;; same line as in `csharp-imenu-create-index'.
-            )
+            (,index         (csharp--imenu-create-index-function)))
        ,@body
        (kill-buffer buffer))))
 
+(defun imenu-get-item (index haystack)
+  (let ((result))
+    (dolist (item index)
+      (when (not result)
+        (let ((name (car item))
+              (value (cdr item)))
+          (if (string-prefix-p haystack name)
+              (setq result item)
+            (when (listp value)
+              (setq result (imenu-get-item value haystack)))))))
+    result))
+
 (def-imenutest imenu-parsing-supports-generic-parameters
   "./test-files/imenu-generics-test.cs" imenu-index
-  (let* ((class-entry    (cadr imenu-index))
-         (class-entries  (cdr class-entry))
-         (imenu-items    (mapconcat 'car class-entries " ")))
-
-    ;; ("(top)" "method void NoGeneric(this IAppBuilder, params object[])" "method void OneGeneric<T>(this IAppBuilder, params object[])" "method void TwoGeneric<T1,T2>(this IAppBuilder, params object[])" "(bottom)")
-    (should (string-match-p "NoGeneric" imenu-items))
-    (should (string-match-p "OneGeneric<T>" imenu-items))
-    (should (string-match-p "TwoGeneric<T1,T2>" imenu-items))))
+  (dolist (item '("NoGeneric(" "OneGeneric<T>(" "TwoGeneric<T1,T2>("))
+    (should (imenu-get-item imenu-index (concat "(method) " item)))))
 
 (def-imenutest imenu-parsing-supports-comments
   "./test-files/imenu-comment-test.cs" imenu-index
-  (let* ((class-entry    (cadr imenu-index))
-         (class-entries  (cdr class-entry))
-         (imenu-items    (mapconcat 'car class-entries " ")))
-    (should (string-match-p "HasNoComment" imenu-items))
-    (should (string-match-p "HasComment" imenu-items))
-    (should (string-match-p "CommentedToo" imenu-items))))
+  (dolist (item '("HasNoComment(" "HasComment(" "CommentedToo("))
+    (should (imenu-get-item imenu-index (concat "(method) " item)))))
 
 (def-imenutest imenu-parsing-supports-explicit-interface-properties
   "./test-files/imenu-interface-property-test.cs" imenu-index
-  (let* ((class-entry    (cl-caddr imenu-index))
-         (class-entries  (cdr class-entry))
-         (imenu-items    (mapconcat 'car class-entries " ")))
-    (should (string-match-p "prop IIMenuTest.InterfaceString" imenu-items))))
+  (should (imenu-get-item imenu-index "(prop) IImenuTest.InterfaceString")))
 
 (def-imenutest imenu-parsing-supports-explicit-interface-methods
   "./test-files/imenu-interface-property-test.cs" imenu-index
-  (let* ((class-entry    (cl-caddr imenu-index))
-         (class-entries  (cdr class-entry))
-         (imenu-items    (mapconcat 'car class-entries " ")))
-    (should (string-match-p "method string IIMenuTest.MethodName" imenu-items))))
-
-(def-imenutest imenu-parsing-supports-namespaces
-  "./test-files/imenu-namespace-test.cs" imenu-index
-  (let* ((ns-entry       (cadr imenu-index))
-         (ns-item        (car ns-entry)))
-    (should (string-match-p "namespace ImenuTest" ns-item))))
+  (should (imenu-get-item imenu-index "(method) IImenuTest.MethodName")))
 
 (def-imenutest imenu-parsing-provides-types-with-namespace-names
   "./test-files/imenu-namespace-test.cs" imenu-index
-  (let* ((ns-entry       (cadr imenu-index))
-         (ns-items       (cdr ns-entry))
-         (imenu-items    (mapconcat 'car ns-items " ")))
-    (should (string-match-p "interface ImenuTest.ImenuTestInterface" imenu-items))
-    (should (string-match-p "class ImenuTest.ImenuTestClass" imenu-items))
-    (should (string-match-p "enum ImenuTest.ImenuTestEnum" imenu-items))))
+  (should (imenu-get-item imenu-index "class ImenuTest.ImenuTestClass"))
+  (should (imenu-get-item imenu-index "interface ImenuTest.ImenuTestInterface"))
+  (should (imenu-get-item imenu-index "enum ImenuTest.ImenuTestEnum")))
+
+(ert-deftest imenu-indexing-resolves-correct-container ()
+  (let* ((testcase-no-namespace '( ("class Global" . 10)
+                                   (("namespace_a" . 20) ("namespace_b" . 30))
+                                   nil))
+         (testcase-namespace-a  '( ("class A" . 10)
+                                   (("namespace_a" . 0) ("namespace_b" . 30))
+                                   "namespace_a"))
+         (testcase-namespace-b  '( ("class B" . 40)
+                                   (("namespace_a" . 0) ("namespace_b" . 30))
+                                   "namespace_b"))
+         (testcases             (list testcase-no-namespace
+                                      testcase-namespace-a
+                                      testcase-namespace-b)))
+    (dolist (testcase testcases)
+      (let ((class      (car testcase))
+            (namespaces (cadr testcase))
+            (expected   (caddr testcase)))
+        (should (equal expected
+                       (csharp--imenu-get-container-name class namespaces)))))))
+
+(ert-deftest imenu-indexing-resolves-correct-name ()
+  (let* ((testcase-no-namespace '( ("class Global" . 10)
+                                   (("namespace_a" . 20) ("namespace_b" . 30))
+                                   "class Global"))
+         (testcase-namespace-a  '( ("class A" . 10)
+                                   (("namespace_a" . 0) ("namespace_b" . 30))
+                                   "class namespace_a.A"))
+         (testcase-namespace-b  '( ("class B" . 40)
+                                   (("namespace_a" . 0) ("namespace_b" . 30))
+                                   "class namespace_b.B"))
+         (testcases             (list testcase-no-namespace
+                                      testcase-namespace-a
+                                      testcase-namespace-b)))
+    (dolist (testcase testcases)
+      (let ((class      (car testcase))
+            (namespaces (cadr testcase))
+            (expected   (caddr testcase)))
+        (should (equal expected
+                       (csharp--imenu-get-class-name class namespaces)))))))
+
+(ert-deftest imenu-transforms-index-correctly ()
+  ;; this test-case checks for the following aspects of the transformation:
+  ;; 1. hierarchial nesting
+  ;; 2. sorting of members
+  (should (equalp
+           '(("class A" . (("( top )" . 20)
+                           ("(method) method_a1" . 30)
+                           ("(method) method_a2" . 25)))
+             ("class B" . (("( top )" . 0)
+                           ("(method) method_b1" . 15)
+                           ("(method) method_b2" . 10))))
+
+           (csharp--imenu-transform-index
+            '(("class" .  (("class B" . 0)  ("class A" . 20)))
+              ("method" . (("method_b2" . 10) ("method_b1" . 15)
+                           ("method_a2" . 25) ("method_a1" . 30))))))))
+
+(ert-deftest imenu-transforms-index-correctly-with-namespaces ()
+  ;; this test-case checks for the following aspects of the transformation:
+  ;; 1. hierarchial nesting
+  ;; 2. sorting of members
+  (should (equalp
+           '(("class ns.A" . (("( top )" . 20)
+                           ("(method) method_a1" . 30)
+                           ("(method) method_a2" . 25)))
+             ("class ns.B" . (("( top )" . 0)
+                           ("(method) method_b1" . 15)
+                           ("(method) method_b2" . 10))))
+
+           (csharp--imenu-transform-index
+            '(("namespace" . (("ns" . 0)))
+              ("class" .  (("class B" . 0)  ("class A" . 20)))
+              ("method" . (("method_b2" . 10) ("method_b1" . 15)
+                           ("method_a2" . 25) ("method_a1" . 30))))))))
 
 (defvar csharp-hook1 nil)
 (defvar csharp-hook2 nil)
