@@ -1873,8 +1873,8 @@ to the beginning of the prior namespace.
           (list "field"
                 (concat bol
                         access-modifier-list "+"
-                        ;; fields can be readonly/const
-                        "\\(?:" (regexp-opt '("readonly" "const")) space "\\)?"
+                        ;; fields can be readonly/const/volatile
+                        "\\(?:" (regexp-opt '("readonly" "const" "volatile")) space "\\)?"
                         "\\("
                         return-type space
                         generic-identifier
