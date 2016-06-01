@@ -209,6 +209,13 @@
   (should (imenu-get-item imenu-index "interface ImenuTest.ImenuTestInterface"))
   (should (imenu-get-item imenu-index "enum ImenuTest.ImenuTestEnum")))
 
+(def-imenutest imenu-parsing-supports-fields-keywords
+  "./test-files/imenu-field-keyword-test.cs" imenu-index
+  (should (imenu-get-item imenu-index "(field) TestBool"))
+  (should (imenu-get-item imenu-index "(field) CommentedField"))
+  (should (imenu-get-item imenu-index "(field) _MultiLineComment"))
+  (should (imenu-get-item imenu-index "(field) VolatileTest")))
+
 (ert-deftest imenu-indexing-resolves-correct-container ()
   (let* ((testcase-no-namespace '( ("class Global" . 10)
                                    (("namespace_a" . 20) ("namespace_b" . 30))

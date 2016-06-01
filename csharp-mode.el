@@ -1875,8 +1875,8 @@ to the beginning of the prior namespace.
                         access-modifier-list "+"
                         ;; fields can be readonly/const
                         "\\(?:" (regexp-opt '("readonly" "const")) space "\\)?"
-                        "\\("
                         return-type space
+                        "\\("
                         generic-identifier
                         "\\)"
                         optional-space
