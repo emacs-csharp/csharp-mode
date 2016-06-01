@@ -1754,7 +1754,7 @@ to the beginning of the prior namespace.
          (space                          (concat single-space "+"))
          (access-modifier (regexp-opt '( "public" "private" "protected" "internal"
                                          "static" "sealed" "partial" "override" "virtual"
-                                         "abstract")))
+                                         "abstract" "async" "new" "unsafe")))
          ;; this will allow syntactically invalid combinations of modifiers
          ;; but that's a compiler problem, not a imenu-problem
          (access-modifier-list (concat "\\(?:" access-modifier space "\\)"))
@@ -1841,6 +1841,19 @@ to the beginning of the prior namespace.
                         "\\(?:[ \t]*/[/*].*\\)?"
                         optional-space
                         "{") 1)
+          (list "method-abs-ext"
+                (concat bol
+                        access-modifier-list "+"
+                        (regexp-opt '("extern" "abstract")) space
+                        return-type space
+                        "\\("
+                        generic-identifier
+                        optional-space
+                        parameter-list
+                        "\\)"
+                        optional-space
+                        ;; abstract/extern methods are terminated with ;
+                        ";") 1)
           (list "prop"
                 (concat bol
                         ;; must require access modifiers, or else we
@@ -2038,6 +2051,7 @@ to the beginning of the prior namespace.
     (dolist (type '(("ctor")
                     ("method")
                     ("method-inf" "method")
+                    ("method-abs-ext" "method")
                     ("prop")
                     ("prop-inf" "prop")
                     ("field")

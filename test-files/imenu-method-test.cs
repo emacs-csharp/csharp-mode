@@ -24,9 +24,9 @@ public class MethodTest
 
     }
 
-    public abstract string SubClassMethod();
+    public abstract string AbstractMethod();
 
-    public unsafe static void FastCopy(byte[] src, byte[] dst, int count)
+    public unsafe static void UnsafeCopy(byte[] src, byte[] dst, int count)
     {
 
     }
