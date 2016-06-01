@@ -1200,7 +1200,7 @@ Currently handled:
 ;; instead of create one.
 (c-lang-defconst c-type-modifier-kwds
   ;; EMCA-344, S?
-  csharp '("readonly" "const"))
+  csharp '("readonly" "const" "volatile"))
 
 
 ;; Tue, 20 Apr 2010  16:02
@@ -1873,8 +1873,8 @@ to the beginning of the prior namespace.
           (list "field"
                 (concat bol
                         access-modifier-list "+"
-                        ;; fields can be readonly/const
-                        "\\(?:" (regexp-opt '("readonly" "const")) space "\\)?"
+                        ;; fields can be readonly/const/volatile
+                        "\\(?:" (regexp-opt '("readonly" "const" "volatile")) space "\\)?"
                         return-type space
                         "\\("
                         generic-identifier
