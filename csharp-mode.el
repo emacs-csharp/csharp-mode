@@ -310,6 +310,8 @@
   (when (and (= emacs-major-version 24) (>= emacs-minor-version 4))
     (require 'cl)))
 
+(require 'imenu)
+
 ;; ==================================================================
 ;; c# upfront stuff
 ;; ==================================================================
@@ -1600,6 +1602,14 @@ See also, `csharp-move-fwd-to-end-of-defun'.
                      (csharp--regexp 'namespace-start))))
       (if found
           (goto-char found))))))
+
+
+(defun csharp--on-defun-open-curly-p ()
+  "return t when point is on the open-curly of a method."
+  (and (looking-at "{")
+       (not (looking-back (csharp--regexp 'class-start) nil))
+       (not (looking-back (csharp--regexp 'namespace-start) nil))
+       (looking-back (csharp--regexp 'func-start) nil)))
 
 
 (defun csharp--on-class-open-curly-p ()
