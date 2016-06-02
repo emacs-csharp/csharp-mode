@@ -216,6 +216,15 @@
   (should (imenu-get-item imenu-index "(field) _MultiLineComment"))
   (should (imenu-get-item imenu-index "(field) VolatileTest")))
 
+(def-imenutest imenu-parsing-supports-method-keywords
+  "./test-files/imenu-method-test.cs" imenu-index
+  (should (imenu-get-item imenu-index "(method) GetTickCount64("))
+  (should (imenu-get-item imenu-index "(method) OpenWebServiceAsync("))
+  (should (imenu-get-item imenu-index "(method) ToString("))
+  (should (imenu-get-item imenu-index "(method) AbstractMethod("))
+  (should (imenu-get-item imenu-index "(method) UnsafeCopy(")))
+
+
 (ert-deftest imenu-indexing-resolves-correct-container ()
   (let* ((testcase-no-namespace '( ("class Global" . 10)
                                    (("namespace_a" . 20) ("namespace_b" . 30))

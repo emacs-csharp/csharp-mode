@@ -14,7 +14,7 @@ public class MethodTest
         await foo;
     }
 
-    public new string GetString()
+    public new string ToString()
     {
 
     }
