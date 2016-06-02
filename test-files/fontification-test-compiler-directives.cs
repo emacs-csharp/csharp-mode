@@ -7,17 +7,17 @@ public class Test
         string x;
 
         // reference
-        x += "foo";
+        x += "strReference";
         #region v1 verification
-        x += "foo";
+        x += "strVerification";
         #endregion
 
         #region t1 test'
-        x += "foo";
+        x += "singleQuote";
         #endregion
 
         #region t2 - test"
-        x += "foo";
+        x += "doubleQuote";
         #endregion
     }
 }

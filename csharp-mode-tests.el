@@ -70,6 +70,12 @@
   ;; this replaces the manual test of
   ;; test-files/fontification-test-compiler-directives.cs, but file
   ;; has been kept around to assist manual testing/verification.
+  (assess-face-in-file= "test-files/fontification-test-compiler-directives.cs"
+                        "strReference" 'font-lock-string-face
+                        "strVerification" 'font-lock-string-face
+                        "singleQuote" 'font-lock-string-face
+                        "doubleQuote" 'font-lock-string-face)
+
   (assess-face-in-text=
    "#region test\nbool bar = true;"
    ;; should not be interpreted as string because of trailing \!
@@ -91,12 +97,17 @@
            )))
 
 (ert-deftest fontification-of-compiler-directives-after-comments ()
-  ;; this replaces the manual test of
-  ;; test-files/fontification-test-compiler-directives-with-comments.cs, but file
-  ;; has been kept around to assist manual testing/verification.
   (assess-face-in-file= "./test-files/fontification-test-compiler-directives-with-comments.cs"
                         "case1" 'font-lock-comment-face
                         "case2" 'font-lock-comment-face))
+
+(ert-deftest fontification-of-method-names ()
+  (assess-face-in-file= "./test-files/imenu-method-test.cs"
+                        "OpenWebServicesAsync" 'font-lock-function-name-face
+                        "ToString"             'font-lock-function-name-face
+                        "Equals"               'font-lock-function-name-face
+                        "AbstractMethod"       'font-lock-function-name-face
+                        "UnsafeCopy"           'font-lock-function-name-face))
 
 (defun list-repeat-once (mylist)
   (append mylist mylist))
