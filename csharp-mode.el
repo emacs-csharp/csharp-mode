@@ -354,6 +354,35 @@
 
 
 
+;; Custom variables
+;; ensure all are defined before using ...;
+
+(defcustom csharp-mode-hook nil
+  "*Hook called by `csharp-mode'."
+  :type 'hook
+  :group 'csharp)
+
+;; The following fn allows this:
+;;    (csharp-log 3 "scan result...'%s'" state)
+
+(defcustom csharp-log-level 0
+  "The current log level for CSharp-mode-specific operations.
+This is used in particular by the verbatim-literal
+string scanning.
+
+Most other csharp functions are not instrumented.
+0 = NONE, 1 = Info, 2 = VERBOSE, 3 = DEBUG, 4 = SHUTUP ALREADY. "
+  :type 'integer
+  :group 'csharp)
+
+
+(defcustom csharp-want-imenu t
+  "*Whether to generate a buffer index via imenu for C# buffers."
+  :type 'boolean :group 'csharp)
+
+
+
+
 
 ;; These are only required at compile time to get the sources for the
 ;; language constants.  (The load of cc-fonts and the font-lock
@@ -1374,31 +1403,6 @@ This regexp is assumed to not match any non-operator identifier."
           ;; preprocessor support, so include it.
           (c-lang-const c-cpp-matchers)))
 
-
-
-;; Custom variables
-(defcustom csharp-mode-hook nil
-  "*Hook called by `csharp-mode'."
-  :type 'hook
-  :group 'csharp)
-
-;; The following fn allows this:
-;;    (csharp-log 3 "scan result...'%s'" state)
-
-(defcustom csharp-log-level 0
-  "The current log level for CSharp-mode-specific operations.
-This is used in particular by the verbatim-literal
-string scanning.
-
-Most other csharp functions are not instrumented.
-0 = NONE, 1 = Info, 2 = VERBOSE, 3 = DEBUG, 4 = SHUTUP ALREADY. "
-  :type 'integer
-  :group 'csharp)
-
-
-(defcustom csharp-want-imenu t
-  "*Whether to generate a buffer index via imenu for C# buffers."
-  :type 'boolean :group 'csharp)
 
 
 (defconst csharp-font-lock-keywords-1 (c-lang-const c-matchers-1 csharp)
