@@ -1255,7 +1255,7 @@ Currently handled:
   csharp '("public" "partial" "private" "const" "abstract" "sealed"
            "protected" "ref" "out" "static" "virtual"
            "implicit" "explicit" "fixed"
-           "override" "params" "internal" "async"))
+           "override" "params" "internal" "async" "extern"))
 
 
 ;; Thu, 22 Apr 2010  23:02
@@ -1327,7 +1327,7 @@ This regexp is assumed to not match any non-operator identifier."
   csharp '("namespace"))
 
 (c-lang-defconst c-other-kwds
-  csharp '("sizeof" "typeof" "is" "as" "yield" "extern"
+  csharp '("sizeof" "typeof" "is" "as" "yield"
            "where" "select" "in" "from" "let" "orderby" "ascending" "descending"
            "await" "async"))
 
