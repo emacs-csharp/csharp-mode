@@ -1778,7 +1778,7 @@ to the beginning of the prior namespace.
 (defconst csharp--imenu-expression
   (let* ((single-space                   "[ \t\n\r\f\v]")
          (optional-space                 (concat single-space "*"))
-         (bol                            (concat "^" optional-space))
+         (bol                            "^[ \t]*") ;; BOL shouldnt accept lineshift.
          (space                          (concat single-space "+"))
          (access-modifier (regexp-opt '( "public" "private" "protected" "internal"
                                          "static" "sealed" "partial" "override" "virtual"
@@ -1881,6 +1881,23 @@ to the beginning of the prior namespace.
                         "\\)"
                         optional-space
                         ;; abstract/extern methods are terminated with ;
+                        ";") 1)
+          ;; delegates are almost like abstract methods, so pick them up here
+          (list "delegate"
+                (concat bol
+                        ;; we MUST require modifiers, or else we cannot reliably
+                        ;; identify declarations, without also dragging in lots of
+                        ;; if statements and what not.
+                        access-modifier-list "+"
+                        "delegate" space
+                        return-type space
+                        "\\("
+                        generic-identifier
+                        optional-space
+                        parameter-list
+                        "\\)"
+                        ;; optional // or /* comment at end
+                        optional-space
                         ";") 1)
           (list "prop"
                 (concat bol
@@ -2089,16 +2106,17 @@ to the beginning of the prior namespace.
              (name (car (last type))))
         (csharp--imenu-append-items-to-menu result key name index classes namespaces)))
 
-    ;; add enums to main result list, as own items.
+    ;; add enums and delegates to main result list, as own items.
     ;; We don't support nested types. EOS.
     ;;
-    ;; This has the issue that it gets reported as "function" in
+    ;; This has the issue that they get reported as "function" in
     ;; `helm-imenu', but there's nothing we can do about that.
     ;; The alternative is making it a menu with -1- submenu which
     ;; says "( top )" but that will be very clicky...
-    (dolist (enum (cdr (assoc "enum" index)))
-      (let ((enum-name (csharp--imenu-get-class-name enum namespaces)))
-        (setq result (cons (cons enum-name (cdr enum)) result))))
+    (dolist (type '("enum" "delegate"))
+      (dolist (item (cdr (assoc type index)))
+        (let ((item-name (csharp--imenu-get-class-name item namespaces)))
+          (setq result (cons (cons item-name (cdr item)) result)))))
 
     ;; sort individual sub-lists
     (dolist (item result)
