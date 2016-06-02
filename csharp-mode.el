@@ -1200,7 +1200,7 @@ Currently handled:
 ;; instead of create one.
 (c-lang-defconst c-type-modifier-kwds
   ;; EMCA-344, S?
-  csharp '("readonly" "const" "volatile"))
+  csharp '("readonly" "const" "volatile" "new" "unsafe"))
 
 
 ;; Tue, 20 Apr 2010  16:02
