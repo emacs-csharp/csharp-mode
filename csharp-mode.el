@@ -452,15 +452,19 @@ Most other csharp functions are not instrumented.
   (substring (current-time-string) 11 19)) ;24-hr time
 
 
-(defun csharp-log (level text &rest args)
-  "Log a message at level LEVEL.
+;; essentially the same as (progn), but this this is required to avoid
+;; byte-compilation warnings due to some forms referencing this
+;; getting expanded during compilation.
+(eval-when-compile
+  (defun csharp-log (level text &rest args)
+    "Log a message at level LEVEL.
 If LEVEL is higher than `csharp-log-level', the message is
 ignored.  Otherwise, it is printed using `message'.
 TEXT is a format control string, and the remaining arguments ARGS
 are the string substitutions (see `format')."
-  (if (<= level csharp-log-level)
-      (let* ((msg (apply 'format text args)))
-        (message "C# %s %s" (csharp-time) msg))))
+    (if (<= level csharp-log-level)
+        (let* ((msg (apply 'format text args)))
+          (message "C# %s %s" (csharp-time) msg)))))
 
 (defun csharp--at-vsemi-p (&optional pos)
   "Determines if there is a virtual semicolon at POS or point.
@@ -542,18 +546,22 @@ to work properly with code that includes attributes.
       )))
 
 
-(defun csharp-is-square-parentasis-block-p ()
-  "Attempts to safely assess if the current point is at the opening of
+;; essentially the same as (progn), but this this is required to avoid
+;; byte-compilation warnings due to some forms referencing this
+;; getting expanded during compilation.
+(eval-when-compile
+  (defun csharp-is-square-parentasis-block-p ()
+    "Attempts to safely assess if the current point is at the opening of
 a square parentasis block [ ... ]."
-  (let* ((start (point)) ;; variables used to hold our position, so that we know that
-         (end))          ;; our code isn't stuck trying to look for a non-existant sexp.
-    (and (eq (char-after) 91) ;; open square
-         (while (and (eq (char-after) 91)
-                     (not (eq start end)))
-           (c-safe (c-forward-sexp 1))
-           (setq end (point)))
-         (eq (char-before) 93))) ;; close square
-  )
+    (let* ((start (point)) ;; variables used to hold our position, so that we know that
+           (end))          ;; our code isn't stuck trying to look for a non-existant sexp.
+      (and (eq (char-after) 91) ;; open square
+           (while (and (eq (char-after) 91)
+                       (not (eq start end)))
+             (c-safe (c-forward-sexp 1))
+             (setq end (point)))
+           (eq (char-before) 93))) ;; close square
+    ))
 
 
 ;; ==================================================================
