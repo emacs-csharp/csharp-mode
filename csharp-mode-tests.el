@@ -176,14 +176,6 @@
            (equal expected (match-string 1)))))
       (kill-buffer buffer))))
 
-(defmacro def-imenutest (testname filename index &rest body)
-  `(ert-deftest ,testname ()
-     (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
-            (buffer         (find-file-read-only ,filename))
-            (,index         (csharp--imenu-create-index-function)))
-       ,@body
-       (kill-buffer buffer))))
-
 (defun imenu-get-item (index haystack)
   (let ((result))
     (dolist (item index)
@@ -196,45 +188,51 @@
               (setq result (imenu-get-item value haystack)))))))
     result))
 
+(defmacro def-imenutest (testname filename &rest items)
+  `(ert-deftest ,testname ()
+     (let* ((find-file-hook nil) ;; avoid vc-mode file-hooks when opening!
+            (buffer         (find-file-read-only ,filename))
+            (index          (csharp--imenu-create-index-function)))
+       (dolist (item ',items)
+         (should (imenu-get-item index item)))
+       (kill-buffer buffer))))
+
 (def-imenutest imenu-parsing-supports-generic-parameters
-  "./test-files/imenu-generics-test.cs" imenu-index
-  (dolist (item '("NoGeneric(" "OneGeneric<T>(" "TwoGeneric<T1,T2>("))
-    (should (imenu-get-item imenu-index (concat "(method) " item)))))
+  "./test-files/imenu-generics-test.cs" 
+  "(method) NoGeneric(" "(method) OneGeneric<T>(" "(method) TwoGeneric<T1,T2>(")
 
 (def-imenutest imenu-parsing-supports-comments
-  "./test-files/imenu-comment-test.cs" imenu-index
-  (dolist (item '("HasNoComment(" "HasComment(" "CommentedToo("))
-    (should (imenu-get-item imenu-index (concat "(method) " item)))))
+  "./test-files/imenu-comment-test.cs"
+  "(method) HasNoComment(" "(method) HasComment(" "(method) CommentedToo(")
 
 (def-imenutest imenu-parsing-supports-explicit-interface-properties
-  "./test-files/imenu-interface-property-test.cs" imenu-index
-  (should (imenu-get-item imenu-index "(prop) IImenuTest.InterfaceString")))
+  "./test-files/imenu-interface-property-test.cs"
+  "(prop) IImenuTest.InterfaceString")
 
 (def-imenutest imenu-parsing-supports-explicit-interface-methods
-  "./test-files/imenu-interface-property-test.cs" imenu-index
-  (should (imenu-get-item imenu-index "(method) IImenuTest.MethodName")))
+  "./test-files/imenu-interface-property-test.cs"
+  "(method) IImenuTest.MethodName")
 
 (def-imenutest imenu-parsing-provides-types-with-namespace-names
-  "./test-files/imenu-namespace-test.cs" imenu-index
-  (should (imenu-get-item imenu-index "class ImenuTest.ImenuTestClass"))
-  (should (imenu-get-item imenu-index "interface ImenuTest.ImenuTestInterface"))
-  (should (imenu-get-item imenu-index "enum ImenuTest.ImenuTestEnum")))
+  "./test-files/imenu-namespace-test.cs"
+  "class ImenuTest.ImenuTestClass"
+  "interface ImenuTest.ImenuTestInterface"
+  "enum ImenuTest.ImenuTestEnum")
 
 (def-imenutest imenu-parsing-supports-fields-keywords
-  "./test-files/imenu-field-keyword-test.cs" imenu-index
-  (should (imenu-get-item imenu-index "(field) TestBool"))
-  (should (imenu-get-item imenu-index "(field) CommentedField"))
-  (should (imenu-get-item imenu-index "(field) _MultiLineComment"))
-  (should (imenu-get-item imenu-index "(field) VolatileTest")))
+  "./test-files/imenu-field-keyword-test.cs"
+  "(field) TestBool"
+  "(field) CommentedField"
+  "(field) _MultiLineComment"
+  "(field) VolatileTest")
 
 (def-imenutest imenu-parsing-supports-method-keywords
-  "./test-files/imenu-method-test.cs" imenu-index
-  (should (imenu-get-item imenu-index "(method) GetTickCount64("))
-  (should (imenu-get-item imenu-index "(method) OpenWebServiceAsync("))
-  (should (imenu-get-item imenu-index "(method) ToString("))
-  (should (imenu-get-item imenu-index "(method) AbstractMethod("))
-  (should (imenu-get-item imenu-index "(method) UnsafeCopy(")))
-
+  "./test-files/imenu-method-test.cs"
+  "(method) GetTickCount64("
+  "(method) OpenWebServiceAsync("
+  "(method) ToString("
+  "(method) AbstractMethod("
+  "(method) UnsafeCopy(")
 
 (ert-deftest imenu-indexing-resolves-correct-container ()
   (let* ((testcase-no-namespace '( ("class Global" . 10)
