@@ -1893,9 +1893,9 @@ to the beginning of the prior namespace.
                         return-type space
                         "\\("
                         generic-identifier
+                        "\\)"
                         optional-space
                         parameter-list
-                        "\\)"
                         ;; optional // or /* comment at end
                         optional-space
                         ";") 1)
@@ -2113,10 +2113,19 @@ to the beginning of the prior namespace.
     ;; `helm-imenu', but there's nothing we can do about that.
     ;; The alternative is making it a menu with -1- submenu which
     ;; says "( top )" but that will be very clicky...
+
+    ;; before adding delegates, we need to pad the entry so that it
+    ;; matches the "<type> <name>" signature used by all the other
+    ;; imenu entries
+    (let ((delegates (cdr (assoc "delegate" index))))
+      (dolist (delegate delegates)
+        (setf (car delegate) (concat "delegate " (car delegate)))))
+
     (dolist (type '("enum" "delegate"))
       (dolist (item (cdr (assoc type index)))
         (let ((item-name (csharp--imenu-get-class-name item namespaces)))
-          (setq result (cons (cons item-name (cdr item)) result)))))
+          (setq result (cons (cons item-name (cdr item))
+                             result)))))
 
     ;; sort individual sub-lists
     (dolist (item result)

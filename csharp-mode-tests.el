@@ -234,6 +234,15 @@
   "(method) AbstractMethod("
   "(method) UnsafeCopy(")
 
+(def-imenutest imenu-parsing-supports-delegates
+  "./test-files/imenu-delegate-test.cs"
+  "delegate PromptCallback"
+  "delegate PromptStateCallback"
+  "delegate PromptStateCallback<T>"
+  "delegate Foobar.TargetCallback"
+  "delegate Foobar.TargetStateCallback"
+  "delegate Foobar.TargetStateCallback<T>")
+
 (ert-deftest imenu-indexing-resolves-correct-container ()
   (let* ((testcase-no-namespace '( ("class Global" . 10)
                                    (("namespace_a" . 20) ("namespace_b" . 30))
