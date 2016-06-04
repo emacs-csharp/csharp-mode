@@ -1157,7 +1157,7 @@ Currently handled:
                 (forward-char 1)
                 (if (= (following-char) ?\")
                     (progn
-                      (put-text-property (1- (point)) (point)
+                      (put-text-property (1- (point)) (1+ (point))
                                          'syntax-table (string-to-syntax "/"))
                       (forward-char 1))
                   (setq done t)))))))))
