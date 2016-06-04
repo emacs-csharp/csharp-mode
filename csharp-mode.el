@@ -1,4 +1,3 @@
-
 ;;; csharp-mode.el --- C# mode derived mode
 
 ;; Author     : Dylan R. E. Moonfire (original)
