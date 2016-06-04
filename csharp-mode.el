@@ -558,38 +558,6 @@ to work properly with code that includes attributes.
       )))
 
 
-;; essentially the same as (progn), but this this is required to avoid
-;; byte-compilation warnings due to some forms referencing this
-;; getting expanded during compilation.
-(eval-when-compile
-  (defun csharp-is-square-parentasis-block-p ()
-    "Attempts to safely assess if the current point is at the opening of
-a square parentasis block [ ... ]."
-    (let* ((start (point)) ;; variables used to hold our position, so that we know that
-           (end))          ;; our code isn't stuck trying to look for a non-existant sexp.
-      (and (eq (char-after) 91) ;; open square
-           (while (and (eq (char-after) 91)
-                       (not (eq start end)))
-             (c-safe (c-forward-sexp 1))
-             (setq end (point)))
-           (eq (char-before) 93))) ;; close square
-    ))
-
-;; nasty hack to silence compile-time warnings and runtime-warnings.
-;; exact copy of defun above.
-(defun csharp-is-square-parentasis-block-p ()
-  "Attempts to safely assess if the current point is at the opening of
-a square parentasis block [ ... ]."
-  (let* ((start (point)) ;; variables used to hold our position, so that we know that
-         (end))          ;; our code isn't stuck trying to look for a non-existant sexp.
-    (and (eq (char-after) 91) ;; open square
-         (while (and (eq (char-after) 91)
-                     (not (eq start end)))
-           (c-safe (c-forward-sexp 1))
-           (setq end (point)))
-         (eq (char-before) 93))) ;; close square
-  )
-
 ;; ==================================================================
 ;; end of csharp-mode utility and feature defuns
 ;; ==================================================================
@@ -913,7 +881,16 @@ a square parentasis block [ ... ]."
 
                                (if (or
                                     (eq (char-after) ?{) ;; open curly
-                                    (csharp-is-square-parentasis-block-p)
+                                    ;; is square parenthesis block? - start
+                                    (let* ((start (point)) ;; used to hold our position, so that we know that
+                                           (end))          ;; our code isn't stuck trying to look for a non-existant sexp.
+                                      (and (eq (char-after) 91) ;; open square
+                                           (while (and (eq (char-after) 91)
+                                                       (not (eq start end)))
+                                             (c-safe (c-forward-sexp 1))
+                                             (setq end (point)))
+                                           (eq (char-before) 93)))
+                                    ;; is square parenthesis block? - end
                                     (and (eq (char-after) 40) ;; open paren
                                          (c-safe (c-forward-sexp 1) t)))
 
