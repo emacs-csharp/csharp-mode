@@ -446,37 +446,6 @@ Most other csharp functions are not instrumented.
 ;; csharp-mode utility and feature defuns
 ;; ==================================================================
 
-(defun csharp-time ()
-  "returns the time of day as a string.  Used in the `csharp-log' function."
-  (substring (current-time-string) 11 19)) ;24-hr time
-
-
-;; essentially the same as (progn), but this this is required to avoid
-;; byte-compilation warnings due to some forms referencing this
-;; getting expanded during compilation.
-(eval-when-compile
-  (defun csharp-log (level text &rest args)
-    "Log a message at level LEVEL.
-If LEVEL is higher than `csharp-log-level', the message is
-ignored.  Otherwise, it is printed using `message'.
-TEXT is a format control string, and the remaining arguments ARGS
-are the string substitutions (see `format')."
-    (if (<= level csharp-log-level)
-        (let* ((msg (apply 'format text args)))
-          (message "C# %s %s" (csharp-time) msg)))))
-
-;; nasty hack to silence compile-time warnings and runtime-warnings.
-;; exact copy of defun above.
-(defun csharp-log (level text &rest args)
-  "Log a message at level LEVEL.
-If LEVEL is higher than `csharp-log-level', the message is
-ignored.  Otherwise, it is printed using `message'.
-TEXT is a format control string, and the remaining arguments ARGS
-are the string substitutions (see `format')."
-  (if (<= level csharp-log-level)
-      (let* ((msg (apply 'format text args)))
-        (message "C# %s %s" (csharp-time) msg))))
-
 (defun csharp--at-vsemi-p (&optional pos)
   "Determines if there is a virtual semicolon at POS or point.
 It returns t if at a position where a virtual-semicolon is.
@@ -2407,6 +2376,21 @@ your `csharp-mode-hook' function:
 ;; ==================================================================
 ;; end of c# code-doc insertion magic
 ;; ==================================================================
+
+(defun csharp-time ()
+  "returns the time of day as a string.  Used in the `csharp-log' function."
+  (substring (current-time-string) 11 19)) ;24-hr time
+
+
+(defun csharp-log (level text &rest args)
+  "Log a message at level LEVEL.
+If LEVEL is higher than `csharp-log-level', the message is
+ignored.  Otherwise, it is printed using `message'.
+TEXT is a format control string, and the remaining arguments ARGS
+are the string substitutions (see `format')."
+  (if (<= level csharp-log-level)
+      (let* ((msg (apply 'format text args)))
+        (message "C# %s %s" (csharp-time) msg))))
 
 ;; ==================================================================
 ;; C#-specific optimizations of cc-mode funcs
