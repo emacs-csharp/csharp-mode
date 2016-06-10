@@ -292,6 +292,8 @@
 ;;          - Much faster, completely rewritten imenu-implementation.
 ;;
 
+;;; Code:
+
 (require 'cc-mode)
 (require 'cl-lib)
 
@@ -301,8 +303,7 @@
 (require 'compile)
 
 ;; Work around emacs bug#23053
-(eval-when-compile
-  (require 'cc-langs))
+(require 'cc-langs)
 
 ;; Work around emacs bug#18845
 (eval-when-compile
@@ -310,6 +311,14 @@
     (require 'cl)))
 
 (require 'imenu)
+
+;; Make our mode known to the language constant system.  Use Java
+;; mode as the fallback for the constants we don't change here.
+;; This needs to be done also at compile time since the language
+;; constants are evaluated then, otherwise we get errors about
+;; unknown variable `c-mode-prefix'.
+(eval-and-compile
+  (c-add-language 'csharp-mode 'java-mode))
 
 ;; ==================================================================
 ;; c# upfront stuff
@@ -382,25 +391,11 @@ Most other csharp functions are not instrumented.
   :type 'boolean :group 'csharp)
 
 
-
-
-
-;; These are only required at compile time to get the sources for the
-;; language constants.  (The load of cc-fonts and the font-lock
-;; related constants could additionally be put inside an
-;; (eval-after-load "font-lock" ...) but then some trickery is
-;; necessary to get them compiled.)
-
-(eval-when-compile
-  (let ((load-path
-         (if (and (boundp 'byte-compile-dest-file)
-                  (stringp byte-compile-dest-file))
-             (cons (file-name-directory byte-compile-dest-file) load-path)
-           load-path)))
-    (load "cc-mode" nil t)
-    (load "cc-fonts" nil t)
-    (load "cc-langs" nil t)))
-
+;; This const is referenced from code which is expanded during compilation
+;; deep in (c-lang-defconst c-basic-matchers-after... ).
+;;
+;; If we don't eval it compile-time, we'll get warnings and will need to
+;; change the code to be evaluated runtime instead.
 (eval-and-compile
   ;; ==================================================================
   ;; constants used in this module
@@ -422,11 +417,7 @@ Most other csharp functions are not instrumented.
 
   ;; ==================================================================
 
-  ;; Make our mode known to the language constant system.  Use Java
-  ;; mode as the fallback for the constants we don't change here.
-  ;; This needs to be done also at compile time since the language
-  ;; constants are evaluated then.
-  (c-add-language 'csharp-mode 'java-mode))
+  )
 
 ;; ==================================================================
 ;; end of c# upfront stuff
@@ -536,8 +527,7 @@ to work properly with code that includes attributes.
 ;; c# values for "language constants" defined in cc-langs.el
 ;; ==================================================================
 
-(c-lang-defconst c-at-vsemi-p-fn
-  csharp 'csharp--at-vsemi-p)
+(c-lang-defconst c-at-vsemi-p-fn csharp 'csharp--at-vsemi-p)
 
 
 ;; This c-opt-after-id-concat-key is a regexp that matches
@@ -551,10 +541,7 @@ to work properly with code that includes attributes.
 ;;   csharp (if (c-lang-const c-opt-identifier-concat-key)
 ;;              (c-lang-const c-symbol-start)))
 
-(c-lang-defconst c-opt-after-id-concat-key
-  csharp "[[:alpha:]_]" )
-
-
+(c-lang-defconst c-opt-after-id-concat-key csharp "[[:alpha:]_]" )
 
 
 ;; The matchers elements can be of many forms.  It gets pretty
@@ -708,7 +695,8 @@ to work properly with code that includes attributes.
 ;;     )
 
 
-(c-lang-defconst c-basic-matchers-before
+(c-lang-defconst
+    c-basic-matchers-before
   csharp `(
            ;;;; Font-lock the attributes by searching for the
            ;;;; appropriate regex and marking it as TODO.
@@ -1139,8 +1127,7 @@ Currently handled:
 ;; C# does generics.  Setting this to t tells the parser to put
 ;; parenthesis syntax on angle braces that surround a comma-separated
 ;; list.
-(c-lang-defconst c-recognize-<>-arglists
-  csharp t)
+(c-lang-defconst c-recognize-<>-arglists csharp t)
 
 
 (c-lang-defconst c-identifier-key
@@ -1155,8 +1142,7 @@ Currently handled:
 ;; C# has a few rules that are slightly different than Java for
 ;; operators. This also removed the Java's "super" and replaces it
 ;; with the C#'s "base".
-(c-lang-defconst c-operators
-  csharp `((prefix "base")))
+(c-lang-defconst c-operators csharp `((prefix "base")))
 
 
 ;; C# uses CPP-like prefixes to mark #define, #region/endregion,
@@ -2765,36 +2751,34 @@ are the string substitutions (see `format')."
    "warning [[:alnum:]]+: .+$")
   "Regexp to match compilation warning from xbuild.")
 
-(eval-after-load 'compile
-  (lambda ()
-    (dolist
-        (regexp
-         `((xbuild-error
-            ,csharp-compilation-re-xbuild-error
-            1 2 3 2)
-           (xbuild-warning
-            ,csharp-compilation-re-xbuild-warning
-            1 2 3 1)
-           (msbuild-error
-            ,csharp-compilation-re-msbuild-error
-            csharp--compilation-error-file-resolve
-            2
-            3
-            2
-            nil
-            (1 compilation-error-face)
-            (4 compilation-error-face))
-           (msbuild-warning
-            ,csharp-compilation-re-msbuild-warning
-            csharp--compilation-error-file-resolve
-            2
-            3
-            1
-            nil
-            (1 compilation-warning-face)
-            (4 compilation-warning-face))))
-      (add-to-list 'compilation-error-regexp-alist-alist regexp)
-      (add-to-list 'compilation-error-regexp-alist (car regexp)))))
+(dolist
+    (regexp
+     `((xbuild-error
+        ,csharp-compilation-re-xbuild-error
+        1 2 3 2)
+       (xbuild-warning
+        ,csharp-compilation-re-xbuild-warning
+        1 2 3 1)
+       (msbuild-error
+        ,csharp-compilation-re-msbuild-error
+        csharp--compilation-error-file-resolve
+        2
+        3
+        2
+        nil
+        (1 compilation-error-face)
+        (4 compilation-error-face))
+       (msbuild-warning
+        ,csharp-compilation-re-msbuild-warning
+        csharp--compilation-error-file-resolve
+        2
+        3
+        1
+        nil
+        (1 compilation-warning-face)
+        (4 compilation-warning-face))))
+  (add-to-list 'compilation-error-regexp-alist-alist regexp)
+  (add-to-list 'compilation-error-regexp-alist (car regexp)))
 
 
 ;;; Autoload mode trigger
