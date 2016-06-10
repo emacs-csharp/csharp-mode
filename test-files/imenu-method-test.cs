@@ -24,10 +24,21 @@ public class MethodTest
 
     }
 
+    public T GenericMethod1<T>(T instance, string item)
+    {
+
+    }
+
+    public T1 GenericMethod2<T1,T2>(T1 instance, T2 item)
+    {
+
+    }
+
     public abstract string AbstractMethod();
 
     public unsafe static void UnsafeCopy(byte[] src, byte[] dst, int count)
     {
 
     }
+
 }

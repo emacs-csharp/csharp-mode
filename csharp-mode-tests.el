@@ -232,7 +232,9 @@
   "(method) OpenWebServiceAsync("
   "(method) ToString("
   "(method) AbstractMethod("
-  "(method) UnsafeCopy(")
+  "(method) UnsafeCopy("
+  "(method) GenericMethod1<T>"
+  "(method) GenericMethod2<T1,T2>")
 
 (def-imenutest imenu-parsing-supports-delegates
   "./test-files/imenu-delegate-test.cs"
