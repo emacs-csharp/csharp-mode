@@ -1766,7 +1766,7 @@ to the beginning of the prior namespace.
          ;; but that's a compiler problem, not a imenu-problem
          (access-modifier-list (concat "\\(?:" access-modifier space "\\)"))
          (access-modifiers (concat access-modifier-list "*"))
-         (return-type                    "\\(?:[[:alpha:]_][^ =\t\(\n\r\f\v]+\\)")
+         (return-type                    "\\(?:[[:alpha:]_][^ =\t\(\n\r\f\v]*\\)")
          (identifier                     "[[:alpha:]_][[:alnum:]_]*")
          (interface-prefix               (concat "\\(?:" identifier "\\.\\)"))
          (generic-identifier (concat identifier
