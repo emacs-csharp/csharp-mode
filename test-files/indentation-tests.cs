@@ -69,6 +69,11 @@ namespace Boo
                 { 2, "false" },
             };
 
+            var map3 = new Dictionary<string,Func<int, bool>>
+            {
+                { "IsZero", (int i) => i == 0 }
+            };
+
             using (test)
             {
                 System.Console.WriteLine("boo");

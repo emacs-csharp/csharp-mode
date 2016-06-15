@@ -484,8 +484,11 @@ to work properly with code that includes attributes.
                       ;; typename
                       "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
                       "[A-Za-z_][[:alnum:]]*"
-                      ;; optional generic constraint
-                      "\\(?:<\\(?:[[:alpha:]][[:alnum:]]*\\)\\(?:[, ]+[[:alpha:]][[:alnum:]]*\\)*>\\)?"
+                      ;; simplified generic constraint.
+                      ;; handles generic sub-types.
+                      ;; { is optional because otherwise initializers with
+                      ;; bracket on same line will indent wrongly.
+                      "\\(?:<[[:alnum:], <>]+>[ \t\n\f\v\r]*{?\\)?"
                       ;; optional array-specifier
                       "\\(?:\\[\\]\\)?"
                       ;; spacing
