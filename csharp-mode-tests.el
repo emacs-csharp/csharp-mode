@@ -108,8 +108,9 @@
                         "Equals"               'font-lock-function-name-face
                         "AbstractMethod"       'font-lock-function-name-face
                         "UnsafeCopy"           'font-lock-function-name-face
-                        "GenericMethod1"       'font-lock-function-name-face
-                        "GenericMethod2"       'font-lock-function-name-face))
+                        ;; "GenericMethod1"       'font-lock-function-name-face
+                        ;; "GenericMethod2"       'font-lock-function-name-face
+                        ))
 
 (defun list-repeat-once (mylist)
   (append mylist mylist))
