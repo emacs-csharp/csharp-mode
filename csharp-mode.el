@@ -1779,7 +1779,7 @@ to the beginning of the prior namespace.
          (basic-type                     (concat
                                           ;; typename
                                           "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"
-                                          "[A-Za-z_][[:alnum:]]*"
+                                          "[A-Za-z_][[:alnum:]_]*"
                                           ))
          (type                           (concat
                                           basic-type

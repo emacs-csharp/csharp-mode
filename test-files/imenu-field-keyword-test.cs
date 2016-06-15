@@ -14,4 +14,6 @@ public class FieldTestClass
                                         new line */
 
     internal volatile DateTime VolatileTest;
+
+    private static object m_Member;
 }

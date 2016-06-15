@@ -227,7 +227,8 @@
   "(field) TestBool"
   "(field) CommentedField"
   "(field) _MultiLineComment"
-  "(field) VolatileTest")
+  "(field) VolatileTest"
+  "(field) m_Member")
 
 (def-imenutest imenu-parsing-supports-method-keywords
   "./test-files/imenu-method-test.cs"
