@@ -34,6 +34,11 @@ public class MethodTest
 
     }
 
+    private Dictionary<string,Func<int, bool>> NestedGeneric()
+    {
+
+    }
+
     public abstract string AbstractMethod();
 
     public unsafe static void UnsafeCopy(byte[] src, byte[] dst, int count)

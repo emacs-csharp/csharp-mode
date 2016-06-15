@@ -1774,29 +1774,37 @@ to the beginning of the prior namespace.
                                          "abstract" "async" "new" "unsafe")))
          ;; this will allow syntactically invalid combinations of modifiers
          ;; but that's a compiler problem, not a imenu-problem
-         (access-modifier-list (concat "\\(?:" access-modifier space "\\)"))
+         (access-modifier-list           (concat "\\(?:" access-modifier space "\\)"))
          (access-modifiers (concat access-modifier-list "*"))
-         (return-type                    "\\(?:[[:alpha:]_][^ =\t\(\n\r\f\v]*\\)")
-         (identifier                     "[[:alpha:]_][[:alnum:]_]*")
-         (interface-prefix               (concat "\\(?:" identifier "\\.\\)"))
-         (generic-identifier (concat identifier
-                                     ;; optional generic arguments
-                                     "\\(?:<" optional-space identifier
-                                     "\\(?:" "," optional-space identifier optional-space "\\)*"
-                                     ">\\)?"
-                                     ))
+         (basic-type                     (concat
+                                          ;; typename
+                                          "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
+                                          "[A-Za-z_][[:alnum:]]*"
+                                          ))
+         (type                           (concat
+                                          basic-type
+                                          ;; simplified, optional generic constraint.
+                                          ;; handles generic sub-types.
+                                          ;; { is optional because otherwise initializers with
+                                          ;; bracket on same line will indent wrongly.
+                                          "\\(?:<[[:alnum:], <>]+>[ \t\n\f\v\r]*{?\\)?"))
+         (return-type                    (concat
+                                          type
+                                          ;; optional array-specifier
+                                          "\\(?:\\[\\]\\)?"))
+         (interface-prefix               (concat "\\(?:" type "\\.\\)"))
          ;; param-list with parens
          (parameter-list "\\(?:\([^!\)]*\)\\)")
          (inheritance-clause (concat "\\(?:"
                                      optional-space
                                      ":"
-                                     optional-space generic-identifier
-                                     "\\(?:" optional-space "," optional-space generic-identifier "\\)*"
+                                     optional-space type
+                                     "\\(?:" optional-space "," optional-space type "\\)*"
                                      "\\)?")))
 
     (list (list "namespace"
                 (concat bol "namespace" space
-                        "\\(" identifier "\\)") 1)
+                        "\\(" basic-type "\\)") 1)
           ;; not all these are classes, but they can hold other
           ;; members, so they are treated uniformly.
           (list "class"
@@ -1804,19 +1812,19 @@ to the beginning of the prior namespace.
                         access-modifiers
                         "\\("
                         (regexp-opt '("class" "struct" "interface")) space
-                        generic-identifier inheritance-clause "\\)")  1)
+                        type inheritance-clause "\\)")  1)
           (list "enum"
                 (concat bol
                         access-modifiers
                         "\\(" "enum" space
-                        identifier "\\)")  1)
+                        basic-type "\\)")  1)
           (list "ctor"
                 (concat bol
                         ;; ctor MUST have access modifiers, or else we pick
                         ;; every if statement in the file...
                         access-modifier-list "+"
                         "\\("
-                        identifier
+                        basic-type
                         optional-space
                         parameter-list
                         "\\)"
@@ -1837,7 +1845,7 @@ to the beginning of the prior namespace.
                         access-modifier-list "+"
                         return-type space
                         "\\("
-                        generic-identifier
+                        type
                         optional-space
                         parameter-list
                         "\\)"
@@ -1850,7 +1858,7 @@ to the beginning of the prior namespace.
                         return-type space
                         "\\("
                         interface-prefix
-                        generic-identifier
+                        type
                         optional-space
                         parameter-list
                         "\\)"
@@ -1864,7 +1872,7 @@ to the beginning of the prior namespace.
                         (regexp-opt '("extern" "abstract")) space
                         return-type space
                         "\\("
-                        generic-identifier
+                        type
                         optional-space
                         parameter-list
                         "\\)"
@@ -1874,14 +1882,11 @@ to the beginning of the prior namespace.
           ;; delegates are almost like abstract methods, so pick them up here
           (list "delegate"
                 (concat bol
-                        ;; we MUST require modifiers, or else we cannot reliably
-                        ;; identify declarations, without also dragging in lots of
-                        ;; if statements and what not.
-                        access-modifier-list "+"
+                        access-modifiers
                         "delegate" space
                         return-type space
                         "\\("
-                        generic-identifier
+                        type
                         "\\)"
                         optional-space
                         parameter-list
@@ -1895,7 +1900,7 @@ to the beginning of the prior namespace.
                         access-modifiers
                         return-type space
                         "\\("
-                        generic-identifier
+                        type
                         "\\)"
                         optional-space "{" optional-space
                         ;; unless we are super-specific and expect the accesors,
@@ -1908,7 +1913,7 @@ to the beginning of the prior namespace.
                         return-type space
                         "\\("
                         interface-prefix
-                        generic-identifier
+                        type
                         "\\)"
                         optional-space "{" optional-space
                         ;; unless we are super-specific and expect the accesors,
@@ -1924,7 +1929,7 @@ to the beginning of the prior namespace.
                         "\\(?:" (regexp-opt '("readonly" "const" "volatile")) space "\\)?"
                         return-type space
                         "\\("
-                        generic-identifier
+                        type
                         "\\)"
                         optional-space
                         ;; optional assignment
@@ -1940,7 +1945,7 @@ to the beginning of the prior namespace.
                         "\\[" optional-space
                         ;; type
                         "\\([^\]]+\\)" optional-space
-                        identifier
+                        type
                         ;; closing brackets
                         "\\]"
                         "\\)"
@@ -1955,7 +1960,7 @@ to the beginning of the prior namespace.
                         optional-space "event" optional-space
                         "\\("
                         return-type space
-                        generic-identifier
+                        type
                         "\\)"
                         optional-space
                         ";") 1))))
