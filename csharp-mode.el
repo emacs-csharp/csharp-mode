@@ -486,6 +486,8 @@ to work properly with code that includes attributes.
                       "[A-Za-z_][[:alnum:]]*"
                       ;; optional generic constraint
                       "\\(?:<\\(?:[[:alpha:]][[:alnum:]]*\\)\\(?:[, ]+[[:alpha:]][[:alnum:]]*\\)*>\\)?"
+                      ;; optional array-specifier
+                      "\\(?:\\[\\]\\)?"
                       ;; spacing
                       "[\ t\n\f\v\r]*") nil)
              (looking-at "[ \t\n\f\v\r]*{"))

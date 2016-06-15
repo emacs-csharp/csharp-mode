@@ -48,6 +48,16 @@ namespace Boo
                 with = new prop(),
             };
 
+            var array1 = new ArrayList
+            {
+                1, 2, 3, 4, 5
+            };
+
+            var array2 = new string[]
+            {
+                "a", "b", "c"
+            };
+
             var map = new Dictionary<int,string> {
                 { 1, "true" },
                 { 2, "false" },
