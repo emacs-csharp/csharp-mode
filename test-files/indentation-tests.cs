@@ -53,12 +53,11 @@ namespace Boo
                 { 2, "false" },
             };
 
-            // indents incorrectly! :(
-            // var map2 = new Dictionary<int,string>
-            //     {
-            //         { 1, "true" },
-            //         { 2, "false" },
-            //     };
+            var map2 = new Dictionary<int,string>
+            {
+                { 1, "true" },
+                { 2, "false" },
+            };
 
             using (test)
             {

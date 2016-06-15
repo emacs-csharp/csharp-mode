@@ -481,8 +481,13 @@ to work properly with code that includes attributes.
        ;; before open curly in object initializer. new Foo* { }
        ((and (looking-back
               (concat "\\<new[ \t\n\f\v\r]+"
+                      ;; typename
                       "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
-                      "[A-Za-z_][[:alnum:]]*[\ t\n\f\v\r]*") nil)
+                      "[A-Za-z_][[:alnum:]]*"
+                      ;; optional generic constraint
+                      "\\(?:<\\(?:[[:alpha:]][[:alnum:]]*\\)\\(?:[, ]+[[:alpha:]][[:alnum:]]*\\)*>\\)?"
+                      ;; spacing
+                      "[\ t\n\f\v\r]*") nil)
              (looking-at "[ \t\n\f\v\r]*{"))
         t)
 
