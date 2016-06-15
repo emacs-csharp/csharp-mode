@@ -1778,16 +1778,14 @@ to the beginning of the prior namespace.
          (access-modifiers (concat access-modifier-list "*"))
          (basic-type                     (concat
                                           ;; typename
-                                          "\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*"
+                                          "\\(?:[A-Za-z_][[:alnum:]_]*\\.\\)*"
                                           "[A-Za-z_][[:alnum:]]*"
                                           ))
          (type                           (concat
                                           basic-type
                                           ;; simplified, optional generic constraint.
                                           ;; handles generic sub-types.
-                                          ;; { is optional because otherwise initializers with
-                                          ;; bracket on same line will indent wrongly.
-                                          "\\(?:<[[:alnum:], <>]+>[ \t\n\f\v\r]*{?\\)?"))
+                                          "\\(?:<[[:alnum:],<> \t\n\f\v\r]+>\\)?"))
          (return-type                    (concat
                                           type
                                           ;; optional array-specifier
