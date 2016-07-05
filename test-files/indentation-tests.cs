@@ -79,5 +79,31 @@ namespace Boo
                 System.Console.WriteLine("boo");
             }
         }
+
+        public void CaseStamentIndentation()
+        {
+            int bar = 0;
+            switch (foo)
+            {
+                case "foo":
+                    bar = 0;
+                    break;
+            }
+            switch (bar)
+            {
+                case 1:
+                case 2:
+                    bar = 0;
+                    break;
+            }
+            switch (foo)
+            {
+                case "foo":
+                case "bar":
+                    bar = 0;
+                    bar += 1;
+                    break;
+            }
+        }
     }
 }
