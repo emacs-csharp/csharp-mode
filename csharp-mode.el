@@ -1395,6 +1395,14 @@ This regexp is assumed to not match any non-operator identifier."
           (c-lang-const c-cpp-matchers)))
 
 
+;; allow strings as switch-case values by leaving out string
+;; delimiters in this definition
+(c-lang-defconst c-nonlabel-token-key
+  csharp (c-make-keywords-re t
+           (cl-set-difference (c-lang-const c-keywords)
+                              (append (c-lang-const c-label-kwds)
+                                      (c-lang-const c-protection-kwds))
+                              :test 'string-equal)))
 
 (defconst csharp-font-lock-keywords-1 (c-lang-const c-matchers-1 csharp)
   "Minimal highlighting for C# mode.")
