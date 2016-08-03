@@ -2989,8 +2989,13 @@ Key bindings:
   (set (make-local-variable 'comment-auto-fill-only-comments) t)
 
   (set (make-local-variable 'syntax-propertize-function)
-       'csharp-mode-syntax-propertize-function))
+       'csharp-mode-syntax-propertize-function)
+
+  ;; required since Emacs git master
+  ;; https://github.com/emacs-mirror/emacs/commit/edcdf64960a2ab4e8d9ce4419874e43b6d3ccee4
+  (csharp-mode-syntax-propertize-function (point-min) (point-max)))
 
 (provide 'csharp-mode)
 
 ;;; csharp-mode.el ends here
+
