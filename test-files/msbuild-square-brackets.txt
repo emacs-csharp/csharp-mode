@@ -1,4 +1,4 @@
--*- mode: compilation; default-directory: "~/Documents/Visual Studio 2015/Projects/ArrayThingError/ArrayThingError/" -*-
+-*- mode: compilation; -*-
 Compilation started at Wed May 13 19:21:20
 
 bash -c "for m in *akefile; do break; done; if [[ ${m} != \"*akefile\" ]]; then make; else set -o pipefail; 'c:/Program Files (x86)/MSBuild/14.0/Bin/MSBuild.exe' //m; fi"

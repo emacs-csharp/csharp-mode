@@ -359,3 +359,6 @@
     (should (equal orig-content indented-content))))
 
 ;;(ert-run-tests-interactively t)
+;; (local-set-key (kbd "<f6>") '(lambda ()
+;;                               (interactive)
+;;                               (ert-run-tests-interactively t)))
