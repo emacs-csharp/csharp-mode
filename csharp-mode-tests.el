@@ -6,8 +6,11 @@
 
 ;; development only packages, not declared as a package-dependency
 (package-initialize)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-(dolist (p '(assess))
+(add-to-list 'package-archives '("melpa" . "https://stable.melpa.org/packages/"))
+
+;; assess depends on dash 2.12.1, which is no longer available
+;; installing dash, resolves 2.13.0, and fixes this broken dependency.
+(dolist (p '(dash assess))
   (when (not (package-installed-p p))
     (package-refresh-contents)
     (package-install p)))
