@@ -294,6 +294,9 @@
 ;;          - Fix Emacs-25 related bugs.
 ;;          - Cleaned up dead code.
 ;;
+;;    0.9.1 2016 ....
+;;          - 
+;;
 
 (require 'cc-mode)
 (require 'cl-lib)
