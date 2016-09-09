@@ -286,10 +286,13 @@
 ;;    0.8.12 2016 January 6th
 ;;          - Various fixes and improvements for imenu indexing.
 ;;
-;;    0.9.0 2016 July...?
+;;    0.9.0 2016 September 9th
 ;;          - Fix issues with compilation-mode and lines with arrays.
 ;;          - Fontification of compiler directives.
 ;;          - Much faster, completely rewritten imenu-implementation.
+;;          - Fix indentation issues.
+;;          - Fix Emacs-25 related bugs.
+;;          - Cleaned up dead code.
 ;;
 
 (require 'cc-mode)
