@@ -3013,7 +3013,8 @@ Key bindings:
   ;;
   ;; To patch our way around this, we issue a syntax-propertize call
   ;; manually, font-lock enabled or not.
-  (csharp-mode-syntax-propertize-function (point-min) (point-max)))
+  (with-silent-modifications
+    (csharp-mode-syntax-propertize-function (point-min) (point-max))))
 
 (provide 'csharp-mode)
 
