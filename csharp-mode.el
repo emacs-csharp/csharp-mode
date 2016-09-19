@@ -5,6 +5,7 @@
 ;; Created    : Feburary 2005
 ;; Modified   : 2016
 ;; Version    : 0.9.0
+;; Package-Version: 20160909.1316
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : 2016-May-28
@@ -1393,7 +1394,7 @@ This regexp is assumed to not match any non-operator identifier."
           ;; Use the eval form for `font-lock-keywords' to be able to use
           ;; the `c-preprocessor-face-name' variable that maps to a
           ;; suitable face depending on the (X)Emacs version.
-          '(eval . (list "^\\s *\\(#pragma\\|undef\\|define\\)\\>\\(.*\\)"
+          '(eval . (list "^\\s *\\(\\#pragma\\|undef\\|define\\)\\>\\(.*\\)"
                          (list 1 c-preprocessor-face-name)
                          '(2 font-lock-string-face)))
           ;; There are some other things in `c-cpp-matchers' besides the
