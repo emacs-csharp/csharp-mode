@@ -104,6 +104,36 @@ namespace Boo
                 { "IsZero", (int i) => i == 0 }
             };
 
+            var innerClassIntance = new TypeOuter.TypeInner
+            {
+                Boo = "Foo",
+                May = "Yay"
+            };
+
+            // yielding has different behaviour... for some reason!
+            // https://github.com/josteink/csharp-mode/issues/94
+            yield return new InnerA {
+                PropA = 1,
+                PropB = 2
+            };
+
+            yield return new InnerA.InnerB {
+                PropA = 1,
+                PropB = 2
+            };
+
+            yield return new InnerA
+            {
+                Boo = "Foo",
+                May = "Yay"
+            };
+
+            yield return new InnerA.InnerB
+            {
+                Boo = "Foo",
+                May = "Yay"
+            };
+
             using (test)
             {
                 System.Console.WriteLine("boo");
