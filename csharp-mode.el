@@ -412,6 +412,12 @@ Most other csharp functions are not instrumented.
   ;; constants used in this module
   ;; ==================================================================
 
+  (defconst csharp-type-initializer-statement-re
+    (concat
+     "\\<new[ \t\n\r\f\v]+"
+     "\\([[:alpha:]_][[:alnum:]_<>\\.]*\\)")
+    "Regexp that captures a type-initializer statement in C#")
+
   (defconst csharp-enum-decl-re
     (concat
      "\\<enum[ \t\n\r\f\v]+"
@@ -423,8 +429,7 @@ Most other csharp functions are not instrumented.
        (list "sbyte" "byte" "short" "ushort" "int" "uint" "long" "ulong"))
      "\\)"
      "\\)?")
-    "Regex that captures an enum declaration in C#"
-    )
+    "Regex that captures an enum declaration in C#")
 
   ;; ==================================================================
 
@@ -2596,16 +2601,20 @@ are the string substitutions (see `format')."
                         (c-safe (c-forward-sexp -1))
                         (looking-at c-brace-list-key))
 
-                      ;; dinoch Thu, 22 Apr 2010  18:20
-                      ;; ============================================
-                      ;; looking enum Foo : int
-                      ;; means this is a brace list, so, return nil,
-                      ;; implying NOT looking-at-inexpr-block
-
                       (and (c-major-mode-is 'csharp-mode)
-                           (progn
-                             (c-safe (c-forward-sexp -1))
-                             (looking-at csharp-enum-decl-re))))
+                           (or
+                            ;; dinoch Thu, 22 Apr 2010  18:20
+                            ;; ============================================
+                            ;; looking enum Foo : int
+                            ;; means this is a brace list, so, return nil,
+                            ;; implying NOT looking-at-inexpr-block
+                            (progn
+                              (c-safe (c-forward-sexp -1))
+                              (looking-at csharp-enum-decl-re))
+
+                            ;; no need to forward when looking here, because enum
+                            ;; check already did it!
+                            (looking-at csharp-type-initializer-statement-re))))
 
                   (setq bracepos (c-down-list-forward (point)))
                   (not (c-crosses-statement-barrier-p (point)

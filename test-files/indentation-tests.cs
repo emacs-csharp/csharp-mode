@@ -48,6 +48,36 @@ namespace Boo
                 with = new prop(),
             };
 
+            // test-cases for type initializer indetation issue:
+            // https://github.com/josteink/csharp-mode/issues/95
+            var x_gen = new Foo<bar>
+            {
+                a,
+                b,
+                c
+            };
+
+            return new Foo<bar>
+            {
+                a,
+                b,
+                c
+            };
+
+            yield return new Foo<bar>
+            {
+                a,
+                b,
+                c
+            };
+
+            new Foo<Bar>
+            {
+                a,
+                b,
+                c
+            };
+
             var array1 = new ArrayList
             {
                 1, 2, 3, 4, 5
