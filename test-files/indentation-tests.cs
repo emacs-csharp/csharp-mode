@@ -134,6 +134,27 @@ namespace Boo
                 May = "Yay"
             };
 
+            // extra test-cases
+
+            new Foo{
+                a,
+                b,
+                c
+            };
+
+            new Foo  {
+                a,
+                b,
+                c
+            };
+
+            new Foo
+            {
+                a,
+                b,
+                c
+            };
+
             using (test)
             {
                 System.Console.WriteLine("boo");
