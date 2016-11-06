@@ -106,4 +106,20 @@ namespace Boo
             }
         }
     }
+
+    // enum-tests
+
+    public enum Enumizer
+    {
+        a,
+        b,
+        c
+    }
+
+    public enum Inheritance : int
+    {
+        a,
+        b,
+        c
+    }
 }
