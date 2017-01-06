@@ -300,6 +300,7 @@
 ;;; Code:
 
 (require 'cc-mode)
+(require 'cc-fonts)
 (require 'cl-lib)
 
 ;; prevent warnings like
