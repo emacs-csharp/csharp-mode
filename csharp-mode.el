@@ -294,8 +294,10 @@
 ;;          - Fix Emacs-25 related bugs.
 ;;          - Cleaned up dead code.
 ;;
-;;    0.9.1 2016 ....
-;;          -
+;;    0.9.1 2017
+;;          - Fix indentation for generic type-initializers.
+;;          - Fix fontification of using and namespace-statements with
+;;            underscores in them.
 ;;
 ;;; Code:
 
