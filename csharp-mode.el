@@ -298,6 +298,7 @@
 ;;          - Fix indentation for generic type-initializers.
 ;;          - Fix fontification of using and namespace-statements with
 ;;            underscores in them.
+;;          - Derive csharp-mode-map from prog-mode-map.
 ;;
 ;;; Code:
 
