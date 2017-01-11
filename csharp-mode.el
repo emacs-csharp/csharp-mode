@@ -4,10 +4,10 @@
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
 ;; Modified   : 2016
-;; Version    : 0.9.0
+;; Version    : 0.9.1
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
-;; Last-saved : 2016-May-28
+;; Last-saved : 2017-Jan-11
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
