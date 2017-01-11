@@ -1110,7 +1110,7 @@ to work properly with code that includes attributes."
            ;; this needs to be done in the matchers-after because
            ;; otherwise the namespace names get the font-lock-type-face,
            ;; due to the energetic efforts of c-forward-type.
-           ,`("\\<\\(namespace\\)[ \t\n\r\f\v]+\\(\\(?:[A-Za-z_][[:alnum:]]*\\.\\)*[A-Za-z_][[:alnum:]]*\\)"
+           ,`("\\<\\(namespace\\)[ \t\n\r\f\v]+\\(\\(?:[A-Za-z0-9_]+\\.\\)*[A-Za-z0-9_]+\\)"
               2 font-lock-constant-face t)
 
 
