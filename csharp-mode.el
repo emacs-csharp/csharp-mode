@@ -484,7 +484,7 @@ A vsemi appears in 2 cases in C#:
 
 An example of the former is  [WebMethod] or [XmlElement].
 
-Providing this function allows the indenting in csharp-mode
+Providing this function allows the indenting in `csharp-mode'
 to work properly with code that includes attributes."
   (save-excursion
     (let ((pos-or-point (progn (if pos (goto-char pos)) (point))))
@@ -1431,13 +1431,13 @@ This regexp is assumed to not match any non-operator identifier."
 
 
 (defvar csharp-mode-syntax-table nil
-  "Syntax table used in csharp-mode buffers.")
+  "Syntax table used in ‘csharp-mode’ buffers.")
 (or csharp-mode-syntax-table
     (setq csharp-mode-syntax-table
           (funcall (c-lang-const c-make-mode-syntax-table csharp))))
 
 (defvar csharp-mode-abbrev-table nil
-  "Abbreviation table used in csharp-mode buffers.")
+  "Abbreviation table used in ‘csharp-mode’ buffers.")
 (c-define-abbrev-table 'csharp-mode-abbrev-table
   ;; Keywords that if they occur first on a line might alter the
   ;; syntactic context, and which therefore should trig reindentation
@@ -1450,7 +1450,7 @@ This regexp is assumed to not match any non-operator identifier."
 (defvar csharp-mode-map (let ((map (c-make-inherited-keymap)))
                           ;; Add bindings which are only useful for C#
                           map)
-  "Keymap used in csharp-mode buffers.")
+  "Keymap used in ‘csharp-mode’ buffers.")
 
 
 ;; TODO
@@ -2074,6 +2074,9 @@ to the beginning of the prior namespace."
    (cdr item)))
 
 (defun csharp--imenu-append-items-to-menu (result key name index classes namespaces)
+  "Formats the imenu-index using the provided values.
+
+This is done by modifying the contents of `RESULT' in place."
   ;; items = all methods, all events, etc based on "type"
   (let* ((items (cdr (assoc key index))))
     (dolist (item items)
@@ -2181,7 +2184,7 @@ to the beginning of the prior namespace."
 (defun csharp-maybe-insert-codedoc (arg)
   "Insert an xml code documentation template on third consecutive slash.
 This fn gets bound to / (the slash key), in
-csharp-mode.  If the slash being inserted is not the third
+‘csharp-mode’.  If the slash being inserted is not the third
 consecutive slash, the slash is inserted as normal.  If it is the
 third consecutive slash, then a xml code documentation template
 may be inserted in some cases.  For example,
