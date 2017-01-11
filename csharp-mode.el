@@ -27,7 +27,7 @@
 
 ;;; Commentary:
 ;;
-;;    This is a major mode for editing C# code. It performs automatic
+;;    This is a major mode for editing C# code.  It performs automatic
 ;;    indentation of C# syntax; font locking; and integration with
 ;;    imenu.el.
 ;;
@@ -68,7 +68,7 @@
 ;;      (append '(("\\.cs$" . csharp-mode)) auto-mode-alist))
 ;;
 ;;
-;; Optionally, define and register a mode-hook function. To do so, use
+;; Optionally, define and register a mode-hook function.  To do so, use
 ;; something like this in your .emacs file:
 ;;
 ;;   (defun my-csharp-mode-fn ()
@@ -91,7 +91,7 @@
 ;;  imenu integration
 ;;  -----------------------------
 ;;
-;;  This should just work. For those who don't know what imenu is, it
+;;  This should just work.  For those who don't know what imenu is, it
 ;;  allows navigation to different points within the file from an
 ;;  "Index" menu, in the window's menubar.  csharp-mode computes the
 ;;  menu containing the namespaces, classes, methods, and so on, in the
@@ -295,10 +295,12 @@
 ;;          - Cleaned up dead code.
 ;;
 ;;    0.9.1 2016 ....
-;;          - 
+;;          -
 ;;
+;;; Code:
 
 (require 'cc-mode)
+(require 'cc-fonts)
 (require 'cl-lib)
 
 ;; prevent warnings like
@@ -378,7 +380,7 @@ This is used in particular by the verbatim-literal
 string scanning.
 
 Most other csharp functions are not instrumented.
-0 = NONE, 1 = Info, 2 = VERBOSE, 3 = DEBUG, 4 = SHUTUP ALREADY. "
+0 = NONE, 1 = Info, 2 = VERBOSE, 3 = DEBUG, 4 = SHUTUP ALREADY."
   :type 'integer
   :group 'csharp)
 
@@ -462,7 +464,7 @@ Most other csharp functions are not instrumented.
 It returns t if at a position where a virtual-semicolon is.
 Otherwise nil.
 
-This is the C# version of the function. It gets set into
+This is the C# version of the function.  It gets set into
 the variable `c-at-vsemi-p-fn'.
 
 A vsemi is a cc-mode concept implying the end of a statement,
@@ -481,9 +483,7 @@ A vsemi appears in 2 cases in C#:
 An example of the former is  [WebMethod] or [XmlElement].
 
 Providing this function allows the indenting in csharp-mode
-to work properly with code that includes attributes.
-
-"
+to work properly with code that includes attributes."
   (save-excursion
     (let ((pos-or-point (progn (if pos (goto-char pos)) (point))))
 
@@ -1121,7 +1121,7 @@ to work properly with code that includes attributes.
   csharp ?@)
 
 (defun csharp-mode-syntax-propertize-function (beg end)
-  "Apply syntax table properties to special constructs.
+  "Apply syntax table properties to special constructs in region BEG to END.
 Currently handled:
 
 - Fontify verbatim literal strings correctly
@@ -1540,30 +1540,26 @@ This regexp is assumed to not match any non-operator identifier."
 
 
 (defun csharp--regexp (symbol)
-  "Retrieves a regexp from the `csharp--regexp-alist' corresponding
-to the given symbol.
-"
+  "Retrieve a regexp from `csharp--regexp-alist' corresponding to SYMBOL."
   (let ((elt (assoc symbol csharp--regexp-alist)))
     (if elt (cadr elt) nil)))
 
 
 (defun csharp-move-back-to-beginning-of-block ()
-  "Moves to the previous open curly.
-"
+  "Move to the previous open curly."
   (interactive)
   (re-search-backward "{" (point-min) t))
 
 
 (defun csharp--move-back-to-beginning-of-something (must-match &optional must-not-match)
-  "Moves back to the open-curly that defines the beginning of *something*,
-defined by the given MUST-MATCH, a regexp which must match immediately
-preceding the curly.  If MUST-NOT-MATCH is non-nil, it is treated
-as a regexp that must not match immediately preceding the curly.
+  "Move back to the open-curly that begin *something*.
+*something* is defined by MUST-MATCH, a regexp which must match
+immediately preceding the curly.  If MUST-NOT-MATCH is non-nil,
+it is treated as a regexp that must not match immediately
+preceding the curly.
 
 This is a helper fn for `csharp-move-back-to-beginning-of-defun' and
-`csharp-move-back-to-beginning-of-class'
-
-"
+`csharp-move-back-to-beginning-of-class'"
   (interactive)
   (let (done
         (found (point))
@@ -1582,12 +1578,11 @@ This is a helper fn for `csharp-move-back-to-beginning-of-defun' and
 
 
 (defun csharp-move-back-to-beginning-of-defun ()
-  "Moves back to the open-curly that defines the beginning of the
-enclosing method.  If point is outside a method, then move back to the
+  "Move back to the open-curly that start the enclosing method.
+If point is outside a method, then move back to the
 beginning of the prior method.
 
-See also, `csharp-move-fwd-to-end-of-defun'.
-"
+See also, `csharp-move-fwd-to-end-of-defun'."
   (interactive)
   (cond
 
@@ -1613,7 +1608,7 @@ See also, `csharp-move-fwd-to-end-of-defun'.
 
 
 (defun csharp--on-defun-open-curly-p ()
-  "return t when point is on the open-curly of a method."
+  "Return t when point is on the open-curly of a method."
   (and (looking-at "{")
        (not (looking-back (csharp--regexp 'class-start) nil))
        (not (looking-back (csharp--regexp 'namespace-start) nil))
@@ -1621,19 +1616,18 @@ See also, `csharp-move-fwd-to-end-of-defun'.
 
 
 (defun csharp--on-class-open-curly-p ()
-  "return t when point is on the open-curly of a class."
+  "Return t when point is on the open-curly of a class."
   (and (looking-at "{")
        (not (looking-back (csharp--regexp 'namespace-start) nil))
        (looking-back (csharp--regexp 'class-start) nil)))
 
 
 (defun csharp-move-fwd-to-end-of-defun ()
-  "Moves forward to the close-curly that defines the end of the enclosing
-method. If point is outside a method, moves forward to the close-curly that
+  "Move forward to the close-curly that ends the enclosing method.
+If point is outside a method, moves forward to the close-curly that
 defines the end of the next method.
 
-See also, `csharp-move-back-to-beginning-of-defun'.
-"
+See also, `csharp-move-back-to-beginning-of-defun'."
   (interactive)
 
   (let ((really-move
@@ -1695,12 +1689,11 @@ See also, `csharp-move-back-to-beginning-of-defun'.
 
 
 (defun csharp-move-back-to-beginning-of-class ()
-  "Moves back to the open-curly that defines the beginning of the
-enclosing class.  If point is outside a class, then move back to the
+  "Move back to the open-curly that begin the enclosing class.
+If point is outside a class, then move back to the
 beginning of the prior class.
 
-See also, `csharp-move-fwd-to-end-of-defun'.
-"
+See also, `csharp-move-fwd-to-end-of-defun'."
   (interactive)
 
   (cond
@@ -1728,11 +1721,9 @@ See also, `csharp-move-fwd-to-end-of-defun'.
 
 
 (defun csharp-move-fwd-to-end-of-class ()
-  "Moves forward to the close-curly that defines the end of the
-enclosing class.
+  "Move forward to the close-curly that ends the enclosing class.
 
-See also, `csharp-move-back-to-beginning-of-class'.
-"
+See also, `csharp-move-back-to-beginning-of-class'."
   (interactive)
   (let ((start (point))
         dest-char)
@@ -1748,11 +1739,9 @@ See also, `csharp-move-back-to-beginning-of-class'.
 
 
 (defun csharp-move-back-to-beginning-of-namespace ()
-  "Moves back to the open-curly that defines the beginning of the
-enclosing namespace.  If point is outside a namespace, then move back
-to the beginning of the prior namespace.
-
-"
+  "Move back to the open-curly that begins the enclosing namespace.
+If point is outside a namespace, then move back
+to the beginning of the prior namespace."
   (interactive)
   (cond
 
@@ -1983,10 +1972,10 @@ to the beginning of the prior namespace.
                         ";") 1))))
 
 (defun csharp--imenu-get-pos (pair)
-  "Takes a (title . position) cons-pair `PAIR' and returns position.
+  "Return `position' from a (title . position) cons-pair `PAIR'.
 
    The position may be a integer, or a marker (as returned by
-   imenu-indexing). This function ensures what is returned is an
+   imenu-indexing).  This function ensures what is returned is an
    integer which can be used for easy comparison."
   (let ((pos (cdr pair)))
     (if (markerp pos)
@@ -1994,9 +1983,9 @@ to the beginning of the prior namespace.
       pos)))
 
 (defun csharp--imenu-get-container (item containers previous)
-  "Returns the container which `ITEM' belongs to.
+  "Return the container which `ITEM' belongs to.
 
-   `ITEM' is a (title . position) cons-pair. `CONTAINERS' is a
+   `ITEM' is a (title . position) cons-pair.  `CONTAINERS' is a
    list of such.  `PREVIOUS' is the name of the previous
    container found when recursing through `CONTAINERS'.
 
@@ -2014,7 +2003,7 @@ to the beginning of the prior namespace.
         (csharp--imenu-get-container item rest container)))))
 
 (defun csharp--imenu-get-container-name (item containers)
-  "Returns the name of the container which `ITEM' belongs to.
+  "Return the name of the container which `ITEM' belongs to.
 
    `ITEM' is a (title . position) cons-pair.
    `CONTAINERS' is a list of such.
@@ -2032,7 +2021,7 @@ to the beginning of the prior namespace.
           container-p1)))))
 
 (defun csharp--imenu-sort (items)
-  "Sorts an imenu-index list `ITMES' by the string-portion."
+  "Sort an imenu-index list `ITEMS' by the string-portion."
   (sort items (lambda (item1 item2)
                 (string< (car item1) (car item2)))))
 
@@ -2051,7 +2040,7 @@ to the beginning of the prior namespace.
         (concat type " " namespace "." name)))))
 
 (defun csharp--imenu-get-class-nodes (classes namespaces)
-  "Creates a new alist with classes as root nodes with namespaces added.
+  "Create a new alist with CLASSES as root nodes with NAMESPACES added.
 
    Each class will have one imenu index-entry \"( top)\" added by
    default."
@@ -2068,7 +2057,7 @@ to the beginning of the prior namespace.
           classes))
 
 (defun csharp--imenu-get-class-node (result item classes namespaces)
-  "Gets the class-node which a `ITEM' should be inserted into in `RESULT'.
+  "Get the class-node in `RESULT' which an `ITEM' should be inserted into.
 
    For this calculation, the original index items `CLASSES' and `NAMESPACES'
    is needed."
@@ -2077,7 +2066,7 @@ to the beginning of the prior namespace.
     (assoc class-name result)))
 
 (defun csharp--imenu-format-item-node (item type)
-  "Formats a item with a specified type as a imenu item to be inserted into the index."
+  "Format an ITEM with a specified TYPE as an imenu item to be inserted into the index."
   (cons
    (concat "(" type ") " (car item))
    (cdr item)))
@@ -2091,7 +2080,7 @@ to the beginning of the prior namespace.
         (nconc class-node (list item-node))))))
 
 (defun csharp--imenu-transform-index (index)
-  "Transforms a imenu-index based on `IMENU-GENERIC-EXPRESSION'.
+  "Transform an imenu INDEX based on `IMENU-GENERIC-EXPRESSION'.
 
   The resulting structure should be based on full type-names, with
   type-members nested hierarchially below its parent.
@@ -2149,11 +2138,12 @@ to the beginning of the prior namespace.
     (csharp--imenu-sort result)))
 
 (defun csharp--imenu-create-index-function ()
+  "Create an imenu index."
   (csharp--imenu-transform-index
    (imenu--generic-function csharp--imenu-expression)))
 
 (defun csharp--setup-imenu ()
-  "Sets up `imenu' for `csharp-mode'."
+  "Set up `imenu' for `csharp-mode'."
 
   ;; There are two ways to do imenu indexing. One is to provide a
   ;; function, via `imenu-create-index-function'.  The other is to
@@ -2187,13 +2177,12 @@ to the beginning of the prior namespace.
 ;; must live within csharp-mode itself.
 
 (defun csharp-maybe-insert-codedoc (arg)
-
-  "Insert an xml code documentation template as appropriate, when
-typing slashes.  This fn gets bound to / (the slash key), in
+  "Insert an xml code documentation template on third consecutive slash.
+This fn gets bound to / (the slash key), in
 csharp-mode.  If the slash being inserted is not the third
 consecutive slash, the slash is inserted as normal.  If it is the
 third consecutive slash, then a xml code documentation template
-may be inserted in some cases. For example,
+may be inserted in some cases.  For example,
 
   a <summary> template is inserted if the prior line is empty,
         or contains only an open curly brace;
@@ -2208,13 +2197,15 @@ may be inserted in some cases. For example,
 
 In all other cases the slash is inserted as normal.
 
+The prefix argument ARG is passed on to `self-insert-command'
+when the code documentation template isn't triggered.  This makes
+sure that M-10 / still produces 10 consecutive slashes as expected.
+
 If you want the default cc-mode behavior, which implies no automatic
 insertion of xml code documentation templates, then use this in
 your `csharp-mode-hook' function:
 
-     (local-set-key (kbd \"/\") 'c-electric-slash)
-
- "
+     (local-set-key (kbd \"/\") 'c-electric-slash)"
   (interactive "*p")
   ;;(message "csharp-maybe-insert-codedoc")
   (let (
@@ -2410,7 +2401,7 @@ your `csharp-mode-hook' function:
 ;; ==================================================================
 
 (defun csharp-time ()
-  "returns the time of day as a string.  Used in the `csharp-log' function."
+  "Return the time of day as a string.  Used in the `csharp-log' function."
   (substring (current-time-string) 11 19)) ;24-hr time
 
 
@@ -2432,6 +2423,7 @@ are the string substitutions (see `format')."
 (defadvice c-forward-objc-directive (around
                                      csharp-mode-advice-2
                                      compile activate)
+  "Make `c-forward-objc-directive' a no-op in `csharp-mode'."
   (if (c-major-mode-is 'csharp-mode)
       nil
     ad-do-it)
@@ -2752,6 +2744,7 @@ are the string substitutions (see `format')."
 ;; match name of class [c:\Users\user\project.csproj]
 
 (defun csharp--compilation-error-file-resolve ()
+  "Resolve an msbuild error to a (filename . dirname) cons cell."
   ;; http://stackoverflow.com/a/18049590/429091
   (cons (match-string 1) (file-name-directory (match-string 4))))
 
