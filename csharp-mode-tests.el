@@ -115,6 +115,13 @@
                         ;; "GenericMethod2"       'font-lock-function-name-face
                         ))
 
+(ert-deftest fontification-of-using-statements ()
+  (assess-face-in-file= "./test-files/using-fontification.cs"
+                        "using" 'font-lock-keyword-face
+                        "Reference" 'font-lock-constant-face
+                        "Under_scored" 'font-lock-constant-face
+                        ))
+
 (defun list-repeat-once (mylist)
   (append mylist mylist))
 
