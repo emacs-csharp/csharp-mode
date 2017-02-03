@@ -2921,7 +2921,7 @@ The mode provides fontification and indent for C# syntax, as well
 as some other handy features.
 
 At mode startup, there are two interesting hooks that run:
-`c-mode-common-hook' is run with no args, then `csharp-mode-hook' is run after
+`prog-mode-hook' is run with no args, then `csharp-mode-hook' is run after
 that, also with no args.
 
 To run your own logic after csharp-mode starts, do this:
