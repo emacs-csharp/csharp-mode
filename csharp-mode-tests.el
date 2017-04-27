@@ -377,6 +377,15 @@
 
     (should (equal orig-content indented-content))))
 
+(ert-deftest region-directive-comment-movement ()
+  (find-file "test-files/region-fontification.cs")
+  (csharp-mode)
+  (goto-char (point-min))
+  (search-forward "#region ")
+  (forward-word 1)
+  (forward-word -1)
+  (should (looking-at "fontifies")))
+
 ;;(ert-run-tests-interactively t)
 ;; (local-set-key (kbd "<f6>") '(lambda ()
 ;;                               (interactive)
