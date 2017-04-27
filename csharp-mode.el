@@ -1157,7 +1157,9 @@ Currently handled:
     (goto-char beg)
     (while (re-search-forward "^\\s-*#\\(region\\|pragma\\) " end t)
       (when (looking-at "\\w")
-        (put-text-property (point) (1+ (point))
+        ;; mark the space separating the directive from the comment
+        ;; text as comment starter to allow correct word movement
+        (put-text-property (1- (point)) (point)
                            'syntax-table (string-to-syntax "< b"))))))
 
 ;; C# does generics.  Setting this to t tells the parser to put
