@@ -2972,7 +2972,7 @@ Key bindings:
   (unless (or c-file-style
               (stringp c-default-style)
               (assq 'csharp-mode c-default-style))
-    (c-set-style "C#"))
+    (c-set-style "C#" 'do-not-override-customized-values))
 
   ;; `c-common-init' initializes most of the components of a CC Mode
   ;; buffer, including setup of the mode menu, font-lock, etc.
