@@ -1054,7 +1054,7 @@ to work properly with code that includes attributes."
                                          (save-excursion
                                            (c-beginning-of-statement-1)
                                            (looking-at
-                                            "#\\(pragma\\|endregion\\|region\\|if\\|else\\|endif\\)"))
+                                            "#\\s *\\(pragma\\|endregion\\|region\\|if\\|else\\|endif\\)"))
                                          )))
 
                         (if is-attr
@@ -1155,7 +1155,7 @@ Currently handled:
                   (setq done t)))))))))
 
     (goto-char beg)
-    (while (re-search-forward "^\\s-*#\\(region\\|pragma\\) " end t)
+    (while (re-search-forward "^\\s *#\\s *\\(region\\|pragma\\) " end t)
       (when (looking-at "\\w")
         ;; mark the space separating the directive from the comment
         ;; text as comment starter to allow correct word movement
@@ -1403,7 +1403,7 @@ This regexp is assumed to not match any non-operator identifier."
           ;; Use the eval form for `font-lock-keywords' to be able to use
           ;; the `c-preprocessor-face-name' variable that maps to a
           ;; suitable face depending on the (X)Emacs version.
-          '(eval . (list "^\\s *\\(#pragma\\|undef\\|define\\)\\>\\(.*\\)"
+          '(eval . (list "^\\s *#\\s *\\(pragma\\|undef\\|define\\)\\>\\(.*\\)"
                          (list 1 c-preprocessor-face-name)
                          '(2 font-lock-string-face)))
           ;; There are some other things in `c-cpp-matchers' besides the
