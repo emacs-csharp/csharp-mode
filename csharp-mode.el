@@ -1155,9 +1155,9 @@ Currently handled:
                   (setq done t)))))))))
 
     (goto-char beg)
-    (while (re-search-forward "^\\s *#\\s *\\(region\\|pragma\\) " end t)
-      (when (looking-at "\\w")
-        ;; mark the space separating the directive from the comment
+    (while (re-search-forward "^\\s *#\\s *\\(region\\|pragma\\)\\s " end t)
+      (when (looking-at "\\s *\\S ")
+        ;; mark the whitespace separating the directive from the comment
         ;; text as comment starter to allow correct word movement
         (put-text-property (1- (point)) (point)
                            'syntax-table (string-to-syntax "< b"))))))
