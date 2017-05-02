@@ -386,6 +386,17 @@
   (forward-word -1)
   (should (looking-at "fontifies")))
 
+(ert-deftest fontification-of-regions ()
+  (require 'assess)
+  (require 'm-buffer)
+  (find-file "test-files/region-fontification.cs")
+  (csharp-mode)
+  (let ((buf (current-buffer)))
+    ;; look for 'a region comment' - should always be a comment
+    (should (assess-face-at= buf 'csharp-mode (lambda (buf) (m-buffer-match buf "a region comment")) 'font-lock-comment-face))
+    ;; look for 'string' - should always be a type
+    (should (assess-face-at= buf 'csharp-mode (lambda (buf) (m-buffer-match buf "string")) 'font-lock-type-face))))
+
 ;;(ert-run-tests-interactively t)
 ;; (local-set-key (kbd "<f6>") '(lambda ()
 ;;                               (interactive)
