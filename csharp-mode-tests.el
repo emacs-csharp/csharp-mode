@@ -397,6 +397,33 @@
     ;; look for 'string' - should always be a type
     (should (assess-face-at= buf 'csharp-mode (lambda (buf) (m-buffer-match buf "string")) 'font-lock-type-face))))
 
+(ert-deftest activating-mode-doesnt-clobber-global-adaptive-fill-regexp ()
+  (let ((before adaptive-fill-regexp))
+    (with-temp-buffer
+      (csharp-mode))
+    (should
+     (equal before adaptive-fill-regexp))
+  ))
+
+(ert-deftest activating-mode-style-defaults-to-csharp ()
+  (let ((c-default-style "defaultc#"))
+    (with-temp-buffer
+      (csharp-mode)
+      (should
+       (equal "defaultc#" c-indentation-style))))
+  (let ((c-default-style '((csharp-mode . "defaultc#fromlist")
+                           (java-mode . "defaultjava"))))
+    (with-temp-buffer
+      (csharp-mode)
+      (should
+       (equal "defaultc#fromlist" c-indentation-style))))
+  (let (c-default-style)
+    (with-temp-buffer
+      (csharp-mode)
+      (should
+       (equal "C#" c-indentation-style))
+      )))
+
 ;;(ert-run-tests-interactively t)
 ;; (local-set-key (kbd "<f6>") '(lambda ()
 ;;                               (interactive)

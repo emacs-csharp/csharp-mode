@@ -2968,9 +2968,10 @@ Key bindings:
   ;; customized values for our language.
   (c-init-language-vars csharp-mode)
 
-  ;; Set style to c# style unless a file local variable or default
-  ;; style is found, in which case it should be set after
-  ;; calling `c-common-init' below.
+  ;; Use our predefined "C#" style unless a file local or default
+  ;; style is found. This is done by rebinding `c-default-style'
+  ;; during the `c-common-init' call. 'c-common-init' will initialize
+  ;; the buffer's style using the value of `c-default-style'.
   (let ((c-default-style (if (or c-file-style
                                  (stringp c-default-style)
                                  (assq 'csharp-mode c-default-style))
