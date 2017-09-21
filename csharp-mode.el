@@ -2971,17 +2971,17 @@ Key bindings:
   ;; Set style to c# style unless a file local variable or default
   ;; style is found, in which case it should be set after
   ;; calling `c-common-init' below.
-  (unless (or c-file-style
-              (stringp c-default-style)
-              (assq 'csharp-mode c-default-style))
-    (c-set-style "C#" 'do-not-override-customized-values))
-
-  ;; `c-common-init' initializes most of the components of a CC Mode
-  ;; buffer, including setup of the mode menu, font-lock, etc.
-  ;; There's also a lower level routine `c-basic-common-init' that
-  ;; only makes the necessary initialization to get the syntactic
-  ;; analysis and similar things working.
-  (c-common-init 'csharp-mode)
+  (let ((c-default-style (if (or c-file-style
+                                 (stringp c-default-style)
+                                 (assq 'csharp-mode c-default-style))
+                             c-default-style
+                           "C#")))
+    ;; `c-common-init' initializes most of the components of a CC Mode
+    ;; buffer, including setup of the mode menu, font-lock, etc.
+    ;; There's also a lower level routine `c-basic-common-init' that
+    ;; only makes the necessary initialization to get the syntactic
+    ;; analysis and similar things working.
+    (c-common-init 'csharp-mode))
 
   (define-key csharp-mode-map (kbd "/") 'csharp-maybe-insert-codedoc)
 
