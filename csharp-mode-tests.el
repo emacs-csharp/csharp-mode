@@ -402,8 +402,7 @@
     (with-temp-buffer
       (csharp-mode))
     (should
-     (equal before adaptive-fill-regexp))
-  ))
+     (equal before adaptive-fill-regexp))))
 
 (ert-deftest activating-mode-style-defaults-to-csharp ()
   (let ((c-default-style "defaultc#"))
@@ -421,8 +420,7 @@
     (with-temp-buffer
       (csharp-mode)
       (should
-       (equal "C#" c-indentation-style))
-      )))
+       (equal "C#" c-indentation-style)))))
 
 ;;(ert-run-tests-interactively t)
 ;; (local-set-key (kbd "<f6>") '(lambda ()
