@@ -365,6 +365,10 @@
 ;;      :test 'equal)))
 
 
+(defgroup csharp nil
+  "Major mode for editing C# code."
+  :group 'prog-mode)
+
 
 ;; Custom variables
 ;; ensure all are defined before using ...;
