@@ -422,6 +422,13 @@
       (should
        (equal "C#" c-indentation-style)))))
 
+(ert-deftest inside-bracelist-test ()
+  (let ((c-default-style "defaultc#"))
+    (with-temp-buffer
+      (csharp-mode)
+      (insert "public class A { public void F() {")
+      (call-interactively #'newline))))
+
 ;;(ert-run-tests-interactively t)
 ;; (local-set-key (kbd "<f6>") '(lambda ()
 ;;                               (interactive)

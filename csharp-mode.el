@@ -2576,11 +2576,18 @@ are the string substitutions (see `format')."
 
         res))))
 
+(advice-add 'c-inside-bracelist-p
+            :around 'csharp-inside-bracelist-or-c-inside-bracelist-p)
 
+(defun csharp-inside-bracelist-or-c-inside-bracelist-p (command &rest args)
+  "Run `csharp-inside-bracelist-p' if in `csharp-mode'.
 
+Otherwise run `c-inside-bracelist-p'."
+  (if (eq major-mode 'csharp-mode)
+      (csharp-inside-bracelist-p (nth 0 args) (nth 1 args))
+    (apply command args)))
 
-
-(defun c-inside-bracelist-p (containing-sexp paren-state)
+(defun csharp-inside-bracelist-p (containing-sexp paren-state)
   ;; return the buffer position of the beginning of the brace list
   ;; statement if we're inside a brace list, otherwise return nil.
   ;; CONTAINING-SEXP is the buffer pos of the innermost containing
