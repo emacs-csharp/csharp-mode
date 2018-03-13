@@ -981,7 +981,10 @@ to work properly with code that includes attributes."
                                                       'c-decl-id-start)
                                  (c-forward-syntactic-ws))
                                (save-match-data
-                                 (c-font-lock-declarators limit t nil))
+                                 (condition-case nil
+                                     (c-font-lock-declarators limit t nil)
+                                   (wrong-number-of-arguments
+                                    (c-font-lock-declarators limit t nil nil))))
                                (goto-char (match-end 0))
                                )
                              )))
