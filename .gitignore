@@ -33,6 +33,7 @@ tramp
 
 # cask packages
 .cask/
+dist/
 
 
 ### Elisp ###
