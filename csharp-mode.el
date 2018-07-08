@@ -756,8 +756,9 @@ to work properly with code that includes attributes."
              ;; Match a char before the string starter to make
              ;; `c-skip-comments-and-strings' work correctly.
              (concat ".\\(" c-string-limit-regexp "\\)")
-             '((when (fboundp 'c-font-lock-invalid-string)
-                 (c-font-lock-invalid-string))))
+             '((if (fboundp 'c-font-lock-invalid-string)
+                   (c-font-lock-invalid-string)
+                 (csharp-mode-font-lock-invalid-string))))
 
 
            ;; Fontify keyword constants.
@@ -2470,6 +2471,36 @@ are the string substitutions (see `format')."
 ;; figure out how to get cc-mode to do what C# needs, without modifying
 ;; these defuns.
 ;;
+
+;; verabatim copy of c-font-lock-invalid-string before it was removed
+;; from emacs/cc-mode in Git commit bb591f139f0602af292c772f974dcc14dabb1deb.
+
+(defun csharp-mode-font-lock-invalid-string ()
+  ;; Assuming the point is after the opening character of a string,
+  ;; fontify that char with `font-lock-warning-face' if the string
+  ;; decidedly isn't terminated properly.
+  ;;
+  ;; This function does hidden buffer changes.
+  (let ((start (1- (point))))
+    (save-excursion
+      (and (eq (elt (parse-partial-sexp start (c-point 'eol)) 8) start)
+	   (if (if (eval-when-compile (integerp ?c))
+		   ;; Emacs
+		   (integerp c-multiline-string-start-char)
+		 ;; XEmacs
+		 (characterp c-multiline-string-start-char))
+	       ;; There's no multiline string start char before the
+	       ;; string, so newlines aren't allowed.
+	       (not (eq (char-before start) c-multiline-string-start-char))
+	     ;; Multiline strings are allowed anywhere if
+	     ;; c-multiline-string-start-char is t.
+	     (not c-multiline-string-start-char))
+	   (if c-string-escaped-newlines
+	       ;; There's no \ before the newline.
+	       (not (eq (char-before (point)) ?\\))
+	     ;; Escaped newlines aren't supported.
+	     t)
+	   (c-put-font-lock-face start (1+ start) 'font-lock-warning-face)))))
 
 (defun c-looking-at-inexpr-block (lim containing-sexp &optional check-at-end)
   ;; Return non-nil if we're looking at the beginning of a block
