@@ -3,11 +3,11 @@
 ;; Author     : Dylan R. E. Moonfire (original)
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
 ;; Created    : Feburary 2005
-;; Modified   : 2016
-;; Version    : 0.9.1
+;; Modified   : 2018
+;; Version    : 0.9.2
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
-;; Last-saved : 2017-Jan-11
+;; Last-saved : 2018-Jul-08
 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -299,6 +299,9 @@
 ;;          - Fix fontification of using and namespace-statements with
 ;;            underscores in them.
 ;;          - Fixes for indentation for many kinds of type-initializers.
+;;
+;;    0.9.2 2018 July
+;;          - Try to fix some breakage introduced by changes in Emacs 27.
 ;;
 ;;; Code:
 
