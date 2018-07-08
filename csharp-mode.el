@@ -773,7 +773,7 @@ to work properly with code that includes attributes."
                 "[ \t\n\f\v\r]*="
                 "[ \t\n\f\v\r]*"
                 "\\)?"
-                "\\(\\(?:[A-Za-z0-9_]+\\.\\)*[A-Za-z_]+\\)"
+                "\\(\\(?:[A-Za-z0-9_]+\\.\\)*[A-Za-z0-9_]+\\)"
                 "[ \t\n\f\v\r]*;")
               (2 font-lock-constant-face t t)
               (3 font-lock-constant-face))

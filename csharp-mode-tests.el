@@ -121,6 +121,7 @@
                         "Reference" 'font-lock-constant-face
                         "Under_scored" 'font-lock-constant-face
                         "WithNumbers09.Ok" 'font-lock-constant-face
+                        "WithNumbers09.OkV2" 'font-lock-constant-face
                         ))
 
 (ert-deftest fontification-of-namespace-statements ()
@@ -129,6 +130,7 @@
                         "Reference" 'font-lock-constant-face
                         "Under_scored" 'font-lock-constant-face
                         "WithNumbers09.Ok" 'font-lock-constant-face
+                        "WithNumbers09.OkV2" 'font-lock-constant-face
                         ))
 
 (defun list-repeat-once (mylist)
