@@ -986,11 +986,9 @@ to work properly with code that includes attributes."
                                                       'c-decl-id-start)
                                  (c-forward-syntactic-ws))
                                (save-match-data
-                                 (ignore-errors
-                                   (condition-case nil
-                                       (c-font-lock-declarators limit t nil)
-                                     (wrong-number-of-arguments
-                                      (c-font-lock-declarators limit t nil nil)))))
+                                 (if (version<= "26.1" emacs-version)
+                                     (c-font-lock-declarators limit t nil nil)
+                                   (c-font-lock-declarators limit t nil)))
                                (goto-char (match-end 0))
                                )
                              )))
