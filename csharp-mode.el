@@ -986,7 +986,7 @@ to work properly with code that includes attributes."
                                                       'c-decl-id-start)
                                  (c-forward-syntactic-ws))
                                (save-match-data
-                                 (ignore-errors
+                                 (with-no-warnings
                                    (condition-case nil
                                        (c-font-lock-declarators limit t nil)
                                      (wrong-number-of-arguments
