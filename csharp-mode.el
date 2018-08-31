@@ -1130,6 +1130,12 @@ to work properly with code that includes attributes."
               2 font-lock-constant-face t)
 
 
+           ;; Highlight function-invocation.
+           ;; (this may in the future use font-lock-function-call-face, if standardized)
+           ,`(,"\\.\\([A-Za-z0-9_]+\\)("
+              1 font-lock-function-name-face t)
+
+
            ))
 
 ;; verbatim string literals can be multiline
