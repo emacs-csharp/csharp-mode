@@ -3077,10 +3077,10 @@ Key bindings:
 
   ;; The paragraph-separate variable was getting stomped by
   ;; other hooks, so it must reside here.
-  (setq paragraph-separate
+  (set (make-local-variable paragraph-separate)
         "[ \t]*\\(//+\\|\\**\\)\\([ \t]+\\|[ \t]+<.+?>\\)$\\|^\f")
 
-  (setq beginning-of-defun-function 'csharp-move-back-to-beginning-of-defun)
+  (set (make-local-variable beginning-of-defun-function) 'csharp-move-back-to-beginning-of-defun)
   ;; `end-of-defun-function' can remain forward-sexp !!
 
   (set (make-local-variable 'comment-auto-fill-only-comments) t)
