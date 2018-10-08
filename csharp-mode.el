@@ -2508,7 +2508,17 @@ are the string substitutions (see `format')."
 	     t)
 	   (c-put-font-lock-face start (1+ start) 'font-lock-warning-face)))))
 
-(defun c-looking-at-inexpr-block (lim containing-sexp &optional check-at-end)
+(advice-add 'c-looking-at-inexpr-block
+	    :around 'csharp--c-looking-at-inexpr-block-hack)
+
+(defun csharp--c-looking-at-inexpr-block-hack (orig-fun &rest args)
+  (funcall
+   (if csharp-mode
+       csharp--c-looking-at-inexpr-block
+     orig-fun)
+   args))
+
+(defun csharp--c-looking-at-inexpr-block (lim containing-sexp &optional check-at-end)
   ;; Return non-nil if we're looking at the beginning of a block
   ;; inside an expression.  The value returned is actually a cons of
   ;; either 'inlambda, 'inexpr-statement or 'inexpr-class and the
