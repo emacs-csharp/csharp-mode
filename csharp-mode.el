@@ -2512,8 +2512,8 @@ are the string substitutions (see `format')."
 	    :around 'csharp--c-looking-at-inexpr-block-hack)
 
 (defun csharp--c-looking-at-inexpr-block-hack (orig-fun &rest args)
-  (funcall
-   (if csharp-mode
+  (apply
+   (if (and (boundp 'csharp-mode) csharp-mode)
        csharp--c-looking-at-inexpr-block
      orig-fun)
    args))
