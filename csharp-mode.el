@@ -2513,7 +2513,7 @@ are the string substitutions (see `format')."
 
 (defun csharp--c-looking-at-inexpr-block-hack (orig-fun &rest args)
   (apply
-   (if (and (boundp 'csharp-mode) csharp-mode)
+   (if csharp-mode
        csharp--c-looking-at-inexpr-block
      orig-fun)
    args))
