@@ -2509,12 +2509,12 @@ are the string substitutions (see `format')."
 	   (c-put-font-lock-face start (1+ start) 'font-lock-warning-face)))))
 
 (advice-add 'c-looking-at-inexpr-block
-	    :around 'csharp--c-looking-at-inexpr-block-hack)
+            :around 'csharp--c-looking-at-inexpr-block-hack)
 
 (defun csharp--c-looking-at-inexpr-block-hack (orig-fun &rest args)
   (apply
-   (if csharp-mode
-       csharp--c-looking-at-inexpr-block
+   (if (eq major-mode 'csharp-mode)
+       #'csharp--c-looking-at-inexpr-block
      orig-fun)
    args))
 
@@ -3108,4 +3108,3 @@ Key bindings:
 (provide 'csharp-mode)
 
 ;;; csharp-mode.el ends here
-
