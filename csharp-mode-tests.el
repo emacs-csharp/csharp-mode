@@ -431,6 +431,28 @@
       (insert "public class A { public void F() {")
       (call-interactively #'newline))))
 
+(ert-deftest creating-new-csharp-source-file-inserts-skeleton ()
+  ;; file must not exist beforehand
+  (let ((name "test-files/NewSourceFile.cs"))
+    (find-file name)
+    (csharp-mode)
+    (erase-buffer)
+    ;; don't prompt user for tests
+    (let ((auto-insert-query nil))
+      (auto-insert))
+    (let ((contents (buffer-substring-no-properties (point-min) (point-max))))
+      (should
+       (equal contents
+              (concat "using System;" "\n"
+                      "\n"
+                      "namespace test-files" "\n"
+                      "{" "\n"
+                      "    class NewSourceFile" "\n"
+                      "    {" "\n"
+                      "        " "\n"
+                      "    }" "\n"
+                      "}" "\n"))))))
+
 ;;(ert-run-tests-interactively t)
 ;; (local-set-key (kbd "<f6>") '(lambda ()
 ;;                               (interactive)

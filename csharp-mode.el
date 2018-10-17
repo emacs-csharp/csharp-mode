@@ -3105,6 +3105,24 @@ Key bindings:
   (with-silent-modifications
     (csharp-mode-syntax-propertize-function (point-min) (point-max))))
 
+
+(eval-after-load 'autoinsert
+  '(define-auto-insert
+     '("\\.cs" . "C# skeleton")
+     '("simple C# class"
+       > "using System;" \n \n
+       > "namespace "
+       (file-name-nondirectory
+        (directory-file-name (file-name-directory (buffer-file-name)))) \n
+       "{" \n
+       > "class "
+       (file-name-sans-extension (file-name-nondirectory (buffer-file-name))) \n
+       -4 "{" \n
+       "" \n
+       "}" > \n
+       "}" > \n
+       \n )))
+
 (provide 'csharp-mode)
 
 ;;; csharp-mode.el ends here
