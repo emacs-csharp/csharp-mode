@@ -2934,7 +2934,7 @@ Otherwise run `c-inside-bracelist-p'."
                                    (class-close           . 0)
                                    (class-open            . 0)
                                    (comment-intro         . c-lineup-comment)
-                                   (cpp-macro             . 0)
+                                   (cpp-macro             . [0])
                                    (cpp-macro-cont        . c-lineup-dont-change)
                                    (defun-block-intro     . +)
                                    (defun-close           . 0)
