@@ -188,3 +188,10 @@ namespace Boo
         }
     }
 }
+
+public class NestedPreProcessor
+{
+#if DEBUG
+    public static bool Debug = true;
+#endif
+}
