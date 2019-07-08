@@ -14,7 +14,9 @@ public class MethodTest
         await foo;
     }
 
-    public new string ToString()
+    // Failing test: methods with new-modifier
+    // public new string ShouldStillBeMethod()
+    public string ToString()
     {
 
     }
