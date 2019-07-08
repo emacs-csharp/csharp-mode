@@ -1384,7 +1384,7 @@ This regexp is assumed to not match any non-operator identifier."
 
 ;; Constant keywords
 (c-lang-defconst c-constant-kwds
-  csharp '("true" "false" "null"))
+  csharp '("true" "false" "null" "value"))
 
 ;; Keywords that start "primary expressions."
 (c-lang-defconst c-primary-expr-kwds

@@ -54,6 +54,17 @@
                         "true"       'font-lock-constant-face
                         ))
 
+(ert-deftest fontification-of-constants ()
+  (require 'assess)
+  (assess-face-in-text=
+   "testBool1 = true;\ntestBool2 = false;\ntestObj = null;\ntestProp = value;"
+   ;; should not be interpreted as string because of trailing \!
+   "false" 'font-lock-constant-face
+   "true"  'font-lock-constant-face
+   "null"  'font-lock-constant-face
+   "value" 'font-lock-constant-face
+   ))
+
 (ert-deftest fontification-of-literals-allows-multi-line-strings ()
   (require 'assess)
   (should (assess-face-at=
