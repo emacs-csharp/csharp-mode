@@ -195,3 +195,17 @@ public class NestedPreProcessor
     public static bool Debug = true;
 #endif
 }
+
+enum SomeEnum
+{
+    Item,
+    Another,
+    Yeah
+}
+
+enum AnotherEnum
+{
+    First = 1,
+    Second = 2,
+    Third = 3
+}
