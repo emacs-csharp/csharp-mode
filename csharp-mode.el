@@ -2946,7 +2946,7 @@ Otherwise run `c-inside-bracelist-p'."
                                    (friend                . 0)
                                    (func-decl-cont        . +)
                                    (inclass               . +)
-                                   (inexpr-class          . +)
+                                   (inexpr-class          . 0)
                                    (inexpr-statement      . 0)
                                    (inextern-lang         . +)
                                    (inher-cont            . c-lineup-multi-inher)

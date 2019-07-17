@@ -159,6 +159,25 @@ namespace Boo
             {
                 System.Console.WriteLine("boo");
             }
+
+            /* Callback indentation test. */
+            SomeFunction(() => {
+                    // empty.
+                });
+
+            SomeFunction(() =>
+            {
+                // empty.
+            });
+
+            SomeFunction((withParam) => {
+                    // empty.
+                });
+
+            SomeFunction((withParam) =>
+            {
+                // empty.
+            });
         }
 
         public void CaseStamentIndentation()
