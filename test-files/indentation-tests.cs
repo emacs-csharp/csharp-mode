@@ -169,6 +169,15 @@ namespace Boo
             {
                 // empty.
             });
+
+            SomeFunction((withParam) => {
+                    // empty.
+                });
+
+            SomeFunction((withParam) =>
+            {
+                // empty.
+            });
         }
 
         public void CaseStamentIndentation()
