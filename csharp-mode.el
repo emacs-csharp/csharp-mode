@@ -2927,7 +2927,7 @@ Otherwise run `c-inside-bracelist-p'."
                                    (brace-list-close      . 0)
                                    (brace-list-entry      . 0)
                                    (brace-list-intro      . +)
-                                   (brace-list-open       . +)
+                                   (brace-list-open       . 0)
                                    (c                     . c-lineup-C-comments)
                                    (case-label            . +)
                                    (catch-clause          . 0)
