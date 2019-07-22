@@ -213,6 +213,18 @@ public class NestedPreProcessor
 #if DEBUG
     public static bool Debug = true;
 #endif
+
+    public void Foo()
+    {
+#if DEBUG
+        if (true)
+#else
+        if (true)
+#endif
+        {
+            // empty..
+        }
+    }
 }
 
 enum SomeEnum
