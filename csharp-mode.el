@@ -2970,7 +2970,7 @@ Otherwise run `c-inside-bracelist-p'."
                                    (statement-cont        . +)
                                    (stream-op             . c-lineup-streamop)
                                    (string                . c-lineup-dont-change)
-                                   (substatement          . +)
+                                   (substatement          . 0)
                                    (substatement-open     . 0)
                                    (template-args-cont c-lineup-template-args +)
                                    (topmost-intro         . 0)
