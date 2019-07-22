@@ -2952,7 +2952,6 @@ Otherwise run `c-inside-bracelist-p'."
                                    (inher-cont            . c-lineup-multi-inher)
                                    (inher-intro           . +)
                                    (inlambda              . c-lineup-inexpr-block)
-                                   (inlambda-intro-cnt    . 0)
                                    (inline-close          . 0)
                                    (inline-open           . 0)
                                    (innamespace           . +)
