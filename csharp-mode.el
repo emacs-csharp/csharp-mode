@@ -3106,4 +3106,5 @@ Key bindings:
     (csharp-mode-syntax-propertize-function (point-min) (point-max))))
 
 (provide 'csharp-mode)
+
 ;;; csharp-mode.el ends here
