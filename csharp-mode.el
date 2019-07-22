@@ -2490,23 +2490,23 @@ are the string substitutions (see `format')."
   (let ((start (1- (point))))
     (save-excursion
       (and (eq (elt (parse-partial-sexp start (c-point 'eol)) 8) start)
-     (if (if (eval-when-compile (integerp ?c))
-       ;; Emacs
-       (integerp c-multiline-string-start-char)
-     ;; XEmacs
-     (characterp c-multiline-string-start-char))
-         ;; There's no multiline string start char before the
-         ;; string, so newlines aren't allowed.
-         (not (eq (char-before start) c-multiline-string-start-char))
-       ;; Multiline strings are allowed anywhere if
-       ;; c-multiline-string-start-char is t.
-       (not c-multiline-string-start-char))
-     (if c-string-escaped-newlines
-         ;; There's no \ before the newline.
-         (not (eq (char-before (point)) ?\\))
-       ;; Escaped newlines aren't supported.
-       t)
-     (c-put-font-lock-face start (1+ start) 'font-lock-warning-face)))))
+           (if (if (eval-when-compile (integerp ?c))
+                   ;; Emacs
+                   (integerp c-multiline-string-start-char)
+                 ;; XEmacs
+                 (characterp c-multiline-string-start-char))
+               ;; There's no multiline string start char before the
+               ;; string, so newlines aren't allowed.
+               (not (eq (char-before start) c-multiline-string-start-char))
+             ;; Multiline strings are allowed anywhere if
+             ;; c-multiline-string-start-char is t.
+             (not c-multiline-string-start-char))
+           (if c-string-escaped-newlines
+               ;; There's no \ before the newline.
+               (not (eq (char-before (point)) ?\\))
+             ;; Escaped newlines aren't supported.
+             t)
+           (c-put-font-lock-face start (1+ start) 'font-lock-warning-face)))))
 
 (advice-add 'c-looking-at-inexpr-block
             :around 'csharp--c-looking-at-inexpr-block-hack)
