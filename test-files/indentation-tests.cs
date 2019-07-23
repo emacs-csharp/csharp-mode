@@ -217,13 +217,10 @@ public class NestedPreProcessor
     public void Foo()
     {
 #if DEBUG
-        if (true)
+        Console.WriteLine("Critical error: Ticket-ID:", ticketId);
 #else
-        if (true)
+        Console.WriteLine("Critical error: Ticket-ID:", ticketId);
 #endif
-        {
-            // empty..
-        }
     }
 }
 
