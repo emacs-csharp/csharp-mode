@@ -1,6 +1,7 @@
 EMACS="$(shell which emacs)"
 EMACS_CLI=$(EMACS) -Q -batch -L .
 CASK=~/.cask/bin/cask
+TESTHOME=/tmp/emacs
 
 package: build
 	$(CASK) package
@@ -9,7 +10,9 @@ build: test
 	$(CASK) build
 
 test: *.el
-	+ $(EMACS_CLI) -l csharp-mode-tests.el -f ert-run-tests-batch-and-exit
+	rm -rf $(TESTHOME)
+	mkdir -p $(TESTHOME)
+	+ HOME=$(TESTHOME) $(EMACS_CLI) -l csharp-mode-tests.el -f ert-run-tests-batch-and-exit
 
 clean:
 	$(CASK) clean-elc
