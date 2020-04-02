@@ -556,6 +556,10 @@ to work properly with code that includes attributes."
        (t nil))
       )))
 
+(defun csharp--at-lambda-header ()
+  "Determines if there is lambda header at point"
+  (or (looking-at "([[:alnum:][:space:]_,]*)[ \t\n]*=>[ \t\n]*{")
+      (looking-at "[[:alnum:]_]+[ \t\n]*=>[ \t\n]*{")))
 
 ;; ==================================================================
 ;; end of csharp-mode utility and feature defuns
@@ -2549,7 +2553,8 @@ are the string substitutions (see `format')."
                          (> (point) closest-lim))
                   (not (bobp))
                   (progn (backward-char)
-                         (looking-at "[\]\).]\\|\w\\|\\s_"))
+                         (or (looking-at "[\]\).]\\|\w\\|\\s_")
+                             (looking-at ">")))
                   (c-safe (forward-char)
                           (goto-char (scan-sexps (point) -1))))
 
@@ -2612,7 +2617,10 @@ are the string substitutions (see `format')."
                             'maybe)
                       (setq passed-paren (char-after))
                       'maybe)
-                  'maybe))))
+                  'maybe)
+
+                (if (csharp--at-lambda-header)
+                    (cons 'inexpr (point))))))
 
       (if (eq res 'maybe)
           (when (and c-recognize-paren-inexpr-blocks

@@ -162,21 +162,29 @@ namespace Boo
 
             /* Callback indentation test. */
             SomeFunction(() => {
-                    // empty.
-                });
+                System
+                    .Console
+                    .WriteLine("boo");
+            });
 
             SomeFunction(() =>
             {
-                // empty.
+                System
+                    .Console
+                    .WriteLine("boo");
             });
 
             SomeFunction((withParam) => {
-                    // empty.
-                });
+                System
+                    .Console
+                    .WriteLine("boo");
+            });
 
             SomeFunction((withParam) =>
             {
-                // empty.
+                System
+                    .Console
+                    .WriteLine("boo");
             });
         }
 
