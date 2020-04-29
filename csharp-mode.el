@@ -1146,9 +1146,6 @@ to work properly with code that includes attributes."
 (c-lang-defconst c-multiline-string-start-char
   csharp ?@)
 
-(defun c-clear-string-fences ()
-  "Function is made null because it breaks csharp-mode when quoting. See https://github.com/josteink/csharp-mode/issues/151")
-
 (defun csharp-mode-syntax-propertize-function (beg end)
   "Apply syntax table properties to special constructs in region BEG to END.
 Currently handled:
@@ -2462,6 +2459,14 @@ are the string substitutions (see `format')."
       nil
     ad-do-it)
   )
+
+(defadvice c-clear-string-fences (around
+                                  csharp-mode-advice-3
+                                  compile activate)
+  "Disable because it breaks csharp-mode when quoting. See
+https://github.com/josteink/csharp-mode/issues/151"
+  (if (c-major-mode-is 'csharp-mode)
+      ()))
 
 ;; ==================================================================
 ;; end of C#-specific optimizations of cc-mode funcs
