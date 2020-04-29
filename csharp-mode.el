@@ -1146,6 +1146,9 @@ to work properly with code that includes attributes."
 (c-lang-defconst c-multiline-string-start-char
   csharp ?@)
 
+(defun c-clear-string-fences ()
+  "Function is made null because it breaks csharp-mode when quoting. See https://github.com/josteink/csharp-mode/issues/151")
+
 (defun csharp-mode-syntax-propertize-function (beg end)
   "Apply syntax table properties to special constructs in region BEG to END.
 Currently handled:
