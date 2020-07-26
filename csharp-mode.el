@@ -1399,6 +1399,12 @@ This regexp is assumed to not match any non-operator identifier."
 (c-lang-defconst c-other-block-decl-kwds
   csharp '("namespace"))
 
+(c-lang-defconst c-ref-list-kwds
+  csharp nil)
+
+(c-lang-defconst c-other-decl-kwds
+  csharp nil)
+
 (c-lang-defconst c-other-kwds
   csharp '("sizeof" "typeof" "is" "as" "yield"
            "where" "select" "in" "from" "let" "orderby" "ascending" "descending"
