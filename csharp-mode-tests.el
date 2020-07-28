@@ -67,6 +67,18 @@
    "value" 'font-lock-constant-face
    ))
 
+(ert-deftest fontification-of-package ()
+  (require 'assess)
+  (assess-face-in-text=
+   "var package = true;"
+   "package" 'font-lock-variable-name-face))
+
+(ert-deftest fontification-of-import ()
+  (require 'assess)
+  (assess-face-in-text=
+   "var import = true;"
+   "import" 'font-lock-variable-name-face))
+
 (ert-deftest fontification-of-literals-allows-multi-line-strings ()
   (require 'assess)
   (should (assess-face-at=
