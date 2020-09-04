@@ -2466,6 +2466,17 @@ are the string substitutions (see `format')."
     ad-do-it)
   )
 
+(defadvice c-clear-string-fences (around
+                                  csharp-disable-clear-string-fences
+                                  compile activate)
+  "This turns off `c-clear-string-fences' for `csharp-mode'. When
+on for `csharp-mode' font lock breaks after an interpolated
+string or terminating simple string."
+  (if (c-major-mode-is 'csharp-mode)
+      nil
+    ad-do-it)
+  )
+
 ;; ==================================================================
 ;; end of C#-specific optimizations of cc-mode funcs
 ;; ==================================================================
