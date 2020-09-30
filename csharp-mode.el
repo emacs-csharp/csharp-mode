@@ -126,6 +126,10 @@
 (c-lang-defconst c-type-list-kwds
   csharp '("using"))
 
+(c-lang-defconst c-other-kwds
+  csharp '("select" "from" "where" "join" "in" "on" "equals" "into"
+           "orderby" "descending" "group"))
+
 (c-lang-defconst c-colon-type-list-kwds
   csharp '("class" "struct" "interface"))
 
