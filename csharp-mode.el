@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(when (version< emacs-version "25.1")
+  (require 'cl)) ; avoid macroexpand-all fail on old emacs versions
 (require 'cc-mode)
 (require 'cc-langs)
 
