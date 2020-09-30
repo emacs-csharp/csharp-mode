@@ -518,6 +518,30 @@
 	res))))
 ;;; End of monkey patch
 
+;;; Doc comments
+
+(defconst csharpxml-font-lock-doc-comments
+  ;; Most of this is taken from the javadoc example, however, we don't use the
+  ;; '@foo' syntax, so I removed that. Supports the XML tags only
+  `((,(concat "</?\\sw"			; XML tags.
+	      "\\("
+	      (concat "\\sw\\|\\s \\|[=\n\r*.:]\\|"
+		      "\"[^\"]*\"\\|'[^']*'")
+	      "\\)*>")
+     0 ,c-doc-markup-face-name prepend nil)
+    ("&\\(\\sw\\|[.:]\\)+;"		; XML entities.
+     0 ,c-doc-markup-face-name prepend nil)
+    (,(lambda (limit)
+	(c-find-invalid-doc-markup "[<>&]\\|{@" limit))
+     0 'font-lock-warning-face prepend nil)))
+
+(defconst csharpxml-font-lock-keywords
+  `((,(lambda (limit)
+	(c-font-lock-doc-comments "///" limit
+	  csharpxml-font-lock-doc-comments)))))
+
+;;; End of doc comments
+
 (defvar csharp-mode-syntax-table
   (funcall (c-lang-const c-make-mode-syntax-table csharp))
   "Syntax table used in csharp-mode buffers.")
@@ -552,6 +576,7 @@ Key bindings:
   (c-common-init 'csharp-mode)
   (easy-menu-add csharp-menu)
   (c-set-style "csharp")
+  (setq-local c-doc-comment-style '((csharp-mode . csharpxml)))
   (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook))
 
 (provide 'csharp-mode)
