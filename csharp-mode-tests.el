@@ -289,13 +289,13 @@
      (equal before adaptive-fill-regexp))))
 
 (ert-deftest activating-mode-style-defaults-to-csharp ()
-  (let ((c-default-style "defaultc#"))
+  (let ((c-default-style "csharp"))
     (with-temp-buffer
       (csharp-mode)
       (should
        (equal "csharp" c-indentation-style))))
-  (let ((c-default-style '((csharp-mode . "defaultc#fromlist")
-                           (java-mode . "defaultjava"))))
+  (let ((c-default-style '((csharp-mode . "csharp")
+                           (java-mode . "java"))))
     (with-temp-buffer
       (csharp-mode)
       (should
@@ -307,7 +307,7 @@
        (equal "csharp" c-indentation-style)))))
 
 (ert-deftest inside-bracelist-test ()
-  (let ((c-default-style "defaultc#"))
+  (let ((c-default-style "csharp"))
     (with-temp-buffer
       (csharp-mode)
       (insert "public class A { public void F() {")
