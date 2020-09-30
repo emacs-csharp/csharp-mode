@@ -47,15 +47,15 @@
 
 (defvar debug-res nil)
 
-;; (ert-deftest fontification-of-literals-detects-end-of-strings ()
-;;   (assess-face-in-file= "./test-files/fontification-test.cs"
-;;                         "bool1"      'font-lock-variable-name-face
-;;                         "Reference1" 'font-lock-variable-name-face
-;;                         "false"      'font-lock-constant-face
-;;                         "bool2"      'font-lock-type-face
-;;                         "Reference2" 'font-lock-variable-name-face
-;;                         "true"       'font-lock-constant-face
-;;                         ))
+(ert-deftest fontification-of-literals-detects-end-of-strings ()
+  (assess-face-in-file= "./test-files/fontification-test.cs"
+                        "bool1"      'font-lock-type-face
+                        "Reference1" 'font-lock-variable-name-face
+                        "false"      'font-lock-constant-face
+                        "bool2"      'font-lock-type-face
+                        "Reference2" 'font-lock-variable-name-face
+                        "true"       'font-lock-constant-face
+                        ))
 
 (ert-deftest fontification-of-constants ()
   (require 'assess)
