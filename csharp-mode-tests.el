@@ -1,6 +1,5 @@
 (require 'ert)
 (require 'cl-lib)
-(require 'cl)
 (require 'csharp-mode)
 (require 'package)
 
