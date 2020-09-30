@@ -76,7 +76,7 @@
 
 (c-lang-defconst c-primitive-type-kwds
   csharp '("bool" "byte" "sbyte" "char" "decimal" "double" "float" "int" "uint"
-	   "long" "ulong" "short" "ushort" "void" "object" "string" "const" "var"))
+	   "long" "ulong" "short" "ushort" "void" "object" "string" "var"))
 
 (c-lang-defconst c-return-kwds
   csharp '("return"))
@@ -116,7 +116,7 @@
 	   "public" "partial" "internal" "readonly" "static" "event" "transient"
 	   "volatile" "sealed" "ref" "out" "virtual" "implicit" "explicit"
 	   "fixed" "override" "params" "async" "await" "extern" "unsafe"
-           "get" "set" "this"))
+           "get" "set" "this" "const"))
 
 (c-lang-defconst c-other-decl-kwds
   csharp '("using"))
