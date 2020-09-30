@@ -22,4 +22,4 @@ matrix:
 
 script:
   - emacs --version
-  - make test
+  - cask exec make test

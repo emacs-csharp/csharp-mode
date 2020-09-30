@@ -1,21 +1,6 @@
 (require 'ert)
-(require 'cl-lib)
 (require 'csharp-mode)
-(require 'package)
-
-;; development only packages, not declared as a package-dependency
-(package-initialize)
-(add-to-list 'package-archives '("melpa" . "https://stable.melpa.org/packages/"))
-
-;; required to resolve SEQ (or anything on elpa) on Emacs25.
-(setq package-check-signature nil)
-
-;; assess depends on dash 2.12.1, which is no longer available
-;; installing dash, resolves 2.13.0, and fixes this broken dependency.
-(dolist (p '(dash assess))
-  (when (not (package-installed-p p))
-    (package-refresh-contents)
-    (package-install p)))
+(require 'assess)
 
 ;;; test-helper functions
 
@@ -25,7 +10,6 @@
            (face (cadr assessments))
            (rest (cddr assessments)))
       `(progn
-         (require 'assess)
          (should (assess-face-at= ,testee 'csharp-mode ,text ,face))
          (assess-face-in-text= ,testee ,@rest)))))
 
@@ -57,7 +41,6 @@
                         ))
 
 (ert-deftest fontification-of-constants ()
-  (require 'assess)
   (assess-face-in-text=
    "testBool1 = true;\ntestBool2 = false;\ntestObj = null;\ntestProp = value;"
    "false" 'font-lock-constant-face
@@ -67,19 +50,16 @@
    ))
 
 (ert-deftest fontification-of-package ()
-  (require 'assess)
   (assess-face-in-text=
    "var package = true;"
    "package" 'font-lock-variable-name-face))
 
 (ert-deftest fontification-of-import ()
-  (require 'assess)
   (assess-face-in-text=
    "var import = true;"
    "import" 'font-lock-variable-name-face))
 
 (ert-deftest fontification-of-literals-allows-multi-line-strings ()
-  (require 'assess)
   (should (assess-face-at=
            "string Literal = \"multi-line\nstring\";"
            'csharp-mode
@@ -215,7 +195,7 @@
 
     (let* ((file-name (car test-case))
            (regexp    (cadr test-case))
-           (matched-file-names (cl-caddr test-case))
+           (matched-file-names (nth 2 test-case))
            (times     (length matched-file-names))
            (find-file-hook '()) ;; avoid vc-mode file-hooks when opening!
            (buffer (find-file-read-only file-name)))
@@ -271,7 +251,6 @@
   (should (looking-at "fontifies")))
 
 ;; (ert-deftest fontification-of-regions ()
-;;   (require 'assess)
 ;;   (require 'm-buffer)
 ;;   (find-file "test-files/region-fontification.cs")
 ;;   (csharp-mode)
