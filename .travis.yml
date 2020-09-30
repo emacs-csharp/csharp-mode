@@ -1,3 +1,4 @@
+dist: xenial
 language: generic
 sudo: false
 before_install:
@@ -14,11 +15,17 @@ env:
   - EVM_EMACS=emacs-26.1-travis-linux-xenial
   - EVM_EMACS=emacs-26.2-travis-linux-xenial
   - EVM_EMACS=emacs-26.3-travis-linux-xenial
+  - EVM_EMACS=emacs-27.1-travis-linux-xenial
   - EVM_EMACS=emacs-git-snapshot-travis-linux-xenial
 
 matrix:
   allow_failures:
     - env: EVM_EMACS=emacs-git-snapshot-travis-linux-xenial
+    - env: EVM_EMACS=emacs-24.4-travis
+    - env: EVM_EMACS=emacs-24.5-travis
+    - env: EVM_EMACS=emacs-25.1-travis
+    - env: EVM_EMACS=emacs-25.2-travis
+    - env: EVM_EMACS=emacs-25.3-travis
 
 script:
   - emacs --version
