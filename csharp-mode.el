@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(when (version< emacs-version "25.1")
+  (require 'cl))
 (require 'cc-mode)
 (require 'cc-langs)
 
