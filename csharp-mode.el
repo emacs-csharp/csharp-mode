@@ -5,7 +5,7 @@
 ;;            : Theodor Thornhill <theo@thornhill.no>
 ;; Created    : September 2020
 ;; Modified   : 2020
-;; Version    : 0.9.2
+;; Version    : 0.10.0
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
 
