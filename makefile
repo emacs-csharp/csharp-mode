@@ -10,13 +10,13 @@ build: test
 	$(CASK) build
 
 test: *.el
-	rm -rf $(TESTHOME)
 	mkdir -p $(TESTHOME)
 	+ HOME=$(TESTHOME) $(EMACS_CLI) -l csharp-mode-tests.el -f ert-run-tests-batch-and-exit
 
 clean:
 	$(CASK) clean-elc
 	rm -rf dist
+	rm -rf $(TESTHOME)
 
 check-defuns:
 	grep "^(defun " csharp-mode.el | sed -r "s/\(defun ([a-z0-9-]+) .*$$/\1/" | sort >/tmp/defuns.txt
