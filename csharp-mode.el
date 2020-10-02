@@ -185,7 +185,7 @@
              "define"))
 
 (c-lang-defconst c-cpp-message-directives
-  csharp '("error" "warning"))
+  csharp '("error" "warning" "region"))
 
 (c-lang-defconst c-cpp-expr-directives
   csharp '("if" "elif"))
