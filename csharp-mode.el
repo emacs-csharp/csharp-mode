@@ -196,17 +196,24 @@
 
 (defun csharp-at-vsemi-p (&optional pos)
   (if pos (goto-char pos))
-  (or (and (eq (char-before) ?\])
-           (save-excursion
-             (c-backward-sexp)
-             (looking-at "\\[")))
-      (and
+  (or (and
+       ;; Heuristics to find attributes
+       (eq (char-before) ?\])
        (save-excursion
+         (c-backward-sexp)
+         (looking-at "\\[")))
+      (and
+       ;; Heuristics to find object initializers
+       (save-excursion
+         ;; Next non-whitespace character should be '{'
          (c-forward-syntactic-ws)
          (char-after ?{))
        (save-excursion
+         ;; 'new' should be part of the line
          (beginning-of-line)
-         (looking-at ".*new.*")))))
+         (looking-at ".*new.*"))
+       ;; Line should not already be terminated
+       (not (eq (char-after) ?\;)))))
 
 (c-lang-defconst c-at-vsemi-p-fn
   csharp 'csharp-at-vsemi-p)
