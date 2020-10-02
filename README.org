@@ -51,7 +51,7 @@ with [[https://github.com/OmniSharp/omnisharp-emacs][Omnisharp-Emacs]].
 
 * Attribution
 
-This repo is a fork of the code originally developed by Dylan R. E. Moonfire and
+This repo was a fork of the code originally developed by Dylan R. E. Moonfire and
 further maintained by Dino Chiesa as hosted on [[https://code.google.com/p/csharpmode/][Google code]].
 
 ** New focus
@@ -68,4 +68,5 @@ The goal: That what we package in csharp-mode actually works and works well.
 
 * License
 
-The original project was licensed under [[https://www.gnu.org/licenses/gpl-2.0.html][GPL v2]], so this one is too.
+The original project was licensed under [[https://www.gnu.org/licenses/gpl-2.0.html][GPL v2]], but after rewrite in September
+2020, it is relicensed to GPLv3
