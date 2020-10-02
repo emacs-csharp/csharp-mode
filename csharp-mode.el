@@ -53,12 +53,6 @@
   csharp (append '((?@ . "w"))
 	         (c-lang-const c-identifier-syntax-modifications)))
 
-(c-lang-defconst c-basic-matchers-after
-  csharp (append nil
-     ;; cc-mode defaults
-     (c-lang-const c-basic-matchers-after)))
-
-
 (c-lang-defconst c-symbol-start
   csharp (concat "[" c-alpha "_@]"))
 
@@ -297,6 +291,15 @@ casts and declarations are fontified.  Used on level 2 and higher."
 
            (eval . (list "\\(!\\)[^=]" 1 c-negation-char-face-name))
            ))
+
+(c-lang-defconst c-basic-matchers-after
+  csharp (append
+          ;; merge with cc-mode defaults
+          (c-lang-const c-basic-matchers-after)
+
+          ;; function names
+          `(("\\.\\([A-Za-z0-9_]+\\)(" 1 font-lock-function-name-face t))
+          ))
 
 (defcustom csharp-font-lock-extra-types
   (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw"))
