@@ -162,9 +162,9 @@
                         "using" 'font-lock-keyword-face
                         "Reference" 'font-lock-type-face
                         "Under_scored" 'font-lock-type-face
-                        "WithNumbers09" 'font-lock-constant-face
+                        "WithNumbers09" 'font-lock-variable-name-face
                         "Ok" 'font-lock-type-face
-                        "WithNumbers09" 'font-lock-constant-face
+                        "WithNumbers09" 'font-lock-variable-name-face
                         "OkV2" 'font-lock-type-face
                         ))
 
@@ -173,9 +173,9 @@
                         "namespace" 'font-lock-keyword-face
                         "Reference" 'font-lock-type-face
                         "Under_scored" 'font-lock-type-face
-                        "WithNumbers09" 'font-lock-constant-face
+                        "WithNumbers09" 'font-lock-variable-name-face
                         "Ok" 'font-lock-type-face
-                        "WithNumbers09" 'font-lock-constant-face
+                        "WithNumbers09" 'font-lock-variable-name-face
                         "Ok" 'font-lock-type-face
                         ))
 
