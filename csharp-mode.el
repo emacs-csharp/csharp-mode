@@ -122,7 +122,7 @@
 	   "public" "partial" "internal" "readonly" "static" "event" "transient"
 	   "volatile" "sealed" "ref" "out" "virtual" "implicit" "explicit"
 	   "fixed" "override" "params" "async" "await" "extern" "unsafe"
-           "get" "set" "this" "const"))
+           "get" "set" "this" "const" "delegate"))
 
 (c-lang-defconst c-other-decl-kwds
   csharp '("using"))
