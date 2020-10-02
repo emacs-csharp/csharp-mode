@@ -53,171 +53,11 @@
   csharp (append '((?@ . "w"))
 	         (c-lang-const c-identifier-syntax-modifications)))
 
-(c-lang-defconst c-basic-matchers-before
-  "Font lock matchers for basic keywords, labels, references and various
-other easily recognizable things that should be fontified before generic
-casts and declarations are fontified.  Used on level 2 and higher."
-
-  ;; Note: `c-font-lock-declarations' assumes that no matcher here
-  ;; sets `font-lock-type-face' in languages where
-  ;; `c-recognize-<>-arglists' is set.
-
-  chsarp `(;; Put a warning face on the opener of unclosed strings that
-           ;; can't span lines and on the "terminating" newlines.  Later font
-           ;; lock packages have a `font-lock-syntactic-face-function' for
-           ;; this, but it doesn't give the control we want since any
-           ;; fontification done inside the function will be
-           ;; unconditionally overridden.
-           ("\\s|" 0 font-lock-warning-face t nil)
-
-           ;; Invalid single quotes.
-           c-font-lock-invalid-single-quotes
-
-           ;; Fontify C++ raw strings.
-           ,@(when (c-major-mode-is 'c++-mode)
-	       '(c-font-lock-raw-strings))
-
-           ;; Fontify keyword constants.
-           ,@(when (c-lang-const c-constant-kwds)
-	       (let ((re (c-make-keywords-re nil (c-lang-const c-constant-kwds))))
-	         `((eval . (list ,(concat "\\<\\(" re "\\)\\>")
-			         1 c-constant-face-name)))))
-
-           ;; Fontify all keywords except the primitive types.
-           ,`(,(concat "\\<" (c-lang-const c-regular-keywords-regexp))
-	      1 font-lock-keyword-face)
-
-           ;; Fontify leading identifiers in fully qualified names like
-           "foo::bar" in languages that supports such things.
-           ,@(when (c-lang-const c-opt-identifier-concat-key)
-	       ;; Java needs special treatment since "." is used both to
-	       ;; qualify names and in normal indexing.  Here we look for
-	       ;; capital characters at the beginning of an identifier to
-	       ;; recognize the class.  "*" is also recognized to cover
-	       ;; wildcard import declarations.  All preceding dot separated
-	       ;; identifiers are taken as package names and therefore
-	       ;; fontified as references.
-	       `(,(c-make-font-lock-search-function
-	           ;; Search for class identifiers preceded by ".".  The
-	           ;; anchored matcher takes it from there.
-	           (concat (c-lang-const c-opt-identifier-concat-key)
-	        	   (c-lang-const c-simple-ws) "*"
-	        	   (concat "\\("
-	        		   "[" c-upper "]"
-	        		   "[" (c-lang-const c-symbol-chars) "]*"
-	        		   "\\|"
-	        		   "\\*"
-	        		   "\\)"))
-	           `((let (id-end)
-	               (goto-char (1+ (match-beginning 0)))
-	               (while (and (eq (char-before) ?.)
-	        		   (progn
-	        		     (backward-char)
-	        		     (c-backward-syntactic-ws)
-	        		     (setq id-end (point))
-	        		     (< (skip-chars-backward
-	        			 ,(c-lang-const c-symbol-chars))
-	        		        0))
-	        		   (not (get-text-property (point) 'face)))
-	        	 (c-put-font-lock-face (point) id-end
-	        			       c-reference-face-name)
-	        	 (c-backward-syntactic-ws)))
-	             nil
-	             (goto-char (match-end 0)))))
-
-	       `((,(byte-compile
-	            ;; Must use a function here since we match longer than
-	            ;; we want to move before doing a new search.  This is
-	            ;; not necessary for XEmacs since it restarts the
-	            ;; search from the end of the first highlighted
-	            ;; submatch (something that causes problems in other
-	            ;; places).
-	            `(lambda (limit)
-	               (while (re-search-forward
-	        	       ,(concat "\\(\\<" ; 1
-	        		        "\\(" (c-lang-const c-symbol-key) "\\)" ; 2
-	        		        (c-lang-const c-simple-ws) "*"
-	        		        (c-lang-const c-opt-identifier-concat-key)
-	        		        (c-lang-const c-simple-ws) "*"
-	        		        "\\)"
-	        		        "\\("
-	        		        (c-lang-const c-opt-after-id-concat-key)
-	        		        "\\)")
-	        	       limit t)
-	                 (unless (progn
-	        		   (goto-char (match-beginning 0))
-	        		   (c-skip-comments-and-strings limit))
-	        	   (or (get-text-property (match-beginning 2) 'face)
-	        	       (c-put-font-lock-face (match-beginning 2)
-	        				     (match-end 2)
-	        				     c-reference-face-name))
-	        	   (goto-char (match-end 1)))))))))
-
-           (eval . (list "\\(!\\)[^=]" 1 c-negation-char-face-name))))
-
 (c-lang-defconst c-basic-matchers-after
-  "Font lock matchers for various things that should be fontified after
-generic casts and declarations are fontified.  Used on level 2 and
-higher."
+  csharp (append nil
+     ;; cc-mode defaults
+     (c-lang-const c-basic-matchers-after)))
 
-  csharp `(,@(when (c-lang-const c-brace-list-decl-kwds)
-               ;; Fontify the remaining identifiers inside an enum list when we start
-               ;; inside it.
-	       '(c-font-lock-enum-tail
-	         ;; Fontify the identifiers inside enum lists.  (The enum type
-	         ;; name is handled by `c-simple-decl-matchers' or
-	         ;; `c-complex-decl-matchers' below.
-	         c-font-lock-enum-body))
-
-	   ;; Fontify labels after goto etc.
-	   ,@(when (c-lang-const c-before-label-kwds)
-	       `(;; (Got three different interpretation levels here,
-	         ;; which makes it a bit complicated: 1) The backquote
-	         ;; stuff is expanded when compiled or loaded, 2) the
-	         ;; eval form is evaluated at font-lock setup (to
-	         ;; substitute c-label-face-name correctly), and 3) the
-	         ;; resulting structure is interpreted during
-	         ;; fontification.)
-	         (eval
-	          . ,(let* ((c-before-label-re
-			     (c-make-keywords-re nil
-			       (c-lang-const c-before-label-kwds))))
-		       `(list
-		         ,(concat "\\<\\(" c-before-label-re "\\)\\>"
-			          "\\s *"
-			          "\\("	; identifier-offset
-			          (c-lang-const c-symbol-key)
-			          "\\)")
-		         (list ,(+ (regexp-opt-depth c-before-label-re) 2)
-			       c-label-face-name nil t))))))
-
-           ;; Fontify the clauses after various keywords.
-	   ,@(when (or (c-lang-const c-type-list-kwds)
-		       (c-lang-const c-ref-list-kwds)
-		       (c-lang-const c-colon-type-list-kwds))
-	       `((,(c-make-font-lock-BO-decl-search-function
-		    (concat "\\<\\("
-			    (c-make-keywords-re nil
-			      (append (c-lang-const c-type-list-kwds)
-				      (c-lang-const c-ref-list-kwds)
-				      (c-lang-const c-colon-type-list-kwds)))
-			    "\\)\\>")
-		    '((c-fontify-types-and-refs ((c-promote-possible-types t))
-		        (c-forward-keyword-clause 1)
-		        (if (> (point) limit) (goto-char limit))))))))
-
-	   ,@(when (c-lang-const c-paren-type-kwds)
-	       `((,(c-make-font-lock-search-function
-		    (concat "\\<\\("
-			    (c-make-keywords-re nil
-			      (c-lang-const c-paren-type-kwds))
-			    "\\)\\>")
-		    '((c-fontify-types-and-refs ((c-promote-possible-types t))
-		        (c-forward-keyword-clause 1)
-		        (if (> (point) limit) (goto-char limit))))))))
-
-	   ,@(when (c-major-mode-is 'java-mode)
-	       '((eval . (list "\\<\\(@[a-zA-Z0-9]+\\)\\>" 1 c-annotation-face))))))
 
 (c-lang-defconst c-symbol-start
   csharp (concat "[" c-alpha "_@]"))
@@ -345,7 +185,7 @@ higher."
              "define"))
 
 (c-lang-defconst c-cpp-message-directives
-  csharp '("error" "warning"))
+  csharp '("error" "warning" "region"))
 
 (c-lang-defconst c-cpp-expr-directives
   csharp '("if" "elif"))
