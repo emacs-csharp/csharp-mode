@@ -595,7 +595,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 
 ;;; Doc comments
 
-(defconst csharpxml-font-lock-doc-comments
+(defconst codedoc-font-lock-doc-comments
   ;; Most of this is taken from the javadoc example, however, we don't use the
   ;; '@foo' syntax, so I removed that. Supports the XML tags only
   `((,(concat "</?\\sw"			; XML tags.
@@ -610,10 +610,10 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	(c-find-invalid-doc-markup "[<>&]\\|{@" limit))
      0 'font-lock-warning-face prepend nil)))
 
-(defconst csharpxml-font-lock-keywords
+(defconst codedoc-font-lock-keywords
   `((,(lambda (limit)
 	(c-font-lock-doc-comments "///" limit
-	  csharpxml-font-lock-doc-comments)))))
+	  codedoc-font-lock-doc-comments)))))
 
 ;;; End of doc comments
 
@@ -651,7 +651,7 @@ Key bindings:
   (c-common-init 'csharp-mode)
   (easy-menu-add csharp-menu)
   (c-set-style "csharp")
-  (setq-local c-doc-comment-style '((csharp-mode . csharpxml)))
+  (setq-local c-doc-comment-style '((csharp-mode . codedoc)))
   (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook))
 
 (provide 'csharp-mode)
