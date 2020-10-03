@@ -298,7 +298,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
           (c-lang-const c-basic-matchers-after)
 
           ;; function names
-          `(("\\.\\([A-Za-z0-9_]+\\)(" 1 font-lock-function-name-face t))
+          `(("\\.\\([A-Za-z0-9_]+\\)[<(]" 1 font-lock-function-name-face t))
           ))
 
 (defcustom csharp-font-lock-extra-types

@@ -90,6 +90,14 @@
    "var package = true;"
    "package" 'font-lock-variable-name-face))
 
+(ert-deftest fontification-of-functions ()
+  (require 'assess)
+  (assess-face-in-text= "var foo = bar.Baz()"
+                        "Baz" 'font-lock-function-name-face)
+  (assess-face-in-text= "var foo = bar.Baz<Quux>()"
+                        "Baz" 'font-lock-function-name-face
+                        "Quux" 'font-lock-type-face))
+
 (ert-deftest fontification-of-import ()
   (require 'assess)
   (assess-face-in-text=
