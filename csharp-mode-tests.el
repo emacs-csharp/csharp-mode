@@ -90,6 +90,14 @@
    "var package = true;"
    "package" 'font-lock-variable-name-face))
 
+(ert-deftest fontification-of-functions ()
+  (require 'assess)
+  (assess-face-in-text= "var foo = bar.Baz()"
+                        "Baz" 'font-lock-function-name-face)
+  (assess-face-in-text= "var foo = bar.Baz<Quux>()"
+                        "Baz" 'font-lock-function-name-face
+                        "Quux" 'font-lock-type-face))
+
 (ert-deftest fontification-of-import ()
   (require 'assess)
   (assess-face-in-text=
@@ -162,9 +170,9 @@
                         "using" 'font-lock-keyword-face
                         "Reference" 'font-lock-type-face
                         "Under_scored" 'font-lock-type-face
-                        "WithNumbers09" 'font-lock-constant-face
+                        "WithNumbers09" 'font-lock-variable-name-face
                         "Ok" 'font-lock-type-face
-                        "WithNumbers09" 'font-lock-constant-face
+                        "WithNumbers09" 'font-lock-variable-name-face
                         "OkV2" 'font-lock-type-face
                         ))
 
@@ -173,9 +181,9 @@
                         "namespace" 'font-lock-keyword-face
                         "Reference" 'font-lock-type-face
                         "Under_scored" 'font-lock-type-face
-                        "WithNumbers09" 'font-lock-constant-face
+                        "WithNumbers09" 'font-lock-variable-name-face
                         "Ok" 'font-lock-type-face
-                        "WithNumbers09" 'font-lock-constant-face
+                        "WithNumbers09" 'font-lock-variable-name-face
                         "Ok" 'font-lock-type-face
                         ))
 

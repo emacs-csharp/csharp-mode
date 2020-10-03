@@ -53,12 +53,6 @@
   csharp (append '((?@ . "w"))
 	         (c-lang-const c-identifier-syntax-modifications)))
 
-(c-lang-defconst c-basic-matchers-after
-  csharp (append nil
-     ;; cc-mode defaults
-     (c-lang-const c-basic-matchers-after)))
-
-
 (c-lang-defconst c-symbol-start
   csharp (concat "[" c-alpha "_@]"))
 
@@ -240,6 +234,72 @@
                                    (case-label            . +)
                                    (cpp-macro             . c-lineup-dont-change)
                                    (substatement-open     . 0)))))
+
+(c-lang-defconst c-basic-matchers-before
+  "Font lock matchers for basic keywords, labels, references and various
+other easily recognizable things that should be fontified before generic
+casts and declarations are fontified.  Used on level 2 and higher."
+  csharp `(
+           ;; Put warning face on unclosed strings
+           ,@(if (version< emacs-version "27.0")
+                 ;; Taken from 26.1 branch
+                 `(,(c-make-font-lock-search-function
+	             (concat ".\\(" c-string-limit-regexp "\\)")
+	             '((c-font-lock-invalid-string))))
+               `(("\\s|" 0 font-lock-warning-face t nil)))
+
+           ;; Invalid single quotes
+           c-font-lock-invalid-single-quotes
+
+           ;; Fontify keyword constants
+           ,@(when (c-lang-const c-constant-kwds)
+	       (let ((re (c-make-keywords-re nil (c-lang-const c-constant-kwds))))
+	         `((eval . (list ,(concat "\\<\\(" re "\\)\\>")
+			         1 c-constant-face-name)))))
+
+           ;; Fontify all keywords except the primitive types.
+           ,`(,(concat "\\<" (c-lang-const c-regular-keywords-regexp))
+	      1 font-lock-keyword-face)
+
+           ,@(when (c-lang-const c-opt-identifier-concat-key)
+	       `(,(c-make-font-lock-search-function
+	           ;; Search for identifiers preceded by ".".  The anchored
+	           ;; matcher takes it from there.
+	           (concat (c-lang-const c-opt-identifier-concat-key)
+	        	   (c-lang-const c-simple-ws) "*"
+	        	   (concat "\\("
+	        		   ;; "[" c-upper "]"
+	        		   "[" (c-lang-const c-symbol-chars) "]*"
+	        		   "\\|"
+	        		   "\\)"))
+	           `((let (id-end)
+	               (goto-char (1+ (match-beginning 0)))
+	               (while (and (eq (char-before) ?.)
+	        		   (progn
+	        		     (backward-char)
+	        		     (c-backward-syntactic-ws)
+	        		     (setq id-end (point))
+	        		     (< (skip-chars-backward
+	        			 ,(c-lang-const c-symbol-chars))
+	        		        0))
+	        		   (not (get-text-property (point) 'face)))
+	        	 (c-put-font-lock-face (point) id-end
+	        			       font-lock-variable-name-face)
+	        	 (c-backward-syntactic-ws)))
+	             nil
+	             (goto-char (match-end 0))))))
+
+           (eval . (list "\\(!\\)[^=]" 1 c-negation-char-face-name))
+           ))
+
+(c-lang-defconst c-basic-matchers-after
+  csharp (append
+          ;; merge with cc-mode defaults
+          (c-lang-const c-basic-matchers-after)
+
+          ;; function names
+          `(("\\.\\([A-Za-z0-9_]+\\)[<(]" 1 font-lock-function-name-face t))
+          ))
 
 (defcustom csharp-font-lock-extra-types
   (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw"))
