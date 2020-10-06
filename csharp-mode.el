@@ -111,6 +111,22 @@
 (c-lang-defconst c-equals-type-clause-kwds
   csharp '("using"))
 
+(defun csharp-at-vsemi-p (&optional pos)
+  (if pos (goto-char pos))
+  (save-excursion
+    (beginning-of-line)
+    (c-forward-syntactic-ws)
+    (looking-at "using\\s *(")))
+
+(c-lang-defconst c-at-vsemi-p-fn
+  csharp 'csharp-at-vsemi-p)
+
+(defun csharp-vsemi-status-unknown () t)
+
+(c-lang-defconst c-vsemi-status-unknown-p-fn
+  csharp 'csharp-vsemi-status-unknown-p)
+
+
 (c-lang-defconst c-modifier-kwds
   csharp '("abstract" "default" "final" "native" "private" "protected"
 	   "public" "partial" "internal" "readonly" "static" "event" "transient"
@@ -193,36 +209,6 @@
 
 (c-lang-defconst c-doc-comment-start-regexp
   csharp "///")
-
-(defun csharp-at-vsemi-p (&optional pos)
-  (if pos (goto-char pos))
-  (or (and
-       ;; Heuristics to find attributes
-       (eq (char-before) ?\])
-       (save-excursion
-         (c-backward-sexp)
-         (looking-at "\\["))
-       (not (eq (char-after) ?\;)))
-      (and
-       ;; Heuristics to find object initializers
-       (save-excursion
-         ;; Next non-whitespace character should be '{'
-         (c-forward-syntactic-ws)
-         (char-after ?{))
-       (save-excursion
-         ;; 'new' should be part of the line
-         (beginning-of-line)
-         (looking-at ".*\\s * new\\s *.*"))
-       ;; Line should not already be terminated
-       (not (eq (char-after) ?\;)))))
-
-(c-lang-defconst c-at-vsemi-p-fn
-  csharp 'csharp-at-vsemi-p)
-
-(defun csharp-vsemi-status-unknown () t)
-
-(c-lang-defconst c-vsemi-status-unknown-p-fn
-  csharp 'csharp-vsemi-status-unknown-p)
 
 (c-add-style "csharp"
              '("java"
@@ -414,186 +400,6 @@ casts and declarations are fontified.  Used on level 2 and higher."
       (add-to-list 'compilation-error-regexp-alist-alist regexp)
       (add-to-list 'compilation-error-regexp-alist (car regexp)))))
 
-;;; Monkey patch
-(advice-add 'c-looking-at-inexpr-block
-            :around 'csharp-looking-at-inexpr-block-hack)
-
-(defun csharp-looking-at-inexpr-block-hack (orig-fun &rest args)
-  (apply
-   (if (eq major-mode 'csharp-mode)
-       #'csharp-looking-at-inexpr-block
-     orig-fun)
-   args))
-
-(defun csharp-looking-at-inexpr-block (lim containing-sexp &optional check-at-end)
-  ;; Return non-nil if we're looking at the beginning of a block
-  ;; inside an expression.  The value returned is actually a cons of
-  ;; either 'inlambda, 'inexpr-statement or 'inexpr-class and the
-  ;; position of the beginning of the construct.
-  ;;
-  ;; LIM limits the backward search.  CONTAINING-SEXP is the start
-  ;; position of the closest containing list.  If it's nil, the
-  ;; containing paren isn't used to decide whether we're inside an
-  ;; expression or not.  If both LIM and CONTAINING-SEXP are used, LIM
-  ;; needs to be farther back.
-  ;;
-  ;; If CHECK-AT-END is non-nil then extra checks at the end of the
-  ;; brace block might be done.  It should only be used when the
-  ;; construct can be assumed to be complete, i.e. when the original
-  ;; starting position was further down than that.
-  ;;
-  ;; This function might do hidden buffer changes.
-
-  (save-excursion
-    (let ((res 'maybe) (passed-bracket-pairs 0) bracket-pos passed-paren
-	  haskell-op-pos
-	  (closest-lim (or containing-sexp lim (point-min)))
-	  ;; Look at the character after point only as a last resort
-	  ;; when we can't disambiguate.
-	  (block-follows (and (eq (char-after) ?{) (point))))
-
-      ;; Search for a C++11 "->" which suggests a lambda declaration.
-      (when (and (c-major-mode-is 'c++-mode)
-		 (setq haskell-op-pos
-		       (save-excursion
-			 (while
-			     (progn
-			       (c-syntactic-skip-backward "^;=}>" closest-lim t)
-			       (and (eq (char-before) ?>)
-				    (c-backward-token-2)
-				    (not (looking-at c-haskell-op-re)))))
-			 (and (looking-at c-haskell-op-re)
-			      (point)))))
-	(goto-char haskell-op-pos))
-
-      (while (and (eq res 'maybe)
-		  (progn (c-backward-syntactic-ws)
-			 (> (point) closest-lim))
-		  (not (bobp))
-		  (progn (backward-char)
-			 (or (looking-at "[\]\).]\\|\w\\|\\s_")
-                             (looking-at ">")))
-		  (c-safe (forward-char)
-			  (goto-char (scan-sexps (point) -1))))
-
-	(setq res
-	      (if (looking-at c-keywords-regexp)
-		  (let ((kw-sym (c-keyword-sym (match-string 1))))
-		    (cond
-		     ((and block-follows
-			   (c-keyword-member kw-sym 'c-inexpr-class-kwds))
-		      (and (not (eq passed-paren ?\[))
-			   (or (not (looking-at c-class-key))
-			       ;; If the class definition is at the start of
-			       ;; a statement, we don't consider it an
-			       ;; in-expression class.
-			       (let ((prev (point)))
-				 (while (and
-					 (= (c-backward-token-2 1 nil closest-lim) 0)
-					 (eq (char-syntax (char-after)) ?w))
-				   (setq prev (point)))
-				 (goto-char prev)
-				 (not (c-at-statement-start-p)))
-			       ;; Also, in Pike we treat it as an
-			       ;; in-expression class if it's used in an
-			       ;; object clone expression.
-			       (save-excursion
-				 (and check-at-end
-				      (c-major-mode-is 'pike-mode)
-				      (progn (goto-char block-follows)
-					     (zerop (c-forward-token-2 1 t)))
-				      (eq (char-after) ?\())))
-			   (cons 'inexpr-class (point))))
-		     ((c-keyword-member kw-sym 'c-paren-any-kwds) ; e.g. C++11 "throw" or "noexcept"
-		      (setq passed-paren nil)
-		      (setq passed-bracket-pairs 0)
-		      (setq bracket-pos nil)
-		      'maybe)
-		     ((c-keyword-member kw-sym 'c-inexpr-block-kwds)
-		      (when (not passed-paren)
-			(cons 'inexpr-statement (point))))
-		     ((c-keyword-member kw-sym 'c-lambda-kwds)
-		      (when (or (not passed-paren)
-				(eq passed-paren ?\())
-			(cons 'inlambda (point))))
-		     ((c-keyword-member kw-sym 'c-block-stmt-kwds)
-		      nil)
-		     (t
-		      'maybe)))
-
-		(if (looking-at "\\s(")
-		    (if passed-paren
-			(cond
-			 ((and (eq passed-paren ?\[)
-			       (eq (char-after) ?\[)
-			       (not (eq (char-after (1+ (point))) ?\[))) ; C++ attribute.
-			  ;; Accept several square bracket sexps for
-			  ;; Java array initializations.
-			  (setq passed-bracket-pairs (1+ passed-bracket-pairs))
-			  'maybe)
-			 ((and (eq passed-paren ?\()
-			       (eq (char-after) ?\[)
-			       (not (eq (char-after (1+ (point))) ?\[))
-			       (eq passed-bracket-pairs 0))
-			  ;; C++11 lambda function declaration
-			  (setq passed-bracket-pairs 1)
-			  (setq bracket-pos (point))
-			  'maybe)
-			 (t nil))
-		      (when (not (looking-at "\\[\\["))
-			(setq passed-paren (char-after))
-			(when (eq passed-paren ?\[)
-			  (setq passed-bracket-pairs 1)
-			  (setq bracket-pos (point))))
-		      'maybe)
-		  'maybe)
-		(if (and (c-major-mode-is 'csharp-mode)
-                         (or (looking-at "([[:alnum:][:space:]_,]*)[ \t\n]*=>[ \t\n]*{")
-			     (looking-at "[[:alnum:]_]+[ \t\n]*=>[ \t\n]*{")))
-		    ;; If we are at a C# lambda header
-		    (cons 'inexpr (point))))))
-		
-      (if (eq res 'maybe)
-	  (cond
-	   ((and (c-major-mode-is 'c++-mode)
-		 block-follows
-		 (eq passed-bracket-pairs 1)
-		 (save-excursion
-		   (goto-char bracket-pos)
-		   (or (<= (point) (or lim (point-min)))
-		       (progn
-			 (c-backward-token-2 1 nil lim)
-			 (and
-			  (not (and (c-on-identifier)
-				    (looking-at c-symbol-char-key)))
-			  (not (looking-at c-opt-op-identifier-prefix)))))))
-	    (cons 'inlambda bracket-pos))
-	   ((and c-recognize-paren-inexpr-blocks
-		 block-follows
-		 containing-sexp
-		 (eq (char-after containing-sexp) ?\())
-	    (goto-char containing-sexp)
-	    (if (or (save-excursion
-		      (c-backward-syntactic-ws lim)
-		      (while (and (eq (char-before) ?>)
-				  (c-get-char-property (1- (point))
-						       'syntax-table)
-				  (c-go-list-backward nil lim))
-			(c-backward-syntactic-ws lim))
-		      (and (> (point) (or lim (point-min)))
-			   (c-on-identifier)))
-		    (and c-special-brace-lists
-			 (c-looking-at-special-brace-list))
-		    (and c-has-compound-literals
-			 (save-excursion
-			   (goto-char block-follows)
-			   (not (c-looking-at-statement-block)))))
-		nil
-	      (cons 'inexpr-statement (point)))))
-
-	res))))
-;;; End of monkey patch
-
 ;;; Doc comments
 
 (defconst codedoc-font-lock-doc-comments
@@ -617,6 +423,71 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  codedoc-font-lock-doc-comments)))))
 
 ;;; End of doc comments
+
+;;; Adding syntax constructs
+
+(advice-add 'c-looking-at-inexpr-block
+            :around 'csharp-looking-at-inexpr-block)
+
+(defun csharp-looking-at-inexpr-block (orig-fun &rest args)
+  (let ((res (csharp-at-lambda-header)))
+    (if res
+        res
+      (apply orig-fun args))))
+
+(defun csharp-at-lambda-header ()
+  (unless (bobp)
+    (save-excursion
+      (c-backward-syntactic-ws)
+      (backward-char)
+      (c-safe (goto-char (scan-sexps (point) -1)))
+      (when (or (looking-at "([[:alnum:][:space:]_,]*)[ \t\n]*=>[ \t\n]*{")
+	        (looking-at "[[:alnum:]_]+[ \t\n]*=>[ \t\n]*{"))
+        ;; If we are at a C# lambda header
+        (cons 'inexpr (point))))))
+
+(advice-add 'c-guess-basic-syntax
+            :around 'csharp-guess-basic-syntax)
+
+(defun csharp-guess-basic-syntax (orig-fun &rest args)
+  (cond
+   (;; Attributes
+    (save-excursion
+      (goto-char (c-point 'iopl))
+      (and
+       (eq (char-after) ?\[)
+       (save-excursion
+         (c-go-list-forward)
+         (and (eq (char-before) ?\])
+              (not (eq (char-after) ?\;))))))
+    `((annotation-top-cont ,(c-point 'iopl))))
+
+   ((and
+     ;; Heuristics to find object initializers
+     (save-excursion
+       ;; Next non-whitespace character should be '{'
+       (goto-char (c-point 'boi))
+       (eq (char-after) ?{))
+     (save-excursion
+       ;; 'new' should be part of the line
+       (goto-char (c-point 'iopl))
+       (looking-at ".*\\s *new\\s *.*"))
+     ;; Line should not already be terminated
+     (save-excursion
+       (goto-char (c-point 'eopl))
+       (or (not (eq (char-before) ?\;))
+           (not (eq (char-before) ?\{)))))
+    (if (save-excursion
+          ;; if we have a hanging brace on line before
+          (goto-char (c-point 'eopl))
+          (eq (char-before) ?\{))
+        `((brace-list-intro ,(c-point 'iopl)))
+      `((block-open) (statement ,(c-point 'iopl)))))
+   (t
+    (apply orig-fun args))))
+
+;;; End of new syntax constructs
+
 
 (defvar csharp-mode-syntax-table
   (funcall (c-lang-const c-make-mode-syntax-table csharp))

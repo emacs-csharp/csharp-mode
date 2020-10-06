@@ -238,3 +238,20 @@ enum AnotherEnum
     Second = 2,
     Third = 3
 }
+
+public async Task WriteAsync()
+{
+    using (var memoryStream = new MemoryStream())
+    using (var writer = new BinaryWriter())
+    {
+        // double using should indent like this
+    }
+
+    using (var memoryStream = new MemoryStream())
+    {
+        using (var writer = new BinaryWriter())
+        {
+            // or this
+        }
+    }
+}
