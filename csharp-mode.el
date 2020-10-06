@@ -85,7 +85,7 @@
   csharp nil)
 
 (c-lang-defconst c-typeof-kwds
-  c '("typeof" "is" "as"))
+  csharp '("typeof" "is" "as"))
 
 (c-lang-defconst c-type-modifier-prefix-kwds
   csharp '("volatile"))
@@ -126,7 +126,7 @@
 
 (c-lang-defconst c-other-kwds
   csharp '("select" "from" "where" "join" "in" "on" "equals" "into"
-           "orderby" "descending" "group" "nameof" "is"))
+           "orderby" "descending" "group" "nameof"))
 
 (c-lang-defconst c-colon-type-list-kwds
   csharp '("class" "struct" "interface"))
