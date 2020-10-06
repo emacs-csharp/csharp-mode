@@ -201,7 +201,8 @@
        (eq (char-before) ?\])
        (save-excursion
          (c-backward-sexp)
-         (looking-at "\\[")))
+         (looking-at "\\["))
+       (not (eq (char-after) ?\;)))
       (and
        ;; Heuristics to find object initializers
        (save-excursion
@@ -211,7 +212,7 @@
        (save-excursion
          ;; 'new' should be part of the line
          (beginning-of-line)
-         (looking-at ".*new.*"))
+         (looking-at ".*\\s * new\\s *.*"))
        ;; Line should not already be terminated
        (not (eq (char-after) ?\;)))))
 
