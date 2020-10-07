@@ -4,7 +4,7 @@
 
 This is a mode for editing C# in emacs. It's based on cc-mode, v5.30.3 and above.
 
-[[https://travis-ci.org/josteink/csharp-mode/][Travis-CI build-page]]. Build-status: [[https://api.travis-ci.org/josteink/csharp-mode.png]]
+[[https://travis-ci.org/josteink/csharp-mode/][Travis-CI build-page]]. Build-status: [[https://travis-ci.org/josteink/csharp-mode.svg?branch=master]]
 
 ** Main features
 
