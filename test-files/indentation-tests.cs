@@ -24,13 +24,15 @@ namespace Boo
         }
 
         /// <summary>
-        ///   Codedoc on method-test
+        /// Codedoc on method-test
         /// </summary>
         public void Foo(string a = "hkfdhkd", string b = "bbbbbb")
         {
             // OK!
         }
 
+        [Fact]
+        [Test]
         public void Test()
         {
             if (test)
