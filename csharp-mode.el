@@ -489,6 +489,71 @@ casts and declarations are fontified.  Used on level 2 and higher."
 ;;; End of new syntax constructs
 
 
+
+;;; Fix for strings on version 27.1
+
+(when (version= emacs-version "27.1")
+  ;; See:
+  ;; https://github.com/josteink/csharp-mode/issues/175
+  ;; https://github.com/josteink/csharp-mode/issues/151
+  ;; for the full story.
+  (defun c-pps-to-string-delim (end)
+    (let* ((start (point))
+	   (no-st-s `(0 nil nil ?\" nil nil 0 nil ,start nil nil))
+	   (st-s `(0 nil nil t nil nil 0 nil ,start nil nil))
+	   no-st-pos st-pos
+	   )
+      (parse-partial-sexp start end nil nil no-st-s 'syntax-table)
+      (setq no-st-pos (point))
+      (goto-char start)
+      (while (progn
+	       (parse-partial-sexp (point) end nil nil st-s 'syntax-table)
+	       (unless (bobp)
+		 (c-clear-syn-tab (1- (point))))
+	       (setq st-pos (point))
+	       (and (< (point) end)
+		    (not (eq (char-before) ?\")))))
+      (goto-char (min no-st-pos st-pos))
+      nil))
+
+  (defun c-multiline-string-check-final-quote ()
+    (let (pos-ll pos-lt)
+      (save-excursion
+	(goto-char (point-max))
+	(skip-chars-backward "^\"")
+	(while
+	    (and
+	     (not (bobp))
+	     (cond
+	      ((progn
+		 (setq pos-ll (c-literal-limits)
+		       pos-lt (c-literal-type pos-ll))
+		 (memq pos-lt '(c c++)))
+	       ;; In a comment.
+	       (goto-char (car pos-ll)))
+	      ((save-excursion
+		 (backward-char)		; over "
+		 (c-is-escaped (point)))
+	       ;; At an escaped string.
+	       (backward-char)
+	       t)
+	      (t
+	       ;; At a significant "
+	       (c-clear-syn-tab (1- (point)))
+	       (setq pos-ll (c-literal-limits)
+		     pos-lt (c-literal-type pos-ll))
+	       nil)))
+	  (skip-chars-backward "^\""))
+	(cond
+	 ((bobp))
+	 ((eq pos-lt 'string)
+	  (c-put-syn-tab (1- (point)) '(15)))
+	 (t nil))))))
+
+;;; End of fix for strings on version 27.1
+
+
+
 (defvar csharp-mode-syntax-table
   (funcall (c-lang-const c-make-mode-syntax-table csharp))
   "Syntax table used in csharp-mode buffers.")
