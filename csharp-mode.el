@@ -202,7 +202,7 @@
 
 (c-lang-defconst c-other-op-syntax-tokens
   csharp  (append '("#")
-	       (c-lang-const c-other-op-syntax-tokens)))
+	          (c-lang-const c-other-op-syntax-tokens)))
 
 (c-lang-defconst c-line-comment-starter
   csharp "//")
