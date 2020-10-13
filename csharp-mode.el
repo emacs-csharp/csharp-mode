@@ -25,6 +25,7 @@
 
 ;;; Code:
 
+
 (when (version< emacs-version "25.1")
   (require 'cl))
 (require 'cc-mode)
@@ -55,6 +56,9 @@
 
 (c-lang-defconst c-symbol-start
   csharp (concat "[" c-alpha "_@]"))
+
+(c-lang-defconst c-opt-type-suffix-key
+  csharp "\\(\\?\\)")
 
 (c-lang-defconst c-identifier-ops
   csharp '((left-assoc ".")))
@@ -177,9 +181,6 @@
 
 (c-lang-defconst c-decl-prefix-re
   csharp "\\([{}(;,<]+\\)")
-
-(c-lang-defconst c-opt-type-suffix-key
-  csharp (concat "\\(\\[" (c-lang-const c-simple-ws) "*\\]\\|\\.\\.\\.\\)"))
 
 (c-lang-defconst c-recognize-typeless-decls
   csharp t)
