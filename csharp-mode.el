@@ -61,8 +61,7 @@
   csharp "\\(\\?\\)")
 
 (c-lang-defconst c-identifier-ops
-  csharp '((left-assoc "?")
-           (left-assoc ".")))
+  csharp '((left-assoc ".")))
 
 (c-lang-defconst c-overloadable-operators
   csharp '("+" "-" "*" "/" "%" "&" "|" "^" "<<" ">>" "=="
@@ -263,8 +262,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	        		   "\\)"))
 	           `((let (id-end)
 	               (goto-char (1+ (match-beginning 0)))
-	               (while (and (or (eq (char-before) ?.)
-                                       (eq (char-before) ?\?))
+	               (while (and (eq (char-before) ?.)
 	        		   (progn
 	        		     (backward-char)
 	        		     (c-backward-syntactic-ws)
