@@ -370,6 +370,13 @@ casts and declarations are fontified.  Used on level 2 and higher."
    "warning [[:alnum:]]+: .+$")
   "Regexp to match compilation warning from xbuild.")
 
+(defconst csharp-compilation-re-dotnet-error
+  "\\([^\r\n]+\\) : error [A-Z]+[0-9]+:")
+
+(defconst csharp-compilation-re-dotnet-warning
+  "\\([^\r\n]+\\) : warning [A-Z]+[0-9]+:")
+
+
 (eval-after-load 'compile
   (lambda ()
     (dolist
@@ -397,7 +404,13 @@ casts and declarations are fontified.  Used on level 2 and higher."
             1
             nil
             (1 compilation-warning-face)
-            (4 compilation-warning-face))))
+            (4 compilation-warning-face))
+           (dotnet-error
+            ,csharp-compilation-re-dotnet-error
+            1)
+           (dotnet-warning
+            ,csharp-compilation-re-dotnet-warning
+            1 nil nil 1)))
       (add-to-list 'compilation-error-regexp-alist-alist regexp)
       (add-to-list 'compilation-error-regexp-alist (car regexp)))))
 

@@ -1,0 +1,1 @@
+/home/jostein/build/sample-app/sample-app.csproj : error NU1102:   - Found 24 version(s) in Net5 [ Nearest version: 5.0.0-rc.2.20513.86 ] [/home/jostein/build/sample-app/sample-app.sln]
