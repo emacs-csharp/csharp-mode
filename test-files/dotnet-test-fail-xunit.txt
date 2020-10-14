@@ -1,0 +1,8 @@
+[xUnit.net 00:00:00.60]     SampleApp.Module.Tests.TestClass.Some_Testcase_Gone_Wrong [FAIL]
+  X SampleApp.Module.Tests.TestClass.Some_Testcase_Gone_Wrong [2ms]
+  Error Message:
+   System.NotImplementedException : The method or operation is not implemented.
+  Stack Trace:
+     at SampleApp.Module.Testee..ctor(IHttpClient httpClient) in /home/jostein/build/sample-app/Module/Testee.cs:line 24
+   at SampleApp.Module.Tests.TestClass.Some_Testcase_Gone_Wrong() in /home/jostein/build/sample-app/tests/TestClass.cs:line 11
+ 

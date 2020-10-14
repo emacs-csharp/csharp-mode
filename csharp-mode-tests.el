@@ -237,7 +237,14 @@
                "C:\\inservice\\SystemTesting\\OperateDeviceProxy\\OperateDevice_Proxy\\Program.cs"
                "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"
                "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"
-               "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"))))
+               "c:\\inservice\\systemtesting\\operationsproxy\\operationsproxy.cpp"))
+
+             ("./test-files/dotnet-nuget-error.txt" ,csharp-compilation-re-dotnet-error
+              ("/home/jostein/build/sample-app/sample-app.csproj"))
+             ("./test-files/dotnet-nuget-warning.txt" ,csharp-compilation-re-dotnet-warning
+              ("/home/jostein/build/sample-app/sample-app.csproj"))
+             ("./test-files/dotnet-test-fail-xunit.txt" ,csharp-compilation-re-dotnet-testfail
+              ("/home/jostein/build/sample-app/Module/Testee.cs"))))
 
     (let* ((file-name (car test-case))
            (regexp    (cadr test-case))
