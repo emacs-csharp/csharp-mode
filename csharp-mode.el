@@ -376,6 +376,12 @@ casts and declarations are fontified.  Used on level 2 and higher."
 (defconst csharp-compilation-re-dotnet-warning
   "\\([^\r\n]+\\) : warning [A-Z]+[0-9]+:")
 
+(defconst csharp-compilation-re-dotnet-testfail
+  (concat
+   "\\[[A-Za-z.]+[[:blank:]]+[0-9]+:[0-9]+:[0-9]+.[0-9]+\\][^(\r\n)]+ \\[FAIL\\]\n"
+   "[[:blank:]]+X \\(?:.+\n\\)+"
+   "[[:blank:]]+Stack Trace:\n"
+   "[[:blank:]]+at [^\r\n]+ in \\([^\r\n]+\\):line \\([0-9]+\\)"))
 
 (eval-after-load 'compile
   (lambda ()
@@ -410,7 +416,10 @@ casts and declarations are fontified.  Used on level 2 and higher."
             1)
            (dotnet-warning
             ,csharp-compilation-re-dotnet-warning
-            1 nil nil 1)))
+            1 nil nil 1)
+           (dotnet-testfail
+            ,csharp-compilation-re-dotnet-testfail
+            1 2)))
       (add-to-list 'compilation-error-regexp-alist-alist regexp)
       (add-to-list 'compilation-error-regexp-alist (car regexp)))))
 
