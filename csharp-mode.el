@@ -487,9 +487,9 @@
       (apply orig-fun args))))
 
 (defun csharp-at-lambda-header ()
-  (unless (bobp)
-    (save-excursion
-      (c-backward-syntactic-ws)
+  (save-excursion
+    (c-backward-syntactic-ws)
+    (unless (bobp)
       (backward-char)
       (c-safe (goto-char (scan-sexps (point) -1)))
       (when (or (looking-at "([[:alnum:][:space:]_,]*)[ \t\n]*=>[ \t\n]*{")
