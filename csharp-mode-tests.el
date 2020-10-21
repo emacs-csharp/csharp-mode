@@ -168,23 +168,23 @@
 (ert-deftest fontification-of-using-statements ()
   (assess-face-in-file= "./test-files/using-fontification.cs"
                         "using" 'font-lock-keyword-face
-                        "Reference" 'font-lock-type-face
-                        "Under_scored" 'font-lock-type-face
+                        "Reference" 'font-lock-variable-name-face
+                        "Under_scored" 'font-lock-variable-name-face
                         "WithNumbers09" 'font-lock-variable-name-face
-                        "Ok" 'font-lock-type-face
+                        "Ok" 'font-lock-variable-name-face
                         "WithNumbers09" 'font-lock-variable-name-face
-                        "OkV2" 'font-lock-type-face
+                        "OkV2" 'font-lock-variable-name-face
                         ))
 
 (ert-deftest fontification-of-namespace-statements ()
   (assess-face-in-file= "./test-files/namespace-fontification.cs"
                         "namespace" 'font-lock-keyword-face
-                        "Reference" 'font-lock-type-face
-                        "Under_scored" 'font-lock-type-face
+                        "Reference" 'font-lock-variable-name-face
+                        "Under_scored" 'font-lock-variable-name-face
                         "WithNumbers09" 'font-lock-variable-name-face
-                        "Ok" 'font-lock-type-face
+                        "Ok" 'font-lock-variable-name-face
                         "WithNumbers09" 'font-lock-variable-name-face
-                        "Ok" 'font-lock-type-face
+                        "Ok" 'font-lock-variable-name-face
                         ))
 
 (defun list-repeat-once (mylist)

@@ -58,7 +58,7 @@
   csharp (concat "[" c-alpha "_@]"))
 
 (c-lang-defconst c-opt-type-suffix-key
-  csharp "\\(\\?\\)")
+  csharp (concat "\\(\\[" (c-lang-const c-simple-ws) "*\\]\\|\\?\\)"))
 
 (c-lang-defconst c-identifier-ops
   csharp '((left-assoc ".")))
@@ -146,7 +146,8 @@
 
 (c-lang-defconst c-other-kwds
   csharp '("select" "from" "where" "join" "in" "on" "equals" "into"
-           "orderby" "descending" "group" "nameof"))
+           "orderby" "ascending" "descending" "group" "nameof" "when"
+           "let" "by"))
 
 (c-lang-defconst c-colon-type-list-kwds
   csharp '("class" "struct" "interface"))
@@ -223,10 +224,25 @@
                                    (cpp-macro             . c-lineup-dont-change)
                                    (substatement-open     . 0)))))
 
+(defun csharp--color-backwards (font-lock-face)
+  (let (id-end)
+    (goto-char (1+ (match-beginning 0)))
+    (while (and (or (eq (char-before) ?.)
+                    (eq (char-before) ?\;))
+	        (progn
+	          (backward-char)
+	          (if (eq (char-before) ?\?)
+                      (backward-char))
+	          (c-backward-syntactic-ws)
+	          (setq id-end (point))
+	          (< (skip-chars-backward
+	              (c-lang-const c-symbol-chars))
+	             0))
+	        (not (get-text-property (point) 'face)))
+      (c-put-font-lock-face (point) id-end font-lock-face)
+      (c-backward-syntactic-ws))))
+
 (c-lang-defconst c-basic-matchers-before
-  "Font lock matchers for basic keywords, labels, references and various
-other easily recognizable things that should be fontified before generic
-casts and declarations are fontified.  Used on level 2 and higher."
   csharp `(
            ;; Put warning face on unclosed strings
            ,@(if (version< emacs-version "27.0")
@@ -249,48 +265,61 @@ casts and declarations are fontified.  Used on level 2 and higher."
            ,`(,(concat "\\<" (c-lang-const c-regular-keywords-regexp))
 	      1 font-lock-keyword-face)
 
-           ,@(when (c-lang-const c-opt-identifier-concat-key)
-	       `(,(c-make-font-lock-search-function
-	           ;; Search for identifiers preceded by ".".  The anchored
-	           ;; matcher takes it from there.
-	           (concat (c-lang-const c-opt-identifier-concat-key)
-	        	   (c-lang-const c-simple-ws) "*"
-	        	   (concat "\\("
-	        		   ;; "[" c-upper "]"
-	        		   "[" (c-lang-const c-symbol-chars) "]*"
-	        		   "\\|"
-	        		   "\\)"))
-	           `((let (id-end)
-	               (goto-char (1+ (match-beginning 0)))
-	               (while (and (eq (char-before) ?.)
-	        		   (progn
-	        		     (backward-char)
-	        		     (c-backward-syntactic-ws)
-	        		     (setq id-end (point))
-	        		     (< (skip-chars-backward
-	        			 ,(c-lang-const c-symbol-chars))
-	        		        0))
-	        		   (not (get-text-property (point) 'face)))
-	        	 (c-put-font-lock-face (point) id-end
-	        			       font-lock-variable-name-face)
-	        	 (c-backward-syntactic-ws)))
-	             nil
-	             (goto-char (match-end 0))))))
+           ;; chained statements
+           ,`(,(c-make-font-lock-search-function
+	        (concat
+                 (c-lang-const c-opt-identifier-concat-key) 
+                 (c-lang-const c-simple-ws) "*"
+                 (concat "\\("
+	        	 "[" (c-lang-const c-symbol-chars) "]*"
+	        	 "\\)"))
+	        `((csharp--color-backwards font-lock-variable-name-face)
+	          nil
+	          (goto-char (match-end 0)))))
 
            (eval . (list "\\(!\\)[^=]" 1 c-negation-char-face-name))
            ))
+
+(defconst csharp--regex-type-name
+  "[A-Z][A-Za-z0-9_]*"
+  "Regex describing a type identifier in C#.")
+
+(defconst csharp--regex-type-name-matcher
+  (concat "\\(" csharp--regex-type-name "\\)")
+  "Regex matching a type identifier in C#.")
 
 (c-lang-defconst c-basic-matchers-after
   csharp (append
           ;; merge with cc-mode defaults
           (c-lang-const c-basic-matchers-after)
 
+          ;; Hack: Last prop-identifier
+          `((,(concat "\\." csharp--regex-type-name-matcher)
+             1 font-lock-variable-name-face t))
+          `((,(concat "^using\\s *" csharp--regex-type-name-matcher ";")
+             1 font-lock-variable-name-face t))
+          `((,(concat "^namespace\\s *" csharp--regex-type-name-matcher" \\s *")
+             1 font-lock-variable-name-face t))
+
           ;; function names
-          `(("\\.\\([A-Za-z0-9_]+\\)[<(]" 1 font-lock-function-name-face t))
+          `(("\\([A-Za-z0-9_]+\\)\\(<[a-zA-Z0-9, ]+>\\)?("
+             1 font-lock-function-name-face t))
+
+          ;; class names with inheritance
+          `((,(concat "\\<" csharp--regex-type-name-matcher "\\s *:")
+             1 font-lock-type-face t))
+
+          ;; Single identifier in attribute
+          `((,(concat "\\[" csharp--regex-type-name-matcher "\\][^;]")
+             1 font-lock-variable-name-face t))
+
+          ;;  Types after 'new'
+          `((,(concat "new\\s *" csharp--regex-type-name-matcher)
+             1 font-lock-type-face t))
           ))
 
 (defcustom csharp-font-lock-extra-types
-  (list (concat "[" c-upper "]\\sw*[" c-lower "]\\sw"))
+  (list csharp--regex-type-name)
   (c-make-font-lock-extra-types-blurb "C#" "csharp-mode" (concat))
   :type 'c-extra-types-widget
   :group 'c)
@@ -432,13 +461,12 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	      "\\("
 	      (concat "\\sw\\|\\s \\|[=\n\r*.:]\\|"
 		      "\"[^\"]*\"\\|'[^']*'")
-	      "\\)*>")
+	      "\\)*/?>")
      0 ,c-doc-markup-face-name prepend nil)
+    ;; ("\\([a-zA-Z0-9_]+\\)=" 0 font-lock-variable-name-face prepend nil)
+    ;; ("\".*\"" 0 font-lock-string-face prepend nil)
     ("&\\(\\sw\\|[.:]\\)+;"		; XML entities.
-     0 ,c-doc-markup-face-name prepend nil)
-    (,(lambda (limit)
-	(c-find-invalid-doc-markup "[<>&]\\|{@" limit))
-     0 'font-lock-warning-face prepend nil)))
+     0 ,c-doc-markup-face-name prepend nil)))
 
 (defconst codedoc-font-lock-keywords
   `((,(lambda (limit)
