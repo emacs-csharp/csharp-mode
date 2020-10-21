@@ -280,32 +280,46 @@
            (eval . (list "\\(!\\)[^=]" 1 c-negation-char-face-name))
            ))
 
+(defconst csharp--regex-type-name
+  "[A-Z][A-Za-z0-9_]*"
+  "Regex describing a type identifier in C#.")
+
+(defconst csharp--regex-type-name-matcher
+  (concat "\\(" csharp--regex-type-name "\\)")
+  "Regex matching a type identifier in C#.")
+
 (c-lang-defconst c-basic-matchers-after
   csharp (append
           ;; merge with cc-mode defaults
           (c-lang-const c-basic-matchers-after)
 
           ;; Hack: Last prop-identifier
-          `(("\\.\\([A-Z][A-Za-z0-9_]+\\)" 1 font-lock-variable-name-face t))
-          `(("^using\\s *\\([A-Z][A-Za-z0-9_]+\\);" 1 font-lock-variable-name-face t))
-          `(("^namespace\\s *\\([A-Z][A-Za-z0-9_]+\\)\\s *" 1 font-lock-variable-name-face t))
+          `((,(concat "\\." csharp--regex-type-name-matcher)
+             1 font-lock-variable-name-face t))
+          `((,(concat "^using\\s *" csharp--regex-type-name-matcher ";")
+             1 font-lock-variable-name-face t))
+          `((,(concat "^namespace\\s *" csharp--regex-type-name-matcher" \\s *")
+             1 font-lock-variable-name-face t))
 
           ;; function names
-          `(("\\([A-Za-z0-9_]+\\)\\(<[a-zA-Z0-9, ]+>\\)?(" 1 font-lock-function-name-face t))
+          `(("\\([A-Za-z0-9_]+\\)\\(<[a-zA-Z0-9, ]+>\\)?("
+             1 font-lock-function-name-face t))
 
           ;; class names with inheritance
-          `(("\\<\\([A-Z][A-Za-z0-9_]+\\)\\s *:" 1 font-lock-type-face t))
+          `((,(concat "\\<" csharp--regex-type-name-matcher "\\s *:")
+             1 font-lock-type-face t))
 
           ;; Single identifier in attribute
-          `(("\\[\\([A-Z][A-Za-z0-9_]*\\)\\][^;]" 1 font-lock-variable-name-face t))
+          `((,(concat "\\[" csharp--regex-type-name-matcher "\\][^;]")
+             1 font-lock-variable-name-face t))
 
           ;;  Types after 'new'
-          `((,(concat "new\\s *\\([" (c-lang-const c-symbol-chars) "]+\\)")
+          `((,(concat "new\\s *" csharp--regex-type-name-matcher)
              1 font-lock-type-face t))
           ))
 
 (defcustom csharp-font-lock-extra-types
-  (list "[A-Z][a-zA-Z0-9_]*")
+  (list csharp--regex-type-name)
   (c-make-font-lock-extra-types-blurb "C#" "csharp-mode" (concat))
   :type 'c-extra-types-widget
   :group 'c)
