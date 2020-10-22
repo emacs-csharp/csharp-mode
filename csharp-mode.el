@@ -315,7 +315,7 @@
              1 font-lock-variable-name-face t))
 
           ;;  Types after 'new'
-          `((,(concat "new\\s *" csharp--regex-type-name-matcher)
+          `((,(concat "\\<new\\> *" csharp--regex-type-name-matcher)
              1 font-lock-type-face t))
           ))
 
