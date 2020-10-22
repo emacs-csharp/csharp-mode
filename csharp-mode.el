@@ -36,12 +36,21 @@
 
 (require 'compile)
 
-(eval-and-compile
-  (c-add-language 'csharp-mode 'java-mode))
-
 (defgroup csharp nil
   "Major mode for editing C# code."
   :group 'prog-mode)
+
+(eval-and-compile
+  (defconst csharp--regex-type-name
+    "[A-Z][A-Za-z0-9_]*"
+    "Regex describing a type identifier in C#.")
+
+  (defconst csharp--regex-type-name-matcher
+    (concat "\\(" csharp--regex-type-name "\\)")
+    "Regex matching a type identifier in C#."))
+
+(eval-and-compile
+  (c-add-language 'csharp-mode 'java-mode))
 
 (c-lang-defconst c-make-mode-syntax-table
   csharp `(lambda ()
@@ -279,14 +288,6 @@
 
            (eval . (list "\\(!\\)[^=]" 1 c-negation-char-face-name))
            ))
-
-(defconst csharp--regex-type-name
-  "[A-Z][A-Za-z0-9_]*"
-  "Regex describing a type identifier in C#.")
-
-(defconst csharp--regex-type-name-matcher
-  (concat "\\(" csharp--regex-type-name "\\)")
-  "Regex matching a type identifier in C#.")
 
 (c-lang-defconst c-basic-matchers-after
   csharp (append
