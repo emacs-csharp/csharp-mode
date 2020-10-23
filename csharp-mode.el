@@ -233,6 +233,11 @@
                                    (cpp-macro             . c-lineup-dont-change)
                                    (substatement-open     . 0)))))
 
+(eval-and-compile
+  (setq c-default-style
+        (cons '(csharp-mode . "csharp")
+              c-default-style)))
+
 (defun csharp--color-backwards (font-lock-face)
   (let (id-end)
     (goto-char (1+ (match-beginning 0)))
@@ -634,9 +639,6 @@
 
 Key bindings:
 \\{csharp-mode-map}"
-  (setq-local c-default-style
-              (cons '(csharp-mode . "csharp")
-                    c-default-style))
   :after-hook (c-update-modeline)
   (c-initialize-cc-mode t)
   (c-init-language-vars csharp-mode)
