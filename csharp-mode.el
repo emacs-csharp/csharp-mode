@@ -634,12 +634,14 @@
 
 Key bindings:
 \\{csharp-mode-map}"
+  (setq-local c-default-style
+              (cons '(csharp-mode . "csharp")
+                    c-default-style))
   :after-hook (c-update-modeline)
   (c-initialize-cc-mode t)
   (c-init-language-vars csharp-mode)
   (c-common-init 'csharp-mode)
   (easy-menu-add csharp-menu)
-  (c-set-style "csharp")
   (setq-local c-doc-comment-style '((csharp-mode . codedoc)))
   (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook))
 
