@@ -322,29 +322,29 @@
      (equal before adaptive-fill-regexp))))
 
 (ert-deftest activating-mode-style-defaults-to-csharp ()
+  (with-temp-buffer
+    (csharp-mode)
+    (should
+     (equal "csharp" c-indentation-style)))
+
   (let ((c-default-style "csharp"))
     (with-temp-buffer
       (csharp-mode)
       (should
        (equal "csharp" c-indentation-style))))
+
   (let ((c-default-style '((csharp-mode . "csharp")
                            (java-mode . "java"))))
-    (with-temp-buffer
-      (csharp-mode)
-      (should
-       (equal "csharp" c-indentation-style))))
-  (let (c-default-style)
     (with-temp-buffer
       (csharp-mode)
       (should
        (equal "csharp" c-indentation-style)))))
 
 (ert-deftest inside-bracelist-test ()
-  (let ((c-default-style "csharp"))
-    (with-temp-buffer
-      (csharp-mode)
-      (insert "public class A { public void F() {")
-      (call-interactively #'newline))))
+  (with-temp-buffer
+    (csharp-mode)
+    (insert "public class A { public void F() {")
+    (call-interactively #'newline)))
 
 ;;(ert-run-tests-interactively t)
 ;; (local-set-key (kbd "<f6>") '(lambda ()

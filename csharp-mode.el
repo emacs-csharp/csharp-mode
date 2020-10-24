@@ -234,9 +234,10 @@
                                    (substatement-open     . 0)))))
 
 (eval-and-compile
-  (setq c-default-style
-        (cons '(csharp-mode . "csharp")
-              c-default-style)))
+  (unless (assoc 'csharp-mode c-default-style)
+    (setq c-default-style
+          (cons '(csharp-mode . "csharp")
+                c-default-style))))
 
 (defun csharp--color-backwards (font-lock-face)
   (let (id-end)
