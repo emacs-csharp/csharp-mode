@@ -41,6 +41,14 @@
   :group 'prog-mode)
 
 (eval-and-compile
+  (defconst csharp--regex-identifier
+    "[A-Za-z][A-Za-z0-9_]*"
+    "Regex describing an dentifier in C#.")
+
+  (defconst csharp--regex-identifier-matcher
+    (concat "\\(" csharp--regex-identifier "\\)")
+    "Regex matching an identifier in C#.")
+
   (defconst csharp--regex-type-name
     "[A-Z][A-Za-z0-9_]*"
     "Regex describing a type identifier in C#.")
@@ -162,7 +170,7 @@
 
 (c-lang-defconst c-other-kwds
   csharp '("select" "from" "where" "join" "in" "on" "equals" "into"
-           "orderby" "ascending" "descending" "group" "nameof" "when"
+           "orderby" "ascending" "descending" "group" "when"
            "let" "by" "namespace"))
 
 (c-lang-defconst c-colon-type-list-kwds
@@ -308,6 +316,21 @@
            ;; Function names
            (eval . (list "\\([A-Za-z0-9_]+\\)\\(<[a-zA-Z0-9, ]+>\\)?("
                          1 font-lock-function-name-face))
+
+           ;; Nameof
+           (eval . (list (concat "\\(\\<nameof\\>\\) *(")
+                         1 font-lock-function-name-face))
+
+           (eval . (list (concat "\\<nameof\\> *( *"
+                                 csharp--regex-identifier-matcher
+                                 " *) *")
+                         1 font-lock-variable-name-face))
+
+           ;; Catch statements with type only
+           (eval . (list (concat "\\<catch\\> *( *"
+                                 csharp--regex-type-name-matcher
+                                 " *) *")
+                         1 font-lock-type-face))
            ))
 
 (c-lang-defconst c-basic-matchers-after
