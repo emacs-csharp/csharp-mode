@@ -41,13 +41,28 @@
   :group 'prog-mode)
 
 (eval-and-compile
+  (defconst csharp--regex-identifier
+    "[A-Za-z][A-Za-z0-9_]*"
+    "Regex describing an dentifier in C#.")
+
+  (defconst csharp--regex-identifier-matcher
+    (concat "\\(" csharp--regex-identifier "\\)")
+    "Regex matching an identifier in C#.")
+
   (defconst csharp--regex-type-name
     "[A-Z][A-Za-z0-9_]*"
     "Regex describing a type identifier in C#.")
 
   (defconst csharp--regex-type-name-matcher
     (concat "\\(" csharp--regex-type-name "\\)")
-    "Regex matching a type identifier in C#."))
+    "Regex matching a type identifier in C#.")
+
+  (defconst csharp--regex-using-or-namespace
+    (concat "using" "\\|" "namespace"
+            "\\s *"
+            csharp--regex-type-name-matcher)
+    "Regex matching identifiers after a using or namespace
+    declaration."))
 
 (eval-and-compile
   (c-add-language 'csharp-mode 'java-mode))
@@ -91,6 +106,15 @@
   csharp '("bool" "byte" "sbyte" "char" "decimal" "double" "float" "int" "uint"
 	   "long" "ulong" "short" "ushort" "void" "object" "string" "var"))
 
+(c-lang-defconst c-other-decl-kwds
+  csharp nil)
+
+(c-lang-defconst c-type-list-kwds
+  csharp nil)
+
+(c-lang-defconst c-other-block-decl-kwds
+  csharp nil)
+
 (c-lang-defconst c-return-kwds
   csharp '("return"))
 
@@ -114,9 +138,6 @@
 
 (c-lang-defconst c-ref-list-kwds
   csharp nil)
-
-(c-lang-defconst c-other-block-decl-kwds
-  csharp '("namespace"))
 
 (c-lang-defconst c-using-kwds
   csharp '("using"))
@@ -147,16 +168,10 @@
 	   "fixed" "override" "params" "async" "await" "extern" "unsafe"
            "get" "set" "this" "const" "delegate"))
 
-(c-lang-defconst c-other-decl-kwds
-  csharp '("using"))
-
-(c-lang-defconst c-type-list-kwds
-  csharp '("using"))
-
 (c-lang-defconst c-other-kwds
   csharp '("select" "from" "where" "join" "in" "on" "equals" "into"
-           "orderby" "ascending" "descending" "group" "nameof" "when"
-           "let" "by"))
+           "orderby" "ascending" "descending" "group" "when"
+           "let" "by" "namespace"))
 
 (c-lang-defconst c-colon-type-list-kwds
   csharp '("class" "struct" "interface"))
@@ -239,27 +254,26 @@
           (cons '(csharp-mode . "csharp")
                 c-default-style))))
 
-(defun csharp--color-backwards (font-lock-face)
-  (let (id-end)
-    (goto-char (1+ (match-beginning 0)))
-    (while (and (or (eq (char-before) ?.)
-                    (eq (char-before) ?\;))
+(defun csharp--color-forwards (font-lock-face)
+  (let (id-beginning)
+    (goto-char (match-beginning 0))
+    (forward-word)
+    (while (and (not (or (eq (char-after) ?\;)
+                         (eq (char-after) ?\{)))
 	        (progn
-	          (backward-char)
-	          (if (eq (char-before) ?\?)
-                      (backward-char))
-	          (c-backward-syntactic-ws)
-	          (setq id-end (point))
-	          (< (skip-chars-backward
+	          (forward-char)
+	          (c-forward-syntactic-ws)
+	          (setq id-beginning (point))
+	          (> (skip-chars-forward
 	              (c-lang-const c-symbol-chars))
 	             0))
 	        (not (get-text-property (point) 'face)))
-      (c-put-font-lock-face (point) id-end font-lock-face)
-      (c-backward-syntactic-ws))))
+      (c-put-font-lock-face id-beginning (point) font-lock-face)
+      (c-forward-syntactic-ws))))
 
 (c-lang-defconst c-basic-matchers-before
   csharp `(
-           ;; Put warning face on unclosed strings
+           ;; Warning face on unclosed strings
            ,@(if (version< emacs-version "27.0")
                  ;; Taken from 26.1 branch
                  `(,(c-make-font-lock-search-function
@@ -270,60 +284,59 @@
            ;; Invalid single quotes
            c-font-lock-invalid-single-quotes
 
-           ;; Fontify keyword constants
+           ;; Keyword constants
            ,@(when (c-lang-const c-constant-kwds)
 	       (let ((re (c-make-keywords-re nil (c-lang-const c-constant-kwds))))
 	         `((eval . (list ,(concat "\\<\\(" re "\\)\\>")
 			         1 c-constant-face-name)))))
 
-           ;; Fontify all keywords except the primitive types.
+           ;; Keywords except the primitive types.
            ,`(,(concat "\\<" (c-lang-const c-regular-keywords-regexp))
 	      1 font-lock-keyword-face)
 
-           ;; chained statements
+           ;; Chained identifiers in using/namespace statements
            ,`(,(c-make-font-lock-search-function
-	        (concat
-                 (c-lang-const c-opt-identifier-concat-key) 
-                 (c-lang-const c-simple-ws) "*"
-                 (concat "\\("
-	        	 "[" (c-lang-const c-symbol-chars) "]*"
-	        	 "\\)"))
-	        `((csharp--color-backwards font-lock-variable-name-face)
+                csharp--regex-using-or-namespace
+	        `((csharp--color-forwards font-lock-variable-name-face)
 	          nil
 	          (goto-char (match-end 0)))))
 
+
+           ;; Negation character
            (eval . (list "\\(!\\)[^=]" 1 c-negation-char-face-name))
+
+           ;; Types after 'new'
+           (eval . (list (concat "\\<new\\> *" csharp--regex-type-name-matcher)
+                         1 font-lock-type-face))
+
+           ;; Single identifier in attribute
+           (eval . (list (concat "\\[" csharp--regex-type-name-matcher "\\][^;]")
+                         1 font-lock-variable-name-face t))
+
+           ;; Function names
+           (eval . (list "\\([A-Za-z0-9_]+\\)\\(<[a-zA-Z0-9, ]+>\\)?("
+                         1 font-lock-function-name-face))
+
+           ;; Nameof
+           (eval . (list (concat "\\(\\<nameof\\>\\) *(")
+                         1 font-lock-function-name-face))
+
+           (eval . (list (concat "\\<nameof\\> *( *"
+                                 csharp--regex-identifier-matcher
+                                 " *) *")
+                         1 font-lock-variable-name-face))
+
+           ;; Catch statements with type only
+           (eval . (list (concat "\\<catch\\> *( *"
+                                 csharp--regex-type-name-matcher
+                                 " *) *")
+                         1 font-lock-type-face))
            ))
 
 (c-lang-defconst c-basic-matchers-after
   csharp (append
-          ;; merge with cc-mode defaults
-          (c-lang-const c-basic-matchers-after)
-
-          ;; Hack: Last prop-identifier
-          `((,(concat "\\." csharp--regex-type-name-matcher)
-             1 font-lock-variable-name-face t))
-          `((,(concat "^using\\s *" csharp--regex-type-name-matcher ";")
-             1 font-lock-variable-name-face t))
-          `((,(concat "^namespace\\s *" csharp--regex-type-name-matcher" \\s *")
-             1 font-lock-variable-name-face t))
-
-          ;; function names
-          `(("\\([A-Za-z0-9_]+\\)\\(<[a-zA-Z0-9, ]+>\\)?("
-             1 font-lock-function-name-face t))
-
-          ;; class names with inheritance
-          `((,(concat "\\<" csharp--regex-type-name-matcher "\\s *:")
-             1 font-lock-type-face t))
-
-          ;; Single identifier in attribute
-          `((,(concat "\\[" csharp--regex-type-name-matcher "\\][^;]")
-             1 font-lock-variable-name-face t))
-
-          ;;  Types after 'new'
-          `((,(concat "\\<new\\> *" csharp--regex-type-name-matcher)
-             1 font-lock-type-face t))
-          ))
+          ;; Merge with cc-mode defaults - enables us to add more later
+          (c-lang-const c-basic-matchers-after)))
 
 (defcustom csharp-font-lock-extra-types
   (list csharp--regex-type-name)
