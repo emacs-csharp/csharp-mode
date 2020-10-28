@@ -634,7 +634,7 @@
     map)
   "Keymap used in csharp-mode buffers.")
 
-(easy-menu-define csharp-menu csharp-mode-map "C# Mode Commands"
+(easy-menu-define csharp-mode-menu csharp-mode-map "C# Mode Commands"
   (cons "C#" (c-lang-const c-mode-menu csharp)))
 
 ;;;###autoload
@@ -657,7 +657,7 @@ Key bindings:
   (c-initialize-cc-mode t)
   (c-init-language-vars csharp-mode)
   (c-common-init 'csharp-mode)
-  (easy-menu-add csharp-menu)
+  (easy-menu-add csharp-mode-menu)
   (setq-local c-doc-comment-style '((csharp-mode . codedoc)))
   (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook))
 
