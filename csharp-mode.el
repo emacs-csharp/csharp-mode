@@ -427,16 +427,22 @@
 
 (defconst csharp-compilation-re-dotnet-testfail
   (concat
-   "\\[[A-Za-z.]+[[:blank:]]+[0-9]+:[0-9]+:[0-9]+.[0-9]+\\][^(\r\n)]+ \\[FAIL\\]\n"
-   "[[:blank:]]+X \\(?:.+\n\\)+"
+   "\\[[A-Za-z.]+[[:blank:]]+[0-9]+:[0-9]+:[0-9]+.[0-9]+\\][^(\n)]+ \\[FAIL\\]\n"
+   "[[:blank:]]+X \\(?:.+\n\\)"
+   "[[:blank:]]+Error Message:\n"
+   "[[:blank:]]+\\(?:.+\n\\)"
    "[[:blank:]]+Stack Trace:\n"
-   "[[:blank:]]+at [^\r\n]+ in \\([^\r\n]+\\):line \\([0-9]+\\)"))
+   "[[:blank:]]+at [^\n]+ in \\([^\n]+\\):line \\([0-9]+\\)"))
+
 
 (eval-after-load 'compile
   (lambda ()
     (dolist
         (regexp
-         `((xbuild-error
+         `((dotnet-testfail
+            ,csharp-compilation-re-dotnet-testfail
+            1 2)
+           (xbuild-error
             ,csharp-compilation-re-xbuild-error
             1 2 3 2)
            (xbuild-warning
@@ -465,10 +471,7 @@
             1)
            (dotnet-warning
             ,csharp-compilation-re-dotnet-warning
-            1 nil nil 1)
-           (dotnet-testfail
-            ,csharp-compilation-re-dotnet-testfail
-            1 2)))
+            1 nil nil 1)))
       (add-to-list 'compilation-error-regexp-alist-alist regexp)
       (add-to-list 'compilation-error-regexp-alist (car regexp)))))
 
