@@ -1,10 +1,10 @@
-
+[[https://travis-ci.org/josteink/csharp-mode.svg?branch=master]]
+[[https://melpa.org/#/csharp-mode][file:https://melpa.org/packages/csharp-mode-badge.svg]]
+[[https://stable.melpa.org/#/csharp-mode][file:https://stable.melpa.org/packages/csharp-mode-badge.svg]]
 
 * csharp-mode
 
 This is a mode for editing C# in emacs. It's based on cc-mode, v5.30.3 and above.
-
-[[https://travis-ci.org/josteink/csharp-mode/][Travis-CI build-page]]. Build-status: [[https://travis-ci.org/josteink/csharp-mode.svg?branch=master]]
 
 ** Main features
 
