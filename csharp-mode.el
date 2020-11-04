@@ -338,6 +338,17 @@
           ;; Merge with cc-mode defaults - enables us to add more later
           (c-lang-const c-basic-matchers-after)))
 
+(defcustom csharp-codedoc-tag-face 'c-doc-markup-face-name
+  "Face to be used on the codedoc docstring tags.
+
+Should be one of the font lock faces, such as
+`font-lock-variable-name-face' and friends.
+
+Needs to be set before `csharp-mode' is loaded, because of
+compilation and evaluation time conflicts."
+  :type 'symbol
+  :group 'csharp)
+
 (defcustom csharp-font-lock-extra-types
   (list csharp--regex-type-name)
   (c-make-font-lock-extra-types-blurb "C#" "csharp-mode" (concat))
@@ -485,11 +496,11 @@
 	      (concat "\\sw\\|\\s \\|[=\n\r*.:]\\|"
 		      "\"[^\"]*\"\\|'[^']*'")
 	      "\\)*/?>")
-     0 ,c-doc-markup-face-name prepend nil)
+     0 ,csharp-codedoc-tag-face prepend nil)
     ;; ("\\([a-zA-Z0-9_]+\\)=" 0 font-lock-variable-name-face prepend nil)
     ;; ("\".*\"" 0 font-lock-string-face prepend nil)
     ("&\\(\\sw\\|[.:]\\)+;"		; XML entities.
-     0 ,c-doc-markup-face-name prepend nil)))
+     0 ,csharp-codedoc-tag-face prepend nil)))
 
 (defconst codedoc-font-lock-keywords
   `((,(lambda (limit)
