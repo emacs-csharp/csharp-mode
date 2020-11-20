@@ -41,11 +41,13 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Install EVM
-        run: curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > x.sh && source ./x.sh
+        run: |
+          git clone https://github.com/rejeep/evm.git ~/.evm
+          export PATH="$HOME/.evm/bin:$PATH"
+          evm config path /tmp
 
       - name: Install Emacs ${{ matrix.emacs }}
         run: |
-          evm config path /tmp
           evm install $EVM_EMACS --use --skip
 
       - name: Test cask
