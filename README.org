@@ -1,4 +1,4 @@
-![Build & Test](https://github.com/emacs-csharp/csharp-mode/workflows/Build%20&%20Test/badge.svg?branch=master)
+[[https://github.com/emacs-csharp/csharp-mode/workflows/Build%20&%20Test][file:https://github.com/emacs-csharp/csharp-mode/workflows/Build%20&%20Test/badge.svg?branch=master]]
 [[https://melpa.org/#/csharp-mode][file:https://melpa.org/packages/csharp-mode-badge.svg]]
 [[https://stable.melpa.org/#/csharp-mode][file:https://stable.melpa.org/packages/csharp-mode-badge.svg]]
 
