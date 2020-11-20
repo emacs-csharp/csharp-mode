@@ -23,3 +23,5 @@ check-defuns:
 	for line in `cat /tmp/defuns.txt` ; do echo -n "$$line: " ; grep "$$line" csharp-mode.el | grep -v defun | wc -l ; done >/tmp/use-count.txt
 	grep " 0" /tmp/use-count.txt
 
+oh-yeah:
+        echo "New build-task!"
