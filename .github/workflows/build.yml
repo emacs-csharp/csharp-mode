@@ -49,7 +49,7 @@ jobs:
       - name: Install Emacs ${{ matrix.emacs }}
         run: |
           export PATH="$HOME/.evm/bin:$PATH"
-          evm install $EVM_EMACS --use --skip
+          evm install ${{ matrix.emacs }} --use --skip
 
       - name: Test cask
         run: cask
