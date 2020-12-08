@@ -249,7 +249,8 @@
                                    (substatement-open     . 0)))))
 
 (eval-and-compile
-  (unless (assoc 'csharp-mode c-default-style)
+  (unless (or (stringp c-default-style)
+              (assoc 'csharp-mode c-default-style))
     (setq c-default-style
           (cons '(csharp-mode . "csharp")
                 c-default-style))))
