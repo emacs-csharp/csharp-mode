@@ -58,7 +58,7 @@
     "Regex matching a type identifier in C#.")
 
   (defconst csharp--regex-using-or-namespace
-    (concat "using" "\\|" "namespace"
+    (concat "\"using" "\\|" "namespace"
             "\\s *"
             csharp--regex-type-name-matcher)
     "Regex matching identifiers after a using or namespace
