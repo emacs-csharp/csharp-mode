@@ -438,8 +438,7 @@ compilation and evaluation time conflicts."
 
 (defconst csharp-compilation-re-dotnet-testfail
   (concat
-   "\\[[A-Za-z.]+[[:blank:]]+[0-9]+:[0-9]+:[0-9]+.[0-9]+\\][^(\n)]+ \\[FAIL\\]\n"
-   "[[:blank:]]+X \\(?:.+\n\\)"
+   "^[[:blank:]]+X \\(?:.+\n\\)"
    "[[:blank:]]+Error Message:\n"
    "[[:blank:]]+\\(?:.+\n\\)"
    "[[:blank:]]+Stack Trace:\n"
