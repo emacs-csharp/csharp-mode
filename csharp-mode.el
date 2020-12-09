@@ -441,6 +441,8 @@ compilation and evaluation time conflicts."
    "^[[:blank:]]+X \\(?:.+\n\\)"
    "[[:blank:]]+Error Message:\n"
    "[[:blank:]]+\\(?:.+\n\\)"
+   "\\(?:^Expected: \\(?:.+\n\\)\\)?"
+   "\\(?:^Actual: \\(?:.+\n\\)\\)?"
    "[[:blank:]]+Stack Trace:\n"
    "[[:blank:]]+at [^\n]+ in \\([^\n]+\\):line \\([0-9]+\\)"))
 
