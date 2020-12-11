@@ -679,13 +679,46 @@ Key bindings:
   ;; (setq-local c-doc-comment-style '((csharp-mode . codedoc)))
   ;; (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook)
   (setq tree-sitter-hl-default-patterns
-        [(modifier) @keyword
-         (identifier) @constant
-         (comment) @comment
+        [(comment) @comment
+         (modifier) @keyword
+         [(real_literal) (integer_literal)] @number
+         (qualified_name (identifier) @type)
          (using_directive) @keyword
-         (string_literal) @string
-         (interpolated_string_expression) @string
-         (verbatim_string_literal) @string])
+         (implicit_type) @type
+         (predefined_type) @type
+         (boolean_literal) @type
+         (await_expression (identifier) @type) @keyword
+         ;; (invocation_expression)
+         (from_clause (identifier) @variable) @keyword
+         (group_clause)
+         (order_by_clause)
+         (select_clause)
+         (query_continuation (identifier) @variable) @keyword
+         (initializer_expression (identifier) @variable)
+         (member_access_expression (identifier) @function)
+         (type_argument_list
+          (identifier) @type)
+         (generic_name
+          (identifier) @type)
+         (name_equals (identifier) @type)
+         (anonymous_object_creation_expression)
+         (object_creation_expression (identifier) @type)
+         (character_literal) @string
+         [(string_literal) (verbatim_string_literal) (interpolated_string_expression)] @string
+         (conditional_expression (identifier) @variable)
+         (class_declaration
+          name: (identifier) @type)
+         (field_declaration)
+         (constructor_declaration (identifier) @type)
+         (parameter (identifier) @variable)
+         (assignment_expression (identifier) @variable) 
+         (preprocessor_directive) @constant
+         (preprocessor_call (identifier) @string)
+         (argument (identifier) @variable)
+         (array_type (identifier) @type)
+         (array_creation_expression)
+         (variable_declaration (identifier) @type)
+         (variable_declarator (identifier) @variable)])
   (tree-sitter-hl-mode))
 
 (provide 'csharp-mode)
