@@ -679,9 +679,13 @@ Key bindings:
   ;; (setq-local c-doc-comment-style '((csharp-mode . codedoc)))
   ;; (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook)
   (setq tree-sitter-hl-default-patterns
-        [((string_literal) @string
-          (interpolated_string_expression) @string
-          (verbatim_string_literal) @string)])
+        [(modifier) @keyword
+         (identifier) @constant
+         (comment) @comment
+         (using_directive) @keyword
+         (string_literal) @string
+         (interpolated_string_expression) @string
+         (verbatim_string_literal) @string])
   (tree-sitter-hl-mode))
 
 (provide 'csharp-mode)
