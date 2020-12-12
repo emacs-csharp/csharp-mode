@@ -681,14 +681,20 @@ Key bindings:
   (setq tree-sitter-hl-default-patterns
         [(comment) @comment
          (modifier) @keyword
+         ["using" "class" "if" "else" "throw" "new" "for"
+          "return" "await" "struct" "enum" "switch" "case"
+          "default" "typeof" ] @keyword
+          ;; Literals
          [(real_literal) (integer_literal)] @number
+         (null_literal) @constant
+         (boolean_literal) @constant
+
          (qualified_name (identifier) @type)
-         (using_directive) @keyword
+         (using_directive (identifier)* @type)
          (implicit_type) @type
          (predefined_type) @type
-         (boolean_literal) @type
-         (await_expression (identifier) @type) @keyword
-         ;; (invocation_expression)
+         (await_expression (identifier)* @function)
+         (invocation_expression (identifier) @function)
          (from_clause (identifier) @variable) @keyword
          (group_clause)
          (order_by_clause)
@@ -696,6 +702,7 @@ Key bindings:
          (query_continuation (identifier) @variable) @keyword
          (initializer_expression (identifier) @variable)
          (member_access_expression (identifier) @function)
+         (name_colon (identifier)* @variable)
          (type_argument_list
           (identifier) @type)
          (generic_name
@@ -704,19 +711,56 @@ Key bindings:
          (anonymous_object_creation_expression)
          (object_creation_expression (identifier) @type)
          (character_literal) @string
+         (binary_expression (identifier) @variable (identifier) @variable)
+         (binary_expression (identifier)* @variable)
+         ;; strings
+         (interpolation (identifier)* @variable)
+         (interpolation (identifier)* @variable)
          [(string_literal) (verbatim_string_literal) (interpolated_string_expression)] @string
+
          (conditional_expression (identifier) @variable)
+         ;; enum
+         (enum_member_declaration (identifier) @variable)
+         (enum_declaration (identifier) @type)
+
+         (struct_declaration (identifier) @type)
+
+         ;; Class
+         (base_list (identifier) @type)
+         (accessor_declaration) @keyword
+         (property_declaration
+          type: (identifier) @type
+          name: (identifier) @variable)
          (class_declaration
           name: (identifier) @type)
          (field_declaration)
          (constructor_declaration (identifier) @type)
+         ;; Methods
+         (method_declaration (identifier) @type (identifier) @function)
+         (method_declaration (nullable_type) @type (identifier) @function)
+         (method_declaration (void_keyword) @type (identifier) @function)
+         (method_declaration (generic_name) (identifier) @function)
+         (parameter
+          type: (identifier) @type
+          name: (identifier) @variable)
          (parameter (identifier) @variable)
+         ;; Unary expressions
+         (prefix_unary_expression (identifier)* @variable)
+         (postfix_unary_expression (identifier)* @variable)
+         (nullable_type) @type
+         (type_of_expression (identifier) @variable)
          (assignment_expression (identifier) @variable) 
          (preprocessor_directive) @constant
          (preprocessor_call (identifier) @string)
          (argument (identifier) @variable)
+         ;; switch statement
+         (switch_statement (identifier) @variable)
+         ;; arrays
+         (array_rank_specifier (identifier) @variable) 
          (array_type (identifier) @type)
          (array_creation_expression)
+         ;; Casts
+         (cast_expression (identifier) @type)
          (variable_declaration (identifier) @type)
          (variable_declarator (identifier) @variable)])
   (tree-sitter-hl-mode))
