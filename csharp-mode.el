@@ -683,7 +683,9 @@ Key bindings:
          (modifier) @keyword
          ["using" "namespace" "class" "if" "else" "throw" "new" "for"
           "return" "await" "struct" "enum" "switch" "case"
-          "default" "typeof" ] @keyword
+          "default" "typeof" "try" "catch" "finally"
+          "foreach" "in"
+          ] @keyword
           ;; Literals
          [(real_literal) (integer_literal)] @number
          (null_literal) @constant
@@ -701,8 +703,13 @@ Key bindings:
          (select_clause)
          (query_continuation (identifier) @variable) @keyword
          (initializer_expression (identifier) @variable)
+         (element_access_expression (identifier) @variable)
+         (conditional_access_expression (identifier) @variable)
+         (member_binding_expression (identifier) @variable)
          (member_access_expression (identifier) @function)
          (name_colon (identifier)* @variable)
+         (type_parameter
+          (identifier) @type)
          (type_argument_list
           (identifier) @type)
          (generic_name
@@ -722,12 +729,17 @@ Key bindings:
          ;; enum
          (enum_member_declaration (identifier) @variable)
          (enum_declaration (identifier) @type)
-
+         ;; struct
          (struct_declaration (identifier) @type)
+
 
          ;; Namespace
          (namespace_declaration
           name: (identifier) @type)
+
+         ;; foreach
+         (for_each_statement (identifier) @type (identifier) @variable (identifier) @variable)
+
          ;; Class
          (base_list (identifier) @type)
          (accessor_declaration) @keyword
