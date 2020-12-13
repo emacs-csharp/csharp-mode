@@ -681,7 +681,7 @@ Key bindings:
   (setq tree-sitter-hl-default-patterns
         [(comment) @comment
          (modifier) @keyword
-         ["using" "class" "if" "else" "throw" "new" "for"
+         ["using" "namespace" "class" "if" "else" "throw" "new" "for"
           "return" "await" "struct" "enum" "switch" "case"
           "default" "typeof" ] @keyword
           ;; Literals
@@ -725,6 +725,9 @@ Key bindings:
 
          (struct_declaration (identifier) @type)
 
+         ;; Namespace
+         (namespace_declaration
+          name: (identifier) @type)
          ;; Class
          (base_list (identifier) @type)
          (accessor_declaration) @keyword
