@@ -714,7 +714,7 @@ Key bindings:
          (binary_expression (identifier) @variable (identifier) @variable)
          (binary_expression (identifier)* @variable)
          ;; strings
-         (interpolation (identifier)* @variable)
+         (interpolation (identifier) (interpolation_format_clause) @variable)
          (interpolation (identifier)* @variable)
          [(string_literal) (verbatim_string_literal) (interpolated_string_expression)] @string
 
@@ -759,6 +759,9 @@ Key bindings:
          (array_rank_specifier (identifier) @variable) 
          (array_type (identifier) @type)
          (array_creation_expression)
+         ;; Attributes
+         (attribute (identifier) @function (attribute_argument_list))
+         (attribute (identifier) @variable)
          ;; Casts
          (cast_expression (identifier) @type)
          (variable_declaration (identifier) @type)
