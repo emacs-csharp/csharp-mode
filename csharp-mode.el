@@ -763,7 +763,7 @@ Key bindings:
          (array_type (identifier) @type)
          (array_creation_expression)
          ;; Attributes
-         (attribute (identifier) @function (attribute_argument_list))
+         (attribute (identifier) @variable (attribute_argument_list))
          (attribute (identifier) @variable)
          ;; Casts
          (cast_expression (identifier) @type)
