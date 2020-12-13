@@ -681,6 +681,7 @@ Key bindings:
   (setq tree-sitter-hl-default-patterns
         [(comment) @comment
          (modifier) @keyword
+         (this_expression) @keyword
          ["using" "namespace" "class" "if" "else" "throw" "new" "for"
           "return" "await" "struct" "enum" "switch" "case"
           "default" "typeof" "try" "catch" "finally"
