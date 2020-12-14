@@ -178,6 +178,7 @@ Key bindings:
                        (namespace_declaration
                         class_declaration
                         method_declaration
+                        object_creation_expression
                         for_each_statement
                         if_statement))
           (indent-body . ;; if parent node is one of these and current node is in middle → indent
