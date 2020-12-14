@@ -175,27 +175,33 @@ Key bindings:
         '((indent-all . ;; these nodes are always indented
                       ())
           (indent-rest . ;; if parent node is one of these and node is not first → indent
-                       ())
+                       (namespace_declaration
+                        class_declaration
+                        method_declaration
+                        for_each_statement
+                        if_statement))
           (indent-body . ;; if parent node is one of these and current node is in middle → indent
-                       (declaration_list))
+                       ())
 
           (paren-indent . ;; if parent node is one of these → indent to paren opener
                         ())
           (align-char-to . ;; chaining char → node types we move parentwise to find the first chaining char
                          ())
           (aligned-siblings . ;; siblings (nodes with same parent) should be aligned to the first child
-                            ())
+                            (parameter))
 
           (multi-line-text . ;; if node is one of these, then don't modify the indent
                            ;; this is basically a peaceful way out by saying "this looks like something
                            ;; that cannot be indented using AST, so best I leave it as-is"
                            ())
           (outdent . ;; these nodes always outdent (1 shift in opposite direction)
-                   ())
+                   ("}"))
           )
         )
-  (setq-local indent-line-function #'tree-sitter-debug-indent-line)
-  (setq tree-sitter-hl-default-patterns
+  (when (boundp 'electric-indent-inhibit)
+    (setq electric-indent-inhibit t))
+  (setq-local indent-line-function #'tree-sitter-indent-line)
+  (setq-local tree-sitter-hl-default-patterns
         [(comment) @comment
          (modifier) @keyword
          (this_expression) @keyword
