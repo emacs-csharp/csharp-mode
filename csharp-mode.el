@@ -179,6 +179,7 @@ Key bindings:
                         class_declaration
                         method_declaration
                         object_creation_expression
+                        anonymous_object_creation_expression
                         for_each_statement
                         if_statement))
           (indent-body . ;; if parent node is one of these and current node is in middle → indent
@@ -209,7 +210,7 @@ Key bindings:
          ["using" "namespace" "class" "if" "else" "throw" "new" "for"
           "return" "await" "struct" "enum" "switch" "case"
           "default" "typeof" "try" "catch" "finally"
-          "foreach" "in"
+          "foreach" "in" "yield"
           ] @keyword
          ;; Literals
          [(real_literal) (integer_literal)] @number
