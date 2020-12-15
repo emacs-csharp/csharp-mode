@@ -173,13 +173,19 @@ Key bindings:
 \\{csharp-mode-map}"
   (setq tree-sitter-indent-csharp-scopes
         '((indent-all . ;; these nodes are always indented
-                      ())
+                      (anonymous_object_creation_expression
+                       switch_body
+                       switch_section))
           (indent-rest . ;; if parent node is one of these and node is not first → indent
                        (namespace_declaration
+                        using_statement
                         class_declaration
                         method_declaration
                         object_creation_expression
-                        anonymous_object_creation_expression
+                        array_creation_expression
+                        lambda_expression
+                        local_function_statement
+                        enum_declaration
                         for_each_statement
                         if_statement))
           (indent-body . ;; if parent node is one of these and current node is in middle → indent
@@ -209,8 +215,8 @@ Key bindings:
          (this_expression) @keyword
          ["using" "namespace" "class" "if" "else" "throw" "new" "for"
           "return" "await" "struct" "enum" "switch" "case"
-          "default" "typeof" "try" "catch" "finally"
-          "foreach" "in" "yield"
+          "default" "typeof" "try" "catch" "finally" "break"
+          "foreach" "in" "yield" "get" "set"
           ] @keyword
          ;; Literals
          [(real_literal) (integer_literal)] @number
@@ -268,7 +274,6 @@ Key bindings:
 
          ;; Class
          (base_list (identifier) @type)
-         (accessor_declaration) @keyword
          (property_declaration
           type: (identifier) @type
           name: (identifier) @variable)
