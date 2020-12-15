@@ -149,7 +149,9 @@
       (add-to-list 'compilation-error-regexp-alist (car regexp)))))
 
 (defcustom csharp-indent-offset 4
-  "Indent offset for csharp-mode")
+  "Indent offset for csharp-mode"
+  :type 'number
+  :group 'csharp)
 
 (defcustom tree-sitter-indent-csharp-scopes nil
   "Scopes for indenting in C#."
@@ -171,20 +173,26 @@
      "default" "typeof" "try" "catch" "finally" "break"
      "foreach" "in" "yield" "get" "set"
      ] @keyword)
-  "Patterns for keywords in csharp-mode.")
+  "Patterns for keywords in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-various-construct
   '((comment) @comment
     (modifier) @keyword
     (this_expression) @keyword)
-  "Patterns for various constructs.")
+  "Patterns for various constructs."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-literal
   '([(real_literal) (integer_literal)] @number
     (null_literal) @constant
     (boolean_literal) @constant
     (character_literal) @string)
-  "Patterns for literals in csharp-mode.")
+  "Patterns for literals in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-linq
   '((from_clause (identifier) @variable) @keyword
@@ -192,27 +200,37 @@
     (order_by_clause)
     (select_clause)
     (query_continuation (identifier) @variable) @keyword)
-  "Patterns for linq queries in csharp-mode.")
+  "Patterns for linq queries in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-string
   '((interpolation (identifier) (interpolation_format_clause) @variable)
     (interpolation (identifier)* @variable)
     [(string_literal) (verbatim_string_literal) (interpolated_string_expression)] @string)
-  "Patterns for strings in csharp-mode.")
+  "Patterns for strings in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-enum
   '((enum_member_declaration (identifier) @variable)
     (enum_declaration (identifier) @type))
-  "Patterns for enums in csharp-mode.")
+  "Patterns for enums in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-struct
   '((struct_declaration (identifier) @type))
-  "Patterns for structs in csharp-mode.")
+  "Patterns for structs in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-namespace
   '((namespace_declaration
      name: (identifier) @type))
-  "Patterns for namespaces in csharp-mode.")
+  "Patterns for namespaces in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-class
   '((base_list (identifier) @type)
@@ -222,43 +240,57 @@
     (class_declaration
      name: (identifier) @type)
     (constructor_declaration (identifier) @type))
-  "Patterns for classes in csharp-mode.")
+  "Patterns for classes in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-method
   '((method_declaration (identifier) @type (identifier) @function)
     (method_declaration (nullable_type) @type (identifier) @function)
     (method_declaration (void_keyword) @type (identifier) @function)
     (method_declaration (generic_name) (identifier) @function))
-  "Patterns for methods in csharp-mode.")
+  "Patterns for methods in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-parameter
   '((parameter
      type: (identifier) @type
      name: (identifier) @variable)
     (parameter (identifier) @variable))
-  "Patterns for parameters in csharp-mode.")
+  "Patterns for parameters in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-array
   '((array_rank_specifier (identifier) @variable) 
     (array_type (identifier) @type)
     (array_creation_expression))
-  "Patterns for arrays in csharp-mode.")
+  "Patterns for arrays in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-attribute
   '((attribute (identifier) @variable (attribute_argument_list))
     (attribute (identifier) @variable))
-  "Patterns for attributes in csharp-mode.")
+  "Patterns for attributes in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-object-init
   '((anonymous_object_creation_expression)
     (object_creation_expression (identifier) @type)
     (initializer_expression (identifier) @variable))
-  "Patterns for object initialization in csharp-mode.")
+  "Patterns for object initialization in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-variable
   '((variable_declaration (identifier) @type)
     (variable_declarator (identifier) @variable))
-  "Patterns for variables in csharp-mode.")
+  "Patterns for variables in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-type
   '((type_parameter
@@ -267,8 +299,12 @@
      (identifier) @type)
     (generic_name
      (identifier) @type)
-    (implicit_type) @type)
-  "Patterns for types in csharp-mode.")
+    (implicit_type) @type
+    (predefined_type) @type
+    (nullable_type) @type)
+  "Patterns for types in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-expression
   '((binary_expression (identifier) @variable (identifier) @variable)
@@ -279,12 +315,62 @@
     (type_of_expression (identifier) @variable)
     (assignment_expression (identifier) @variable)
     (cast_expression (identifier) @type))
-  "Patterns for expressions in csharp-mode.")
+  "Patterns for expressions in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 (defcustom csharp-mode-preprocessor
   '((preprocessor_directive) @constant
     (preprocessor_call (identifier) @string))
-  "Patterns for preprocessors in csharp-mode.")
+  "Patterns for preprocessors in csharp-mode."
+  :type 'list
+  :group 'csharp)
+
+(defcustom csharp-mode-loop
+  '((for_each_statement (identifier) @type (identifier) @variable (identifier) @variable))
+  "Patterns for loop constructs in csharp-mode."
+  :type 'list
+  :group 'csharp)
+
+(defcustom csharp-mode-default-patterns
+  (apply #'vector
+         (append csharp-mode-various-construct
+                 csharp-mode-literal
+                 csharp-mode-keyword
+                 csharp-mode-linq
+                 csharp-mode-string
+                 csharp-mode-enum
+                 csharp-mode-struct
+                 csharp-mode-namespace
+                 csharp-mode-class
+                 csharp-mode-method
+                 csharp-mode-parameter
+                 csharp-mode-array
+                 csharp-mode-attribute
+                 csharp-mode-object-init
+                 csharp-mode-variable
+                 csharp-mode-type
+                 csharp-mode-expression
+                 csharp-mode-preprocessor
+                 csharp-mode-loop
+                 '((qualified_name (identifier) @type)
+                   (using_directive (identifier)* @type)
+                   (await_expression (identifier)* @function)
+                   (invocation_expression (identifier) @function)
+                   (element_access_expression (identifier) @variable)
+                   (conditional_access_expression (identifier) @variable)
+                   (member_binding_expression (identifier) @variable)
+                   (member_access_expression (identifier) @function)
+                   (name_colon (identifier)* @variable)
+                   (name_equals (identifier) @type)
+                   (field_declaration)
+                   (argument (identifier) @variable)
+                   ;; switch statement
+                   (switch_statement (identifier) @variable)
+                   )))
+  "Default patterns for syntactic constructs in csharp-mode."
+  :type 'list
+  :group 'csharp)
 
 ;;;###autoload
 (define-derived-mode csharp-mode prog-mode "C#"
@@ -292,6 +378,7 @@
 
 Key bindings:
 \\{csharp-mode-map}"
+  :group 'csharp
   (setq tree-sitter-indent-csharp-scopes
         '((indent-all . ;; these nodes are always indented
                       (anonymous_object_creation_expression
@@ -330,47 +417,11 @@ Key bindings:
   (when (boundp 'electric-indent-inhibit)
     (setq electric-indent-inhibit t))
   (setq-local indent-line-function #'tree-sitter-indent-line)
-  (setq-local tree-sitter-hl-default-patterns
-              (apply #'vector
-                     (append csharp-mode-various-construct
-                             csharp-mode-literal
-                             csharp-mode-keyword
-                             csharp-mode-linq
-                             csharp-mode-string
-                             csharp-mode-enum
-                             csharp-mode-struct
-                             csharp-mode-namespace
-                             csharp-mode-class
-                             csharp-mode-method
-                             csharp-mode-parameter
-                             csharp-mode-array
-                             csharp-mode-attribute
-                             csharp-mode-object-init
-                             csharp-mode-variable
-                             csharp-mode-type
-                             csharp-mode-expression
-                             csharp-mode-preprocessor
-                             '((qualified_name (identifier) @type)
-                               (using_directive (identifier)* @type)
-                               (predefined_type) @type
-                               (await_expression (identifier)* @function)
-                               (invocation_expression (identifier) @function)
-                               (element_access_expression (identifier) @variable)
-                               (conditional_access_expression (identifier) @variable)
-                               (member_binding_expression (identifier) @variable)
-                               (member_access_expression (identifier) @function)
-                               (name_colon (identifier)* @variable)
-                               (name_equals (identifier) @type)
-                               ;; foreach
-                               (for_each_statement (identifier) @type (identifier) @variable (identifier) @variable)
-                               (field_declaration)
+  (setq-local tree-sitter-hl-default-patterns csharp-mode-default-patterns)
+  ;; Comments
+  (setq-local comment-start "// ")
+  (setq-local comment-end "")
 
-                               ;; Unary expressions
-                               (nullable_type) @type
-                               (argument (identifier) @variable)
-                               ;; switch statement
-                               (switch_statement (identifier) @variable)
-                               ))))
   (tree-sitter-hl-mode))
 
 ;;;###autoload
