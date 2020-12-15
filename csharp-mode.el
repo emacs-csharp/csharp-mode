@@ -165,6 +165,88 @@
   :type 'hook
   :group 'csharp)
 
+(defcustom csharp-mode-keyword
+  '(["using" "namespace" "class" "if" "else" "throw" "new" "for"
+     "return" "await" "struct" "enum" "switch" "case"
+     "default" "typeof" "try" "catch" "finally" "break"
+     "foreach" "in" "yield" "get" "set"
+     ] @keyword)
+  "Patterns for keywords in csharp-mode.")
+
+(defcustom csharp-mode-various-construct
+  '((comment) @comment
+    (modifier) @keyword
+    (this_expression) @keyword)
+  "Patterns for various constructs.")
+
+(defcustom csharp-mode-literal
+  '([(real_literal) (integer_literal)] @number
+    (null_literal) @constant
+    (boolean_literal) @constant)
+  "Patterns for literals in csharp-mode.")
+
+(defcustom csharp-mode-linq
+  '((from_clause (identifier) @variable) @keyword
+    (group_clause)
+    (order_by_clause)
+    (select_clause)
+    (query_continuation (identifier) @variable) @keyword)
+  "Patterns for linq queries in csharp-mode.")
+
+(defcustom csharp-mode-string
+  '((interpolation (identifier) (interpolation_format_clause) @variable)
+    (interpolation (identifier)* @variable)
+    [(string_literal) (verbatim_string_literal) (interpolated_string_expression)] @string)
+  "Patterns for strings in csharp-mode.")
+
+(defcustom csharp-mode-enum
+  '((enum_member_declaration (identifier) @variable)
+    (enum_declaration (identifier) @type))
+  "Patterns for enums in csharp-mode.")
+
+(defcustom csharp-mode-struct
+  '((struct_declaration (identifier) @type))
+  "Patterns for structs in csharp-mode.")
+
+(defcustom csharp-mode-namespace
+  '((namespace_declaration
+     name: (identifier) @type))
+  "Patterns for namespaces in csharp-mode.")
+
+(defcustom csharp-mode-class
+  '((base_list (identifier) @type)
+    (property_declaration
+     type: (identifier) @type
+     name: (identifier) @variable)
+    (class_declaration
+     name: (identifier) @type))
+  "Patterns for classes in csharp-mode.")
+
+(defcustom csharp-mode-method
+  '((method_declaration (identifier) @type (identifier) @function)
+    (method_declaration (nullable_type) @type (identifier) @function)
+    (method_declaration (void_keyword) @type (identifier) @function)
+    (method_declaration (generic_name) (identifier) @function))
+  "Patterns for methods in csharp-mode.")
+
+(defcustom csharp-mode-parameter
+  '((parameter
+     type: (identifier) @type
+     name: (identifier) @variable)
+    (parameter (identifier) @variable))
+  "Patterns for parameters in csharp-mode.")
+
+(defcustom csharp-mode-array
+  '((array_rank_specifier (identifier) @variable) 
+    (array_type (identifier) @type)
+    (array_creation_expression))
+  "Patterns for arrays in csharp-mode.")
+
+(defcustom csharp-mode-attribute
+  '((attribute (identifier) @variable (attribute_argument_list))
+    (attribute (identifier) @variable))
+  "Patterns for attributes in csharp-mode.")
+
 ;;;###autoload
 (define-derived-mode csharp-mode prog-mode "C#"
   "Major mode for editing Csharp code.
@@ -210,108 +292,65 @@ Key bindings:
     (setq electric-indent-inhibit t))
   (setq-local indent-line-function #'tree-sitter-indent-line)
   (setq-local tree-sitter-hl-default-patterns
-        [(comment) @comment
-         (modifier) @keyword
-         (this_expression) @keyword
-         ["using" "namespace" "class" "if" "else" "throw" "new" "for"
-          "return" "await" "struct" "enum" "switch" "case"
-          "default" "typeof" "try" "catch" "finally" "break"
-          "foreach" "in" "yield" "get" "set"
-          ] @keyword
-         ;; Literals
-         [(real_literal) (integer_literal)] @number
-         (null_literal) @constant
-         (boolean_literal) @constant
-
-         (qualified_name (identifier) @type)
-         (using_directive (identifier)* @type)
-         (implicit_type) @type
-         (predefined_type) @type
-         (await_expression (identifier)* @function)
-         (invocation_expression (identifier) @function)
-         (from_clause (identifier) @variable) @keyword
-         (group_clause)
-         (order_by_clause)
-         (select_clause)
-         (query_continuation (identifier) @variable) @keyword
-         (initializer_expression (identifier) @variable)
-         (element_access_expression (identifier) @variable)
-         (conditional_access_expression (identifier) @variable)
-         (member_binding_expression (identifier) @variable)
-         (member_access_expression (identifier) @function)
-         (name_colon (identifier)* @variable)
-         (type_parameter
-          (identifier) @type)
-         (type_argument_list
-          (identifier) @type)
-         (generic_name
-          (identifier) @type)
-         (name_equals (identifier) @type)
-         (anonymous_object_creation_expression)
-         (object_creation_expression (identifier) @type)
-         (character_literal) @string
-         (binary_expression (identifier) @variable (identifier) @variable)
-         (binary_expression (identifier)* @variable)
-         ;; strings
-         (interpolation (identifier) (interpolation_format_clause) @variable)
-         (interpolation (identifier)* @variable)
-         [(string_literal) (verbatim_string_literal) (interpolated_string_expression)] @string
-
-         (conditional_expression (identifier) @variable)
-         ;; enum
-         (enum_member_declaration (identifier) @variable)
-         (enum_declaration (identifier) @type)
-         ;; struct
-         (struct_declaration (identifier) @type)
-
-
-         ;; Namespace
-         (namespace_declaration
-          name: (identifier) @type)
-
-         ;; foreach
-         (for_each_statement (identifier) @type (identifier) @variable (identifier) @variable)
-
-         ;; Class
-         (base_list (identifier) @type)
-         (property_declaration
-          type: (identifier) @type
-          name: (identifier) @variable)
-         (class_declaration
-          name: (identifier) @type)
-         (field_declaration)
-         (constructor_declaration (identifier) @type)
-         ;; Methods
-         (method_declaration (identifier) @type (identifier) @function)
-         (method_declaration (nullable_type) @type (identifier) @function)
-         (method_declaration (void_keyword) @type (identifier) @function)
-         (method_declaration (generic_name) (identifier) @function)
-         (parameter
-          type: (identifier) @type
-          name: (identifier) @variable)
-         (parameter (identifier) @variable)
-         ;; Unary expressions
-         (prefix_unary_expression (identifier)* @variable)
-         (postfix_unary_expression (identifier)* @variable)
-         (nullable_type) @type
-         (type_of_expression (identifier) @variable)
-         (assignment_expression (identifier) @variable) 
-         (preprocessor_directive) @constant
-         (preprocessor_call (identifier) @string)
-         (argument (identifier) @variable)
-         ;; switch statement
-         (switch_statement (identifier) @variable)
-         ;; arrays
-         (array_rank_specifier (identifier) @variable) 
-         (array_type (identifier) @type)
-         (array_creation_expression)
-         ;; Attributes
-         (attribute (identifier) @variable (attribute_argument_list))
-         (attribute (identifier) @variable)
-         ;; Casts
-         (cast_expression (identifier) @type)
-         (variable_declaration (identifier) @type)
-         (variable_declarator (identifier) @variable)])
+              (apply #'vector
+                     (append csharp-mode-various-construct
+                             csharp-mode-literal
+                             csharp-mode-keyword
+                             csharp-mode-linq
+                             csharp-mode-string
+                             csharp-mode-enum
+                             csharp-mode-struct
+                             csharp-mode-namespace
+                             csharp-mode-class
+                             csharp-mode-method
+                             csharp-mode-parameter
+                             csharp-mode-array
+                             csharp-mode-attribute
+                             '(
+                               (qualified_name (identifier) @type)
+                               (using_directive (identifier)* @type)
+                               (implicit_type) @type
+                               (predefined_type) @type
+                               (await_expression (identifier)* @function)
+                               (invocation_expression (identifier) @function)
+                               (initializer_expression (identifier) @variable)
+                               (element_access_expression (identifier) @variable)
+                               (conditional_access_expression (identifier) @variable)
+                               (member_binding_expression (identifier) @variable)
+                               (member_access_expression (identifier) @function)
+                               (name_colon (identifier)* @variable)
+                               (type_parameter
+                                (identifier) @type)
+                               (type_argument_list
+                                (identifier) @type)
+                               (generic_name
+                                (identifier) @type)
+                               (name_equals (identifier) @type)
+                               (anonymous_object_creation_expression)
+                               (object_creation_expression (identifier) @type)
+                               (character_literal) @string
+                               (binary_expression (identifier) @variable (identifier) @variable)
+                               (binary_expression (identifier)* @variable)
+                               (conditional_expression (identifier) @variable)
+                               ;; foreach
+                               (for_each_statement (identifier) @type (identifier) @variable (identifier) @variable)
+                               (field_declaration)
+                               (constructor_declaration (identifier) @type)
+                               ;; Unary expressions
+                               (prefix_unary_expression (identifier)* @variable)
+                               (postfix_unary_expression (identifier)* @variable)
+                               (nullable_type) @type
+                               (type_of_expression (identifier) @variable)
+                               (assignment_expression (identifier) @variable) 
+                               (preprocessor_directive) @constant
+                               (preprocessor_call (identifier) @string)
+                               (argument (identifier) @variable)
+                               ;; switch statement
+                               (switch_statement (identifier) @variable)
+                               ;; Casts
+                               (cast_expression (identifier) @type)
+                               (variable_declaration (identifier) @type)
+                               (variable_declarator (identifier) @variable)))))
   (tree-sitter-hl-mode))
 
 ;;;###autoload
