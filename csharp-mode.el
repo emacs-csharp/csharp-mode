@@ -424,9 +424,6 @@ Key bindings:
 
   (tree-sitter-hl-mode))
 
-;;;###autoload
-(add-to-list 'tree-sitter-major-mode-language-alist '(csharp-mode . c_sharp))
-
 (provide 'csharp-mode)
 
 ;;; csharp-mode.el ends here
