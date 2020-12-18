@@ -171,7 +171,7 @@
   '(["using" "namespace" "class" "if" "else" "throw" "new" "for"
      "return" "await" "struct" "enum" "switch" "case"
      "default" "typeof" "try" "catch" "finally" "break"
-     "foreach" "in" "yield" "get" "set"
+     "foreach" "in" "yield" "get" "set" "interface"
      ] @keyword)
   "Patterns for keywords in csharp-mode."
   :type 'list
@@ -241,6 +241,13 @@
      name: (identifier) @type)
     (constructor_declaration (identifier) @type))
   "Patterns for classes in csharp-mode."
+  :type 'list
+  :group 'csharp)
+
+(defcustom csharp-mode-interface
+  '((interface_declaration
+     name: (identifier) @type))
+  "Patterns for interfaces in csharp-mode."
   :type 'list
   :group 'csharp)
 
@@ -343,6 +350,7 @@
                  csharp-mode-struct
                  csharp-mode-namespace
                  csharp-mode-class
+                 csharp-mode-interface
                  csharp-mode-method
                  csharp-mode-parameter
                  csharp-mode-array
