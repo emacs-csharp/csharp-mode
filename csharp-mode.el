@@ -235,7 +235,7 @@ Key bindings:
                 "return" "await" "struct" "enum" "switch" "case"
                 "default" "typeof" "try" "catch" "finally" "break"
                 "foreach" "in" "yield" "get" "set" "when" "as" "out"
-                "is" "while" "continue" "this" "ref" "goto"
+                "is" "while" "continue" "this" "ref" "goto" "interface"
                 ] @keyword
 
                   ;; Linq
@@ -253,6 +253,10 @@ Key bindings:
                ;; Enum
                (enum_member_declaration (identifier) @variable)
                (enum_declaration (identifier) @type)
+
+               ;; Interface
+               (interface_declaration
+                name: (identifier) @type)
 
                ;; Struct
                (struct_declaration (identifier) @type)
