@@ -27,7 +27,7 @@
 
 (require 'tree-sitter)
 (require 'tree-sitter-hl)
-(require 'tree-sitter-indent)
+(require 'csharp-mode-indent)
 
 (require 'compile)
 
@@ -148,15 +148,6 @@
       (add-to-list 'compilation-error-regexp-alist-alist regexp)
       (add-to-list 'compilation-error-regexp-alist (car regexp)))))
 
-(defcustom csharp-mode-indent-offset 4
-  "Indent offset for csharp-mode"
-  :type 'number
-  :group 'csharp)
-
-(defcustom tree-sitter-indent-csharp-scopes nil
-  "Scopes for indenting in C#."
-  :type 'sexp)
-
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
 
@@ -174,47 +165,10 @@
 Key bindings:
 \\{csharp-mode-map}"
   :group 'csharp
-  (setq-local tree-sitter-indent-offset csharp-mode-indent-offset)
-  (setq-local tree-sitter-indent-current-scopes
-              '((indent-all . ;; these nodes are always indented
-                            (accessor_declaration
-                             break_statement
-                             "."))
-                (indent-rest . ;; if parent node is one of these and node is not first → indent
-                             (
-                              switch_section
-                              ))
-                (indent-body . ;; if parent node is one of these and current node is in middle → indent
-                             (block
-                              anonymous_object_creation_expression
-                              enum_member_declaration_list
-                              initializer_expression
-                              expression_statement
-                              declaration_list
-                              switch_body))
 
-                (paren-indent . ;; if parent node is one of these → indent to paren opener
-                              ())
-                (align-char-to . ;; chaining char → node types we move parentwise to find the first chaining char
-                               ())
-                (aligned-siblings . ;; siblings (nodes with same parent) should be aligned to the first child
-                                  (parameter))
-
-                (multi-line-text . ;; if node is one of these, then don't modify the indent
-                                 ;; this is basically a peaceful way out by saying "this looks like something
-                                 ;; that cannot be indented using AST, so best I leave it as-is"
-                                 (comment
-                                  preprocessor_call
-                                  labeled_statement))
-                (outdent . ;; these nodes always outdent (1 shift in opposite direction)
-                         (;; "}"
-                          case_switch_label
-                          ))
-                )
-              )
   ;; (when (boundp 'electric-indent-inhibit)
   ;;   (setq electric-indent-inhibit t))
-  (setq-local indent-line-function #'tree-sitter-indent-line)
+  (setq-local indent-line-function #'csharp-mode-indent-line)
 
   ;; https://github.com/ubolonton/emacs-tree-sitter/issues/84
   (unless font-lock-defaults

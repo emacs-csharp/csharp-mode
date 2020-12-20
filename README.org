@@ -4,8 +4,7 @@
 
 * csharp-mode
 
-This is a mode for editing C# in emacs. It's based on cc-mode, v5.30.3 and above.
-
+This is a mode for editing C# in emacs. It's using [[https://github.com/ubolonton/emacs-tree-sitter][tree-sitter]] for highlighting and indentation.
 ** Main features
 
 - font-lock and indent of C# syntax including:
@@ -17,9 +16,7 @@ This is a mode for editing C# in emacs. It's based on cc-mode, v5.30.3 and above
   - anonymous functions and methods
   - verbatim literal strings (those that begin with @)
   - generics 
-- automagic code-doc generation when you type three slashes.
 - intelligent insertion of matched pairs of curly braces.
-- imenu indexing of C# source, for easy menu-based navigation. 
 - compilation-mode support for msbuild, devenv and xbuild.
 
 ** Usage
@@ -44,10 +41,10 @@ To do so, add the following to your .emacs-file:
   (add-hook 'csharp-mode-hook 'my-csharp-mode-hook)
 #+END_SRC
 
-For further mode-specific customization, ~M-x customize-group RET csharp RET~ will show available settings with documentation. For configuring ~cc-mode~ settings (which csharp-mode derives from) see the [[https://www.gnu.org/software/emacs/manual/html_mono/ccmode.html][cc-mode manual]].
+For further mode-specific customization, ~M-x customize-group RET csharp RET~ will show available settings with documentation.
 
 For more advanced and IDE-like functionality we recommend using csharp-mode together
-with [[https://github.com/OmniSharp/omnisharp-emacs][Omnisharp-Emacs]].
+with [[https://github.com/emacs-lsp/lsp-mode][lsp-mode]] or [[https://github.com/joaotavora/eglot][eglot]]
 
 * Attribution
 
