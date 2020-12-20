@@ -37,11 +37,13 @@
   '((indent-all . ;; these nodes are always indented
                 (accessor_declaration
                  break_statement
-                 conditional_expression
                  arrow_expression_clause
+                 parameter_list
+                 conditional_expression
                  "."))
     (indent-rest . ;; if parent node is one of these and node is not first → indent
                  (
+                  binary_expression
                   switch_section
                   ))
     (indent-body . ;; if parent node is one of these and current node is in middle → indent
@@ -52,7 +54,6 @@
                   expression_statement
                   declaration_list
                   attribute_argument_list
-                  parameter_list
                   switch_body))
 
     (paren-indent . ;; if parent node is one of these → indent to paren opener
