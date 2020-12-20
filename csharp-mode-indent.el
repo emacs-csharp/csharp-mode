@@ -37,6 +37,8 @@
   '((indent-all . ;; these nodes are always indented
                 (accessor_declaration
                  break_statement
+                 conditional_expression
+                 arrow_expression_clause
                  "."))
     (indent-rest . ;; if parent node is one of these and node is not first → indent
                  (
@@ -49,10 +51,12 @@
                   initializer_expression
                   expression_statement
                   declaration_list
+                  attribute_argument_list
+                  parameter_list
                   switch_body))
 
     (paren-indent . ;; if parent node is one of these → indent to paren opener
-                  ())
+                  (parenthesized_expression))
     (align-char-to . ;; chaining char → node types we move parentwise to find the first chaining char
                    ())
     (aligned-siblings . ;; siblings (nodes with same parent) should be aligned to the first child

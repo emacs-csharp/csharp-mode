@@ -191,13 +191,14 @@ Key bindings:
                 "default" "typeof" "try" "catch" "finally" "break"
                 "foreach" "in" "yield" "get" "set" "when" "as" "out"
                 "is" "while" "continue" "this" "ref" "goto" "interface"
+                "from" "where" "select"
                 ] @keyword
 
                   ;; Linq
-               (from_clause (identifier) @variable) @keyword
+               (from_clause (identifier) @variable)
                (group_clause)
                (order_by_clause)
-               (select_clause)
+               (select_clause (identifier) @variable)
                (query_continuation (identifier) @variable) @keyword
 
                ;; String

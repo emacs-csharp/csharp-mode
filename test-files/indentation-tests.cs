@@ -255,3 +255,43 @@ public async Task WriteAsync()
         }
     }
 }
+
+namespace Foo
+{
+    internal T GetThings()
+    {
+        private Thing<int> Values(string key, int[] numbers, bool ignoreCase)
+        {
+            return (from n in numbers
+                    where string.Equals("", "")
+                    select n);
+        }
+
+        private string GetKey(int number, bool randomCase)
+        {
+            if (randomCase)
+            {
+                bool upper = false
+                return (upper ? "AA" : "aa");
+            }
+            else
+            {
+                return "AA" + Right2Chars(number.ToString());
+            }
+        }
+    }
+}
+
+namespace Foo
+{
+    internal T GetAssemblies()
+    {
+        static string GetRelativePath(string path, Uri baseUri)
+        {
+            var rootedPath = Path.IsPathRooted(path)
+                ? path
+                : x;
+            return rootedPath;
+        }
+    }
+}
