@@ -19,6 +19,15 @@ This is a mode for editing C# in emacs. It's using [[https://github.com/ubolonto
 - intelligent insertion of matched pairs of curly braces.
 - compilation-mode support for msbuild, devenv and xbuild.
 
+** tree-sitter support
+You can enable experimental tree sitter support for indentation and highlighting using
+#+begin_src elisp
+  (use-package csharp-mode
+    :init
+    (setq csharp-mode-enable-tree-sitter t))
+#+end_src
+If you are using this, clearly state so if you find any issues.
+
 ** Usage
 
 This package is currently available on MELPA. Install using ~M-x
