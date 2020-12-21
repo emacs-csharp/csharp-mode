@@ -660,7 +660,8 @@ compilation and evaluation time conflicts."
 ;;; Tree-sitter
 
 (defcustom csharp-mode-enable-tree-sitter nil
-  "Use tree sitter for font locking and indentation.")
+  "Use tree sitter for font locking and indentation."
+  :type 'boolean)
 
 (defvar-local csharp-mode-tree-sitter-patterns
   [ ;; Various constructs
@@ -842,6 +843,7 @@ compilation and evaluation time conflicts."
 
 (defcustom csharp-mode-indent-offset 4
   "Indent offset for csharp-mode"
+  :type 'integer
   :group 'csharp)
 
 (defcustom csharp-mode-indent-scopes
