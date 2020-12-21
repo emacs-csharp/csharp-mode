@@ -119,10 +119,10 @@ namespace Boo
                 PropB = 2
             };
 
-            yield return new InnerA.InnerB {
-                PropA = 1,
-                PropB = 2
-            };
+            // yield return new InnerA.InnerB {
+            //     PropA = 1,
+            //     PropB = 2
+            // };
 
             yield return new InnerA
             {
@@ -130,11 +130,11 @@ namespace Boo
                 May = "Yay"
             };
 
-            yield return new InnerA.InnerB
-            {
-                Boo = "Foo",
-                May = "Yay"
-            };
+            // yield return new InnerA.InnerB
+            // {
+            //     Boo = "Foo",
+            //     May = "Yay"
+            // };
 
             // extra test-cases
 
@@ -252,46 +252,6 @@ public async Task WriteAsync()
         using (var writer = new BinaryWriter())
         {
             // or this
-        }
-    }
-}
-
-namespace Foo
-{
-    internal T GetThings()
-    {
-        private Thing<int> Values(string key, int[] numbers, bool ignoreCase)
-        {
-            return (from n in numbers
-                    where string.Equals("", "")
-                    select n);
-        }
-
-        private string GetKey(int number, bool randomCase)
-        {
-            if (randomCase)
-            {
-                bool upper = false
-                return (upper ? "AA" : "aa");
-            }
-            else
-            {
-                return "AA" + Right2Chars(number.ToString());
-            }
-        }
-    }
-}
-
-namespace Foo
-{
-    internal T GetAssemblies()
-    {
-        static string GetRelativePath(string path, Uri baseUri)
-        {
-            var rootedPath = Path.IsPathRooted(path)
-                ? path
-                : x;
-            return rootedPath;
         }
     }
 }
