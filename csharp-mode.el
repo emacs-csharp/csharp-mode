@@ -24,6 +24,8 @@
 
 
 ;;; Code:
+
+
 (when (version< emacs-version "25.1")
   (require 'cl))
 (require 'cc-mode)
@@ -37,7 +39,6 @@
 (defgroup csharp nil
   "Major mode for editing C# code."
   :group 'prog-mode)
-
 
 (defcustom csharp-mode-enable-tree-sitter nil
   "Use tree sitter for font locking and indentation."
@@ -346,8 +347,10 @@
 
 (defcustom csharp-codedoc-tag-face 'c-doc-markup-face-name
   "Face to be used on the codedoc docstring tags.
+
 Should be one of the font lock faces, such as
 `font-lock-variable-name-face' and friends.
+
 Needs to be set before `csharp-mode' is loaded, because of
 compilation and evaluation time conflicts."
   :type 'symbol
@@ -378,6 +381,118 @@ compilation and evaluation time conflicts."
 (defun csharp-font-lock-keywords ()
   (c-compose-keywords-list csharp-font-lock-keywords))
 
+;;; Compilation support
+;; When invoked by MSBuild, csc’s errors look like this:
+;; subfolder\file.cs(6,18): error CS1006: Name of constructor must
+;; match name of class [c:\Users\user\project.csproj]
+
+(defun csharp--compilation-error-file-resolve ()
+  "Resolve an msbuild error to a (filename . dirname) cons cell."
+  ;; http://stackoverflow.com/a/18049590/429091
+  (cons (match-string 1) (file-name-directory (match-string 4))))
+
+(defconst csharp-compilation-re-msbuild-error
+  (concat
+   "^[[:blank:]]*\\(?:[[:digit:]]+>\\)?"
+   "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
+   "error [[:alnum:]]+: [^\r\n]+\\[\\([^]\r\n]+\\)\\]$")
+  "Regexp to match compilation error from msbuild.")
+
+(defconst csharp-compilation-re-msbuild-warning
+  (concat
+   "^[[:blank:]]*\\(?:[[:digit:]]+>\\)?"
+   "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
+   "warning [[:alnum:]]+: [^\r\n]+\\[\\([^]\r\n]+\\)\\]$")
+  "Regexp to match compilation warning from msbuild.")
+
+;; Notes on xbuild and devenv commonalities
+;;
+;; These regexes were tailored for xbuild, but apart from the concurrent
+;; build-marker ("1>") they share exactly the same match-markers.
+;;
+;; If we don't exclude the match-markers explicitly, these regexes
+;; will also be used to match for devenv as well, including the build-marker
+;; in the file-name, causing the lookup to fail.
+;;
+;; So if we don't want devenv to fail, we actually need to handle it in our
+;; xbuild-regexes, but then we automatically get devenv-support for free.
+
+(defconst csharp-compilation-re-xbuild-error
+  (concat
+   "^[[:blank:]]*\\(?:[[:digit:]]+>\\)?"
+   "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?"
+   ;; handle weird devenv output format with 4 numbers, not 2 by having optional
+   ;; extra capture-groups.
+   "\\(?:,\\([0-9]+\\)\\)*): "
+   "error [[:alnum:]]+: .+$")
+  "Regexp to match compilation error from xbuild.")
+
+(defconst csharp-compilation-re-xbuild-warning
+  (concat
+   "^[[:blank:]]*\\(?:[[:digit:]]+>\\)?"
+   "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?"
+   ;; handle weird devenv output format with 4 numbers, not 2 by having optional
+   ;; extra capture-groups.
+   "\\(?:,\\([0-9]+\\)\\)?*): "
+   "warning [[:alnum:]]+: .+$")
+  "Regexp to match compilation warning from xbuild.")
+
+(defconst csharp-compilation-re-dotnet-error
+  "\\([^\r\n]+\\) : error [A-Z]+[0-9]+:")
+
+(defconst csharp-compilation-re-dotnet-warning
+  "\\([^\r\n]+\\) : warning [A-Z]+[0-9]+:")
+
+(defconst csharp-compilation-re-dotnet-testfail
+  (concat
+   "^[[:blank:]]+X \\(?:.+\n\\)"
+   "[[:blank:]]+Error Message:\n"
+   "[[:blank:]]+\\(?:.+\n\\)"
+   "\\(?:^Expected: \\(?:.+\n\\)\\)?"
+   "\\(?:^Actual: \\(?:.+\n\\)\\)?"
+   "[[:blank:]]+Stack Trace:\n"
+   "[[:blank:]]+at [^\n]+ in \\([^\n]+\\):line \\([0-9]+\\)"))
+
+
+(eval-after-load 'compile
+  (lambda ()
+    (dolist
+        (regexp
+         `((dotnet-testfail
+            ,csharp-compilation-re-dotnet-testfail
+            1 2)
+           (xbuild-error
+            ,csharp-compilation-re-xbuild-error
+            1 2 3 2)
+           (xbuild-warning
+            ,csharp-compilation-re-xbuild-warning
+            1 2 3 1)
+           (msbuild-error
+            ,csharp-compilation-re-msbuild-error
+            csharp--compilation-error-file-resolve
+            2
+            3
+            2
+            nil
+            (1 compilation-error-face)
+            (4 compilation-error-face))
+           (msbuild-warning
+            ,csharp-compilation-re-msbuild-warning
+            csharp--compilation-error-file-resolve
+            2
+            3
+            1
+            nil
+            (1 compilation-warning-face)
+            (4 compilation-warning-face))
+           (dotnet-error
+            ,csharp-compilation-re-dotnet-error
+            1)
+           (dotnet-warning
+            ,csharp-compilation-re-dotnet-warning
+            1 nil nil 1)))
+      (add-to-list 'compilation-error-regexp-alist-alist regexp)
+      (add-to-list 'compilation-error-regexp-alist (car regexp)))))
 
 ;;; Doc comments
 
@@ -531,137 +646,24 @@ compilation and evaluation time conflicts."
 ;;; End of fix for strings on version 27.1
 
 
+(eval-and-compile
+  (unless csharp-mode-enable-tree-sitter
+    (defvar csharp-mode-syntax-table
+      (funcall (c-lang-const c-make-mode-syntax-table csharp))
+      "Syntax table used in csharp-mode buffers.")
 
-(defvar csharp-mode-syntax-table
-  (funcall (c-lang-const c-make-mode-syntax-table csharp))
-  "Syntax table used in csharp-mode buffers.")
-
-(defvar csharp-mode-map
-  (let ((map (c-make-inherited-keymap)))
-    map)
-  "Keymap used in csharp-mode buffers.")
+    (defvar csharp-mode-map
+      (let ((map (c-make-inherited-keymap)))
+        map)
+      "Keymap used in csharp-mode buffers.")))
 
 (easy-menu-define csharp-mode-menu csharp-mode-map "C# Mode Commands"
   (cons "C#" (c-lang-const c-mode-menu csharp)))
 
-
-;;; Compilation support
-;; When invoked by MSBuild, csc’s errors look like this:
-;; subfolder\file.cs(6,18): error CS1006: Name of constructor must
-;; match name of class [c:\Users\user\project.csproj]
-
-(defun csharp--compilation-error-file-resolve ()
-  "Resolve an msbuild error to a (filename . dirname) cons cell."
-  ;; http://stackoverflow.com/a/18049590/429091
-  (cons (match-string 1) (file-name-directory (match-string 4))))
-
-(defconst csharp-compilation-re-msbuild-error
-  (concat
-   "^[[:blank:]]*\\(?:[[:digit:]]+>\\)?"
-   "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
-   "error [[:alnum:]]+: [^\r\n]+\\[\\([^]\r\n]+\\)\\]$")
-  "Regexp to match compilation error from msbuild.")
-
-(defconst csharp-compilation-re-msbuild-warning
-  (concat
-   "^[[:blank:]]*\\(?:[[:digit:]]+>\\)?"
-   "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?): "
-   "warning [[:alnum:]]+: [^\r\n]+\\[\\([^]\r\n]+\\)\\]$")
-  "Regexp to match compilation warning from msbuild.")
-
-;; Notes on xbuild and devenv commonalities
-;;
-;; These regexes were tailored for xbuild, but apart from the concurrent
-;; build-marker ("1>") they share exactly the same match-markers.
-;;
-;; If we don't exclude the match-markers explicitly, these regexes
-;; will also be used to match for devenv as well, including the build-marker
-;; in the file-name, causing the lookup to fail.
-;;
-;; So if we don't want devenv to fail, we actually need to handle it in our
-;; xbuild-regexes, but then we automatically get devenv-support for free.
-
-(defconst csharp-compilation-re-xbuild-error
-  (concat
-   "^[[:blank:]]*\\(?:[[:digit:]]+>\\)?"
-   "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?"
-   ;; handle weird devenv output format with 4 numbers, not 2 by having optional
-   ;; extra capture-groups.
-   "\\(?:,\\([0-9]+\\)\\)*): "
-   "error [[:alnum:]]+: .+$")
-  "Regexp to match compilation error from xbuild.")
-
-(defconst csharp-compilation-re-xbuild-warning
-  (concat
-   "^[[:blank:]]*\\(?:[[:digit:]]+>\\)?"
-   "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?"
-   ;; handle weird devenv output format with 4 numbers, not 2 by having optional
-   ;; extra capture-groups.
-   "\\(?:,\\([0-9]+\\)\\)?*): "
-   "warning [[:alnum:]]+: .+$")
-  "Regexp to match compilation warning from xbuild.")
-
-(defconst csharp-compilation-re-dotnet-error
-  "\\([^\r\n]+\\) : error [A-Z]+[0-9]+:")
-
-(defconst csharp-compilation-re-dotnet-warning
-  "\\([^\r\n]+\\) : warning [A-Z]+[0-9]+:")
-
-(defconst csharp-compilation-re-dotnet-testfail
-  (concat
-   "^[[:blank:]]+X \\(?:.+\n\\)"
-   "[[:blank:]]+Error Message:\n"
-   "[[:blank:]]+\\(?:.+\n\\)"
-   "\\(?:^Expected: \\(?:.+\n\\)\\)?"
-   "\\(?:^Actual: \\(?:.+\n\\)\\)?"
-   "[[:blank:]]+Stack Trace:\n"
-   "[[:blank:]]+at [^\n]+ in \\([^\n]+\\):line \\([0-9]+\\)"))
-
-
-(eval-after-load 'compile
-  (lambda ()
-    (dolist
-        (regexp
-         `((dotnet-testfail
-            ,csharp-compilation-re-dotnet-testfail
-            1 2)
-           (xbuild-error
-            ,csharp-compilation-re-xbuild-error
-            1 2 3 2)
-           (xbuild-warning
-            ,csharp-compilation-re-xbuild-warning
-            1 2 3 1)
-           (msbuild-error
-            ,csharp-compilation-re-msbuild-error
-            csharp--compilation-error-file-resolve
-            2
-            3
-            2
-            nil
-            (1 compilation-error-face)
-            (4 compilation-error-face))
-           (msbuild-warning
-            ,csharp-compilation-re-msbuild-warning
-            csharp--compilation-error-file-resolve
-            2
-            3
-            1
-            nil
-            (1 compilation-warning-face)
-            (4 compilation-warning-face))
-           (dotnet-error
-            ,csharp-compilation-re-dotnet-error
-            1)
-           (dotnet-warning
-            ,csharp-compilation-re-dotnet-warning
-            1 nil nil 1)))
-      (add-to-list 'compilation-error-regexp-alist-alist regexp)
-      (add-to-list 'compilation-error-regexp-alist (car regexp)))))
-
-
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
 
+;; Custom variables
 ;;;###autoload
 (defcustom csharp-mode-hook nil
   "*Hook called by `csharp-mode'."
