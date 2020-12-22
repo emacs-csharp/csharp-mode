@@ -215,7 +215,7 @@
   :type 'integer
   :group 'csharp)
 
-(defcustom csharp-mode-indent-scopes
+(defvar csharp-mode-indent-scopes
   '((indent-all . ;; these nodes are always indented
                 (accessor_declaration
                  break_statement
@@ -256,8 +256,7 @@
               case_switch_label
               ))
     )
-  "Scopes for indenting in C#."
-  :type 'sexp)
+  "Scopes for indenting in C#.")
 
 ;;;; Private functions
 (defun csharp-mode-indent--node-is-indent-all (node)
