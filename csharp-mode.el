@@ -40,13 +40,6 @@
   "Major mode for editing C# code."
   :group 'prog-mode)
 
-(defcustom csharp-mode-enable-tree-sitter nil
-  "Use tree sitter for font locking and indentation."
-  :type 'boolean)
-
-(defvar csharp-mode-tree-sitter-patterns)
-(defun csharp-mode-indent-line ())
-
 (eval-and-compile
   (defconst csharp--regex-identifier
     "[A-Za-z][A-Za-z0-9_]*"
@@ -646,16 +639,15 @@ compilation and evaluation time conflicts."
 ;;; End of fix for strings on version 27.1
 
 
-(eval-and-compile
-  (unless csharp-mode-enable-tree-sitter
-    (defvar csharp-mode-syntax-table
-      (funcall (c-lang-const c-make-mode-syntax-table csharp))
-      "Syntax table used in csharp-mode buffers.")
 
-    (defvar csharp-mode-map
-      (let ((map (c-make-inherited-keymap)))
-        map)
-      "Keymap used in csharp-mode buffers.")))
+(defvar csharp-mode-syntax-table
+  (funcall (c-lang-const c-make-mode-syntax-table csharp))
+  "Syntax table used in csharp-mode buffers.")
+
+(defvar csharp-mode-map
+  (let ((map (c-make-inherited-keymap)))
+    map)
+  "Keymap used in csharp-mode buffers.")
 
 (easy-menu-define csharp-mode-menu csharp-mode-map "C# Mode Commands"
   (cons "C#" (c-lang-const c-mode-menu csharp)))
@@ -676,30 +668,13 @@ compilation and evaluation time conflicts."
 
 Key bindings:
 \\{csharp-mode-map}"
-  :group 'csharp
-
-  (if csharp-mode-enable-tree-sitter
-      (progn
-        (require 'csharp-tree-sitter)
-        (setq-local indent-line-function #'csharp-mode-indent-line)
-
-        ;; https://github.com/ubolonton/emacs-tree-sitter/issues/84
-        (unless font-lock-defaults
-          (setq font-lock-defaults '(nil)))
-        (setq-local tree-sitter-hl-default-patterns csharp-mode-tree-sitter-patterns)
-        ;; Comments
-        (setq-local comment-start "// ")
-        (setq-local comment-end "")
-
-        (tree-sitter-hl-mode))
-    (progn
-      :after-hook (c-update-modeline)
-      (c-initialize-cc-mode t)
-      (c-init-language-vars csharp-mode)
-      (c-common-init 'csharp-mode)
-      (easy-menu-add csharp-mode-menu)
-      (setq-local c-doc-comment-style '((csharp-mode . codedoc)))
-      (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook))))
+  :after-hook (c-update-modeline)
+  (c-initialize-cc-mode t)
+  (c-init-language-vars csharp-mode)
+  (c-common-init 'csharp-mode)
+  (easy-menu-add csharp-mode-menu)
+  (setq-local c-doc-comment-style '((csharp-mode . codedoc)))
+  (c-run-mode-hooks 'c-mode-common-hook 'csharp-mode-hook))
 
 (provide 'csharp-mode)
 

@@ -629,7 +629,32 @@ See `csharp-mode-indent-line'.  ORIGINAL-COLUMN is forwarded to
              (tsc-node-type indenting-node)
              tree-sitter-tree-before)))
 
-;;; End of tree-sitter
+
+;;;###autoload
+(define-derived-mode csharp-tree-sitter-mode prog-mode "C#"
+  "Major mode for editing Csharp code.
+
+Key bindings:
+\\{csharp-mode-map}"
+  :group 'csharp
+
+  (setq csharp-mode-syntax-table nil)
+  (setq csharp-mode-map nil)
+  (require 'csharp-tree-sitter)
+  (setq-local indent-line-function #'csharp-mode-indent-line)
+
+  ;; https://github.com/ubolonton/emacs-tree-sitter/issues/84
+  (unless font-lock-defaults
+    (setq font-lock-defaults '(nil)))
+  (setq-local tree-sitter-hl-default-patterns csharp-mode-tree-sitter-patterns)
+  ;; Comments
+  (setq-local comment-start "// ")
+  (setq-local comment-end "")
+
+  (tree-sitter-hl-mode))
+
+;;;###autoload
+(add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp))
 
 (provide 'csharp-tree-sitter)
 
