@@ -7,7 +7,7 @@
 ;; Modified   : 2020
 ;; Version    : 0.10.0
 ;; Keywords   : c# languages oop mode
-;; X-URL      : https://github.com/josteink/csharp-mode
+;; X-URL      : https://github.com/emacs-csharp/csharp-mode
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -70,13 +70,13 @@
 (c-lang-defconst c-make-mode-syntax-table
   csharp `(lambda ()
             (let ((table (make-syntax-table)))
-	      (c-populate-syntax-table table)
+              (c-populate-syntax-table table)
               (modify-syntax-entry ?@ "_" table)
-	      table)))
+              table)))
 
 (c-lang-defconst c-identifier-syntax-modifications
   csharp (append '((?@ . "w"))
-	         (c-lang-const c-identifier-syntax-modifications)))
+                 (c-lang-const c-identifier-syntax-modifications)))
 
 (c-lang-defconst c-symbol-start
   csharp (concat "[" c-alpha "_@]"))
@@ -89,7 +89,7 @@
 
 (c-lang-defconst c-overloadable-operators
   csharp '("+" "-" "*" "/" "%" "&" "|" "^" "<<" ">>" "=="
-	   "!=" ">" "<" ">=" "<="))
+           "!=" ">" "<" ">=" "<="))
 
 (c-lang-defconst c-multiline-string-start-char
   csharp ?@)
@@ -104,7 +104,7 @@
 
 (c-lang-defconst c-primitive-type-kwds
   csharp '("bool" "byte" "sbyte" "char" "decimal" "double" "float" "int" "uint"
-	   "long" "ulong" "short" "ushort" "void" "object" "string" "var"))
+           "long" "ulong" "short" "ushort" "void" "object" "string" "var"))
 
 (c-lang-defconst c-other-decl-kwds
   csharp nil)
@@ -163,9 +163,9 @@
 
 (c-lang-defconst c-modifier-kwds
   csharp '("abstract" "default" "final" "native" "private" "protected"
-	   "public" "partial" "internal" "readonly" "static" "event" "transient"
-	   "volatile" "sealed" "ref" "out" "virtual" "implicit" "explicit"
-	   "fixed" "override" "params" "async" "await" "extern" "unsafe"
+           "public" "partial" "internal" "readonly" "static" "event" "transient"
+           "volatile" "sealed" "ref" "out" "virtual" "implicit" "explicit"
+           "fixed" "override" "params" "async" "await" "extern" "unsafe"
            "get" "set" "this" "const" "delegate"))
 
 (c-lang-defconst c-other-kwds
@@ -184,7 +184,7 @@
 
 (c-lang-defconst c-block-stmt-2-kwds
   csharp '("for" "if" "switch" "while" "catch" "foreach" "fixed" "checked"
-	   "unchecked" "using" "lock"))
+           "unchecked" "using" "lock"))
 
 (c-lang-defconst c-simple-stmt-kwds
   csharp '("break" "continue" "goto" "throw" "return" "yield"))
@@ -228,7 +228,7 @@
 
 (c-lang-defconst c-other-op-syntax-tokens
   csharp  (append '("#")
-	          (c-lang-const c-other-op-syntax-tokens)))
+                  (c-lang-const c-other-op-syntax-tokens)))
 
 (c-lang-defconst c-line-comment-starter
   csharp "//")
@@ -260,14 +260,14 @@
     (forward-word)
     (while (and (not (or (eq (char-after) ?\;)
                          (eq (char-after) ?\{)))
-	        (progn
-	          (forward-char)
-	          (c-forward-syntactic-ws)
-	          (setq id-beginning (point))
-	          (> (skip-chars-forward
-	              (c-lang-const c-symbol-chars))
-	             0))
-	        (not (get-text-property (point) 'face)))
+                (progn
+                  (forward-char)
+                  (c-forward-syntactic-ws)
+                  (setq id-beginning (point))
+                  (> (skip-chars-forward
+                      (c-lang-const c-symbol-chars))
+                     0))
+                (not (get-text-property (point) 'face)))
       (c-put-font-lock-face id-beginning (point) font-lock-face)
       (c-forward-syntactic-ws))))
 
@@ -277,8 +277,8 @@
            ,@(if (version< emacs-version "27.0")
                  ;; Taken from 26.1 branch
                  `(,(c-make-font-lock-search-function
-	             (concat ".\\(" c-string-limit-regexp "\\)")
-	             '((c-font-lock-invalid-string))))
+                     (concat ".\\(" c-string-limit-regexp "\\)")
+                     '((c-font-lock-invalid-string))))
                `(("\\s|" 0 font-lock-warning-face t nil)))
 
            ;; Invalid single quotes
@@ -286,20 +286,20 @@
 
            ;; Keyword constants
            ,@(when (c-lang-const c-constant-kwds)
-	       (let ((re (c-make-keywords-re nil (c-lang-const c-constant-kwds))))
-	         `((eval . (list ,(concat "\\<\\(" re "\\)\\>")
-			         1 c-constant-face-name)))))
+               (let ((re (c-make-keywords-re nil (c-lang-const c-constant-kwds))))
+                 `((eval . (list ,(concat "\\<\\(" re "\\)\\>")
+                                 1 c-constant-face-name)))))
 
            ;; Keywords except the primitive types.
            ,`(,(concat "\\<" (c-lang-const c-regular-keywords-regexp))
-	      1 font-lock-keyword-face)
+              1 font-lock-keyword-face)
 
            ;; Chained identifiers in using/namespace statements
            ,`(,(c-make-font-lock-search-function
                 csharp--regex-using-or-namespace
-	        `((csharp--color-forwards font-lock-variable-name-face)
-	          nil
-	          (goto-char (match-end 0)))))
+                `((csharp--color-forwards font-lock-variable-name-face)
+                  nil
+                  (goto-char (match-end 0)))))
 
 
            ;; Negation character
@@ -492,21 +492,21 @@ compilation and evaluation time conflicts."
 (defconst codedoc-font-lock-doc-comments
   ;; Most of this is taken from the javadoc example, however, we don't use the
   ;; '@foo' syntax, so I removed that. Supports the XML tags only
-  `((,(concat "</?\\sw"			; XML tags.
-	      "\\("
-	      (concat "\\sw\\|\\s \\|[=\n\r*.:]\\|"
-		      "\"[^\"]*\"\\|'[^']*'")
-	      "\\)*/?>")
+  `((,(concat "</?\\sw"         ; XML tags.
+              "\\("
+              (concat "\\sw\\|\\s \\|[=\n\r*.:]\\|"
+                      "\"[^\"]*\"\\|'[^']*'")
+              "\\)*/?>")
      0 ,csharp-codedoc-tag-face prepend nil)
     ;; ("\\([a-zA-Z0-9_]+\\)=" 0 font-lock-variable-name-face prepend nil)
     ;; ("\".*\"" 0 font-lock-string-face prepend nil)
-    ("&\\(\\sw\\|[.:]\\)+;"		; XML entities.
+    ("&\\(\\sw\\|[.:]\\)+;"     ; XML entities.
      0 ,csharp-codedoc-tag-face prepend nil)))
 
 (defconst codedoc-font-lock-keywords
   `((,(lambda (limit)
-	(c-font-lock-doc-comments "///" limit
-	  codedoc-font-lock-doc-comments)))))
+        (c-font-lock-doc-comments "///" limit
+          codedoc-font-lock-doc-comments)))))
 
 ;;; End of doc comments
 
@@ -528,7 +528,7 @@ compilation and evaluation time conflicts."
       (backward-char)
       (c-safe (goto-char (scan-sexps (point) -1)))
       (when (or (looking-at "([[:alnum:][:space:]_,]*)[ \t\n]*=>[ \t\n]*{")
-	        (looking-at "[[:alnum:]_]+[ \t\n]*=>[ \t\n]*{"))
+                (looking-at "[[:alnum:]_]+[ \t\n]*=>[ \t\n]*{"))
         ;; If we are at a C# lambda header
         (cons 'inexpr (point))))))
 
@@ -580,61 +580,61 @@ compilation and evaluation time conflicts."
 
 (when (version= emacs-version "27.1")
   ;; See:
-  ;; https://github.com/josteink/csharp-mode/issues/175
-  ;; https://github.com/josteink/csharp-mode/issues/151
+  ;; https://github.com/emacs-csharp/csharp-mode/issues/175
+  ;; https://github.com/emacs-csharp/csharp-mode/issues/151
   ;; for the full story.
   (defun c-pps-to-string-delim (end)
     (let* ((start (point))
-	   (no-st-s `(0 nil nil ?\" nil nil 0 nil ,start nil nil))
-	   (st-s `(0 nil nil t nil nil 0 nil ,start nil nil))
-	   no-st-pos st-pos
-	   )
+           (no-st-s `(0 nil nil ?\" nil nil 0 nil ,start nil nil))
+           (st-s `(0 nil nil t nil nil 0 nil ,start nil nil))
+           no-st-pos st-pos
+           )
       (parse-partial-sexp start end nil nil no-st-s 'syntax-table)
       (setq no-st-pos (point))
       (goto-char start)
       (while (progn
-	       (parse-partial-sexp (point) end nil nil st-s 'syntax-table)
-	       (unless (bobp)
-		 (c-clear-syn-tab (1- (point))))
-	       (setq st-pos (point))
-	       (and (< (point) end)
-		    (not (eq (char-before) ?\")))))
+               (parse-partial-sexp (point) end nil nil st-s 'syntax-table)
+               (unless (bobp)
+                 (c-clear-syn-tab (1- (point))))
+               (setq st-pos (point))
+               (and (< (point) end)
+                    (not (eq (char-before) ?\")))))
       (goto-char (min no-st-pos st-pos))
       nil))
 
   (defun c-multiline-string-check-final-quote ()
     (let (pos-ll pos-lt)
       (save-excursion
-	(goto-char (point-max))
-	(skip-chars-backward "^\"")
-	(while
-	    (and
-	     (not (bobp))
-	     (cond
-	      ((progn
-		 (setq pos-ll (c-literal-limits)
-		       pos-lt (c-literal-type pos-ll))
-		 (memq pos-lt '(c c++)))
-	       ;; In a comment.
-	       (goto-char (car pos-ll)))
-	      ((save-excursion
-		 (backward-char)		; over "
-		 (c-is-escaped (point)))
-	       ;; At an escaped string.
-	       (backward-char)
-	       t)
-	      (t
-	       ;; At a significant "
-	       (c-clear-syn-tab (1- (point)))
-	       (setq pos-ll (c-literal-limits)
-		     pos-lt (c-literal-type pos-ll))
-	       nil)))
-	  (skip-chars-backward "^\""))
-	(cond
-	 ((bobp))
-	 ((eq pos-lt 'string)
-	  (c-put-syn-tab (1- (point)) '(15)))
-	 (t nil))))))
+        (goto-char (point-max))
+        (skip-chars-backward "^\"")
+        (while
+            (and
+             (not (bobp))
+             (cond
+              ((progn
+                 (setq pos-ll (c-literal-limits)
+                       pos-lt (c-literal-type pos-ll))
+                 (memq pos-lt '(c c++)))
+               ;; In a comment.
+               (goto-char (car pos-ll)))
+              ((save-excursion
+                 (backward-char)        ; over "
+                 (c-is-escaped (point)))
+               ;; At an escaped string.
+               (backward-char)
+               t)
+              (t
+               ;; At a significant "
+               (c-clear-syn-tab (1- (point)))
+               (setq pos-ll (c-literal-limits)
+                     pos-lt (c-literal-type pos-ll))
+               nil)))
+          (skip-chars-backward "^\""))
+        (cond
+         ((bobp))
+         ((eq pos-lt 'string)
+          (c-put-syn-tab (1- (point)) '(15)))
+         (t nil))))))
 
 ;;; End of fix for strings on version 27.1
 
