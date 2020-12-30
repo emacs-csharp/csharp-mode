@@ -7,7 +7,7 @@
 ;; Modified   : 2020
 ;; Version    : 0.10.0
 ;; Keywords   : c# languages oop mode
-;; X-URL      : https://github.com/josteink/csharp-mode
+;; X-URL      : https://github.com/emacs-csharp/csharp-mode
 ;; Package-Requires: ((emacs "26.1") (tree-sitter "0.12.1") (tree-sitter-indent "0.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
