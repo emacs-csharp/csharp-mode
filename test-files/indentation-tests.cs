@@ -119,7 +119,6 @@ namespace Boo
                 PropB = 2
             };
 
-            // Commented out for rework -- Theodor Thornhill
             // yield return new InnerA.InnerB {
             //     PropA = 1,
             //     PropB = 2
@@ -131,7 +130,6 @@ namespace Boo
                 May = "Yay"
             };
 
-            // Commented out for rework -- Theodor Thornhill
             // yield return new InnerA.InnerB
             // {
             //     Boo = "Foo",
