@@ -26,11 +26,6 @@ You can enable experimental tree sitter support for indentation and highlighting
   (use-package tree-sitter-langs)
 
   (use-package csharp-mode
-    :straight
-    (csharp-mode :type git
-                 :host github
-                 :repo "emacs-csharp/csharp-mode"
-                 :branch "tree-sitter")
     :config
     (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-tree-sitter-mode)))
 #+end_src
