@@ -286,7 +286,8 @@ Key bindings:
   (tree-sitter-hl-mode))
 
 ;;;###autoload
-(add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp))
+(with-eval-after-load 'tree-sitter
+  (add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp)))
 
 (provide 'csharp-tree-sitter)
 
