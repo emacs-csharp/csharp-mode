@@ -235,13 +235,13 @@
                   ))
     (indent-body . ;; if parent node is one of these and current node is in middle → indent
                  (block
-                  anonymous_object_creation_expression
-                  enum_member_declaration_list
-                  initializer_expression
-                  expression_statement
-                  declaration_list
-                  attribute_argument_list
-                  switch_body))
+                     anonymous_object_creation_expression
+                   enum_member_declaration_list
+                   initializer_expression
+                   expression_statement
+                   declaration_list
+                   attribute_argument_list
+                   switch_body))
 
     (paren-indent . ;; if parent node is one of these → indent to paren opener
                   (parenthesized_expression))
@@ -287,9 +287,7 @@ Key bindings:
 
   (tree-sitter-hl-mode))
 
-;;;###autoload
-(with-eval-after-load 'tree-sitter
-  (add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp)))
+(add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp))
 
 (provide 'csharp-tree-sitter)
 
