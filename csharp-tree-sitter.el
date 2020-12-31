@@ -27,9 +27,13 @@
 ;;; Code:
 (require 'cl-lib)
 (require 'seq)
+
 (require 'tree-sitter)
 (require 'tree-sitter-hl)
 (require 'tree-sitter-indent)
+
+(defvar cshaerp-mode-syntax-table)
+(defvar csharp-mode-map)
 
 ;;; Tree-sitter
 
@@ -109,7 +113,7 @@
    (local_function_statement (nullable_type) @type (identifier) @function)
    (local_function_statement (void_keyword) @type (identifier) @function)
    (local_function_statement (generic_name) (identifier) @function)
-   
+
    ;; Parameter
    (parameter
     type: (identifier) @type
@@ -117,10 +121,10 @@
    (parameter (identifier) @variable)
 
    ;; Array
-   (array_rank_specifier (identifier) @variable) 
+   (array_rank_specifier (identifier) @variable)
    (array_type (identifier) @type)
    (array_creation_expression)
-   
+
    ;; Attribute
    (attribute (identifier) @variable (attribute_argument_list))
    (attribute (identifier) @variable)
@@ -140,7 +144,7 @@
    ;; Return
    (return_statement (identifier) @variable)
    (yield_statement (identifier) @variable)
-   
+
    ;; Type
    (type_parameter
     (identifier) @type)
@@ -162,7 +166,7 @@
    (type_of_expression (identifier) @variable)
    (assignment_expression (identifier) @variable)
    (cast_expression (identifier) @type)
-   
+
    ;; Preprocessor
    (preprocessor_directive) @constant
    (preprocessor_call (identifier) @string)
@@ -179,10 +183,10 @@
    ;; Switch
    (switch_statement (identifier) @variable)
    (switch_expression (identifier) @variable)
-   
+
    ;; If
    (if_statement (identifier) @variable)
-   
+
    ;; Declaration expression
    (declaration_expression (implicit_type) (identifier) @variable)
 
@@ -284,7 +288,8 @@ Key bindings:
   (tree-sitter-hl-mode))
 
 ;;;###autoload
-(add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp))
+(with-eval-after-load 'tree-sitter
+  (add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp)))
 
 (provide 'csharp-tree-sitter)
 
