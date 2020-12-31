@@ -31,6 +31,28 @@ You can enable experimental tree sitter support for indentation and highlighting
 #+end_src
 If you are using this, clearly state so if you find any issues.
 
+Note that we don't depend on tree-sitter yet, so you have to manually install
+the packages involved.  The simplest way is to use the provided snippet above.
+
+*** Using and evolving the tree-sitter functionality.
+=tree-sitter= introduces a minor mode called =tree-sitter-debug-mode= where you can
+look at the actual syntax tree it produces.  If and when you spot missing or
+wrong syntax highlighting, look at how the patterns are written in
+=csharp-tree-sitter-mode.el=, then submit a pr with a couple new ones added.  When
+testing and debugging this, it is actually as simple as =M-x eval-buffer= on
+=csharp-tree-sitter-mode.el=, then =M-x revert-buffer= in the file you are testing.
+It should update and show the correct syntax highlighting. 
+
+
+So the development cycle is:
+- Spot missing syntax highlighting
+- View AST with =tree-sitter-debug-mode=
+- Locate offending part
+- Add new pattern
+- =M-x eval-buffer= in =csharp-tree-sitter-mode.el=
+- =M-x revert-buffer= inside your =some-test-file.cs=
+
+
 ** Usage
 
 This package is currently available on MELPA. Install using ~M-x
