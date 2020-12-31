@@ -32,7 +32,7 @@
 (require 'tree-sitter-hl)
 (require 'tree-sitter-indent)
 
-(defvar cshaerp-mode-syntax-table)
+(defvar csharp-mode-syntax-table)
 (defvar csharp-mode-map)
 
 ;;; Tree-sitter
