@@ -26,11 +26,11 @@
 ;;; Code:
 (require 'cl-lib)
 (require 'seq)
+(require 'tree-sitter)
+(require 'tree-sitter-hl)
+(require 'tree-sitter-indent)
 
-(eval-when-compile
-  (require 'tree-sitter)
-  (require 'tree-sitter-hl)
-  (require 'tree-sitter-indent))
+(defvar tree-sitter-major-mode-language-alist)
 
 (require 'csharp-mode)
 
