@@ -108,7 +108,7 @@
    (local_function_statement (nullable_type) @type (identifier) @function)
    (local_function_statement (void_keyword) @type (identifier) @function)
    (local_function_statement (generic_name) (identifier) @function)
-   
+
    ;; Parameter
    (parameter
     type: (identifier) @type
@@ -116,10 +116,10 @@
    (parameter (identifier) @variable)
 
    ;; Array
-   (array_rank_specifier (identifier) @variable) 
+   (array_rank_specifier (identifier) @variable)
    (array_type (identifier) @type)
    (array_creation_expression)
-   
+
    ;; Attribute
    (attribute (identifier) @variable (attribute_argument_list))
    (attribute (identifier) @variable)
@@ -139,7 +139,7 @@
    ;; Return
    (return_statement (identifier) @variable)
    (yield_statement (identifier) @variable)
-   
+
    ;; Type
    (type_parameter
     (identifier) @type)
@@ -161,7 +161,7 @@
    (type_of_expression (identifier) @variable)
    (assignment_expression (identifier) @variable)
    (cast_expression (identifier) @type)
-   
+
    ;; Preprocessor
    (preprocessor_directive) @constant
    (preprocessor_call (identifier) @string)
@@ -178,10 +178,10 @@
    ;; Switch
    (switch_statement (identifier) @variable)
    (switch_expression (identifier) @variable)
-   
+
    ;; If
    (if_statement (identifier) @variable)
-   
+
    ;; Declaration expression
    (declaration_expression (implicit_type) (identifier) @variable)
 
@@ -230,13 +230,13 @@
                   ))
     (indent-body . ;; if parent node is one of these and current node is in middle → indent
                  (block
-                  anonymous_object_creation_expression
-                  enum_member_declaration_list
-                  initializer_expression
-                  expression_statement
-                  declaration_list
-                  attribute_argument_list
-                  switch_body))
+                     anonymous_object_creation_expression
+                   enum_member_declaration_list
+                   initializer_expression
+                   expression_statement
+                   declaration_list
+                   attribute_argument_list
+                   switch_body))
 
     (paren-indent . ;; if parent node is one of these → indent to paren opener
                   (parenthesized_expression))
