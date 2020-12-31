@@ -30,6 +30,8 @@
 (require 'tree-sitter-hl)
 (require 'tree-sitter-indent)
 
+(require 'csharp-mode)
+
 ;;; Tree-sitter
 
 (defvar-local csharp-mode-tree-sitter-patterns
