@@ -233,13 +233,13 @@
                   ))
     (indent-body . ;; if parent node is one of these and current node is in middle → indent
                  (block
-                     anonymous_object_creation_expression
-                   enum_member_declaration_list
-                   initializer_expression
-                   expression_statement
-                   declaration_list
-                   attribute_argument_list
-                   switch_body))
+                  anonymous_object_creation_expression
+                  enum_member_declaration_list
+                  initializer_expression
+                  expression_statement
+                  declaration_list
+                  attribute_argument_list
+                  switch_body))
 
     (paren-indent . ;; if parent node is one of these → indent to paren opener
                   (parenthesized_expression))
