@@ -300,7 +300,7 @@
   (if csharp-tree-sitter-mode (csharp-tree-sitter--enable)
     (csharp-tree-sitter--disable)))
 
-(add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp))
+(add-to-list 'tree-sitter-major-mode-language-alist '(csharp-mode . c-sharp))
 
 (provide 'csharp-tree-sitter)
 
