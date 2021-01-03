@@ -26,8 +26,7 @@ You can enable experimental tree sitter support for indentation and highlighting
   (use-package tree-sitter-langs)
 
   (use-package csharp-mode
-    :config
-    (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-tree-sitter-mode)))
+    :hook (csharp-mode . csharp-tree-sitter-mode))
 #+end_src
 If you are using this, clearly state so if you find any issues.
 
