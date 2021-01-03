@@ -269,29 +269,29 @@
 
 (defun csharp-tree-sitter--enable ()
   "Enable tree-sitter support for csharp."
-  (setq csharp-tree-sitter--syntax-table csharp-mode-syntax-table)
-  (setq csharp-tree-sitter--mode-map csharp-mode-map)
+  (setq csharp-tree-sitter--syntax-table csharp-mode-syntax-table
+        csharp-tree-sitter--mode-map csharp-mode-map)
 
-  (setq csharp-mode-syntax-table nil)
-  (setq csharp-mode-map nil)
-  (setq-local tree-sitter-indent-current-scopes csharp-mode-indent-scopes)
-  (setq-local tree-sitter-indent-offset csharp-mode-indent-offset)
-  (setq-local indent-line-function #'tree-sitter-indent-line)
+  (setq csharp-mode-syntax-table nil
+        csharp-mode-map nil)
+  (setq-local tree-sitter-indent-current-scopes csharp-mode-indent-scopes
+              tree-sitter-indent-offset csharp-mode-indent-offset
+              indent-line-function #'tree-sitter-indent-line)
 
   ;; https://github.com/ubolonton/emacs-tree-sitter/issues/84
   (unless font-lock-defaults
     (setq font-lock-defaults '(nil)))
   (setq-local tree-sitter-hl-default-patterns csharp-mode-tree-sitter-patterns)
   ;; Comments
-  (setq-local comment-start "// ")
-  (setq-local comment-end "")
+  (setq-local comment-start "// " comment-end "")
 
-  (tree-sitter-hl-mode))
+  (tree-sitter-hl-mode 1))
 
 (defun csharp-tree-sitter--disable ()
   "Disable tree-sitter support for csharp."
   (setq csharp-mode-syntax-table csharp-tree-sitter--syntax-table)
-  (setq csharp-mode-map csharp-tree-sitter--mode-map))
+  (setq csharp-mode-map csharp-tree-sitter--mode-map)
+  (tree-sitter-hl-mode -1))
 
 ;;;###autoload
 (define-minor-mode csharp-tree-sitter-mode
