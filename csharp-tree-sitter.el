@@ -267,9 +267,9 @@
     )
   "Scopes for indenting in C#.")
 
-(defvar csharp-tree-sitter--syntax-table)
-(defvar csharp-tree-sitter--mode-map)
-(defvar csharp-tree-sitter--indent-line-function)
+(defvar-local csharp-tree-sitter--syntax-table nil)
+(defvar-local csharp-tree-sitter--mode-map nil)
+(defvar-local csharp-tree-sitter--indent-line-function nil)
 
 (defun csharp-tree-sitter--enable ()
   "Enable tree-sitter support for csharp."
@@ -306,8 +306,10 @@
   "Minor mode for csharp tree-sitter support."
   :lighter " C#-TreeSitter"
   :group csharp
-  (if csharp-tree-sitter-mode (csharp-tree-sitter--enable)
-    (csharp-tree-sitter--disable)))
+  (if (and (eq major-mode 'csharp-mode) csharp-tree-sitter-mode)
+      (csharp-tree-sitter--enable)
+    (csharp-tree-sitter--disable)
+    (user-error "You cannot enable tree-sitter support outside of `csharp-mode`")))
 
 (add-to-list 'tree-sitter-major-mode-language-alist '(csharp-mode . c-sharp))
 
