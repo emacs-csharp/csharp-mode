@@ -278,8 +278,8 @@
         csharp-tree-sitter--mode-map csharp-mode-map
         csharp-tree-sitter--indent-line-function indent-line-function)
 
-  (setq csharp-mode-syntax-table nil
-        csharp-mode-map nil)
+  (setq-local csharp-mode-syntax-table (make-syntax-table)
+              csharp-mode-map (make-sparse-keymap))
   (setq-local tree-sitter-indent-current-scopes csharp-mode-indent-scopes
               tree-sitter-indent-offset csharp-mode-indent-offset
               indent-line-function #'tree-sitter-indent-line)
