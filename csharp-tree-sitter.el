@@ -266,11 +266,14 @@
 
 (defvar csharp-tree-sitter--syntax-table)
 (defvar csharp-tree-sitter--mode-map)
+(defvar csharp-tree-sitter--indent-line-function)
 
 (defun csharp-tree-sitter--enable ()
   "Enable tree-sitter support for csharp."
+  ;; NOTE: Record lost data before configure to `tree-sitter' support.
   (setq csharp-tree-sitter--syntax-table csharp-mode-syntax-table
-        csharp-tree-sitter--mode-map csharp-mode-map)
+        csharp-tree-sitter--mode-map csharp-mode-map
+        csharp-tree-sitter--indent-line-function indent-line-function)
 
   (setq csharp-mode-syntax-table nil
         csharp-mode-map nil)
@@ -289,8 +292,10 @@
 
 (defun csharp-tree-sitter--disable ()
   "Disable tree-sitter support for csharp."
-  (setq csharp-mode-syntax-table csharp-tree-sitter--syntax-table)
-  (setq csharp-mode-map csharp-tree-sitter--mode-map)
+  ;; NOTE: Revert all previous configuration from `csharp-mode'.
+  (setq csharp-mode-syntax-table csharp-tree-sitter--syntax-table
+        csharp-mode-map csharp-tree-sitter--mode-map
+        indent-line-function csharp-tree-sitter--indent-line-function)
   (tree-sitter-hl-mode -1))
 
 ;;;###autoload
