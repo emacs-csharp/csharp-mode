@@ -270,12 +270,13 @@
 (defvar csharp-tree-sitter-mode-map
   (let ((map (make-sparse-keymap)))
     map)
-  "Keymap used in csharp-mode buffers.")
+  "Keymap used in `csharp-mode' buffers.")
 
 (defvar csharp-tree-sitter-mode-syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?@ "_" table)
-    table))
+    table)
+  "Syntax table used in `csharp-mode' buffers.")
 
 (defvar-local csharp-tree-sitter--syntax-table nil)
 (defvar-local csharp-tree-sitter--mode-map nil)
