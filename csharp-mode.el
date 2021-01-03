@@ -8,6 +8,7 @@
 ;; Version    : 0.11.0
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/emacs-csharp/csharp-mode
+;; Package-Requires: ((emacs "26.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,6 +23,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;;; Commentary:
+;;
+;; A major-mode for editing C# in Emacs.
+;;
 
 ;;; Code:
 
