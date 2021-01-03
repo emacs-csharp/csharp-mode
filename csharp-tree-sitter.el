@@ -293,10 +293,6 @@
   (setq-local tree-sitter-indent-current-scopes csharp-mode-indent-scopes
               tree-sitter-indent-offset csharp-mode-indent-offset
               indent-line-function #'tree-sitter-indent-line)
-<<<<<<< HEAD
-
-=======
->>>>>>> 2403459efd7dcae2c07a12e80ffce15650777629
 
   ;; https://github.com/ubolonton/emacs-tree-sitter/issues/84
   (unless font-lock-defaults
