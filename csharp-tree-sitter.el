@@ -294,6 +294,7 @@
               tree-sitter-indent-offset csharp-mode-indent-offset
               indent-line-function #'tree-sitter-indent-line)
 
+
   ;; https://github.com/ubolonton/emacs-tree-sitter/issues/84
   (unless font-lock-defaults
     (setq font-lock-defaults '(nil)))
