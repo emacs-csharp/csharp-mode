@@ -267,6 +267,16 @@
     )
   "Scopes for indenting in C#.")
 
+(defvar csharp-tree-sitter-mode-map
+  (let ((map (make-sparse-keymap)))
+    map)
+  "Keymap used in csharp-mode buffers.")
+
+(defvar csharp-tree-sitter-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?@ "_" table)
+    table))
+
 (defvar-local csharp-tree-sitter--syntax-table nil)
 (defvar-local csharp-tree-sitter--mode-map nil)
 (defvar-local csharp-tree-sitter--indent-line-function nil)
@@ -278,8 +288,8 @@
         csharp-tree-sitter--mode-map csharp-mode-map
         csharp-tree-sitter--indent-line-function indent-line-function)
 
-  (setq-local csharp-mode-syntax-table (make-syntax-table)
-              csharp-mode-map (make-sparse-keymap))
+  (setq-local csharp-mode-syntax-table csharp-tree-sitter-mode-syntax-table
+              csharp-mode-map csharp-tree-sitter-mode-map)
   (setq-local tree-sitter-indent-current-scopes csharp-mode-indent-scopes
               tree-sitter-indent-offset csharp-mode-indent-offset
               indent-line-function #'tree-sitter-indent-line)
