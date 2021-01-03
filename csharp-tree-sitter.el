@@ -264,13 +264,13 @@
     )
   "Scopes for indenting in C#.")
 
-;;;###autoload
-(define-derived-mode csharp-tree-sitter-mode prog-mode "C#"
-  "Major mode for editing Csharp code.
+(defvar csharp-tree-sitter--syntax-table)
+(defvar csharp-tree-sitter--mode-map)
 
-Key bindings:
-\\{csharp-mode-map}"
-  :group 'csharp
+(defun csharp-tree-sitter--enable ()
+  "Enable tree-sitter support for csharp."
+  (setq csharp-tree-sitter--syntax-table csharp-mode-syntax-table)
+  (setq csharp-tree-sitter--mode-map csharp-mode-map)
 
   (setq csharp-mode-syntax-table nil)
   (setq csharp-mode-map nil)
@@ -287,6 +287,18 @@ Key bindings:
   (setq-local comment-end "")
 
   (tree-sitter-hl-mode))
+
+(defun csharp-tree-sitter--disable ()
+  "Disable tree-sitter support for csharp."
+  (setq csharp-mode-syntax-table csharp-tree-sitter--syntax-table)
+  (setq csharp-mode-map csharp-tree-sitter--mode-map))
+
+;;;###autoload
+(define-minor-mode csharp-tree-sitter-mode
+  "Minor mode for csharp tree-sitter support."
+  :group csharp
+  (if csharp-tree-sitter-mode (csharp-tree-sitter--enable)
+    (csharp-tree-sitter--disable)))
 
 (add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp))
 
