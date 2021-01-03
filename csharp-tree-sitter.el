@@ -216,7 +216,7 @@
   :group 'tree-sitter)
 
 (defcustom csharp-mode-indent-offset 4
-  "Indent offset for csharp-mode"
+  "Indent offset for `csharp-mode'."
   :type 'integer
   :group 'csharp)
 
