@@ -56,7 +56,7 @@
     "default" "typeof" "try" "catch" "finally" "break"
     "foreach" "in" "yield" "get" "set" "when" "as" "out"
     "is" "while" "continue" "this" "ref" "goto" "interface"
-    "from" "where" "select"
+    "from" "where" "select" "lock"
     ] @keyword
 
    ;; Linq
@@ -193,6 +193,9 @@
 
    ;; Arrow expression
    (arrow_expression_clause (identifier) @variable)
+
+   ;; Lock statement
+   (lock_statement (identifier) @variable)
 
    ;; Other
    (label_name) @variable
