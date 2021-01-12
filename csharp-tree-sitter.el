@@ -56,7 +56,7 @@
     "default" "typeof" "try" "catch" "finally" "break"
     "foreach" "in" "yield" "get" "set" "when" "as" "out"
     "is" "while" "continue" "this" "ref" "goto" "interface"
-    "from" "where" "select" "lock"
+    "from" "where" "select" "lock" "base"
     ] @keyword
 
    ;; Linq
@@ -238,9 +238,10 @@
                   switch_section
                   ))
     (indent-body . ;; if parent node is one of these and current node is in middle → indent
-                 (block
+                 (enum_member_declaration_list
+                  base_list
+                  block
                   anonymous_object_creation_expression
-                  enum_member_declaration_list
                   initializer_expression
                   expression_statement
                   declaration_list
