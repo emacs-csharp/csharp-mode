@@ -8,7 +8,7 @@
 ;; Version    : 0.11.0
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/emacs-csharp/csharp-mode
-;; Package-Requires: ((emacs "26.1") (tree-sitter "0.12.1") (tree-sitter-indent "0.1") (tree-sitter-langs "0.9.0"))
+;; Package-Requires: ((emacs "26.1") (tree-sitter "0.12.1") (tree-sitter-indent "0.1") (tree-sitter-langs "0.9.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@
     "default" "typeof" "try" "catch" "finally" "break"
     "foreach" "in" "yield" "get" "set" "when" "as" "out"
     "is" "while" "continue" "this" "ref" "goto" "interface"
-    "from" "where" "select" "lock" "base"
+    "from" "where" "select" "lock" "base" "record" "init"
     ] @keyword
 
    ;; Linq
@@ -83,6 +83,9 @@
 
    ;; Struct
    (struct_declaration (identifier) @type)
+
+   ;; Record
+   (record_declaration (identifier) @type)
 
    ;; Namespace
    (namespace_declaration
