@@ -118,6 +118,7 @@
    (method_declaration (nullable_type) @type (identifier) @function)
    (method_declaration (void_keyword) @type (identifier) @function)
    (method_declaration (generic_name) (identifier) @function)
+   (method_declaration (qualified_name (identifier) @type) (identifier) @function)
 
    ;; Function
    (local_function_statement (identifier) @type (identifier) @function)
