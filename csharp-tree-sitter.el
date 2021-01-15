@@ -59,6 +59,7 @@
     "foreach" "in" "yield" "get" "set" "when" "as" "out"
     "is" "while" "continue" "this" "ref" "goto" "interface"
     "from" "where" "select" "lock" "base" "record" "init"
+    "with"
     ] @keyword
 
    ;; Linq
@@ -86,6 +87,11 @@
 
    ;; Record
    (record_declaration (identifier) @type)
+
+   (with_expression
+    (with_initializer_expression
+     (simple_assignment_expression
+      (identifier) @variable)))
 
    ;; Namespace
    (namespace_declaration
