@@ -28,10 +28,10 @@
 (require 'cl-lib)
 (require 'seq nil t)
 
-(require 'tree-sitter nil t)
-(require 'tree-sitter-hl nil t)
-(require 'tree-sitter-indent nil t)
-(require 'tree-sitter-langs nil t)
+(require 'tree-sitter nil 't)
+(require 'tree-sitter-hl nil 't)
+(require 'tree-sitter-indent nil 't)
+(require 'tree-sitter-langs nil 't)
 
 (require 'csharp-compilation)
 
@@ -321,7 +321,8 @@ Key bindings:
 
     (tree-sitter-hl-mode)))
 
-(add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp))
+(with-eval-after-load 'tree-sitter
+  (add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp)))
 
 (provide 'csharp-tree-sitter)
 
