@@ -26,12 +26,12 @@
 
 ;;; Code:
 (require 'cl-lib)
-(require 'seq)
+(require 'seq nil t)
 
-(require 'tree-sitter)
-(require 'tree-sitter-hl)
-(require 'tree-sitter-indent)
-(require 'tree-sitter-langs)
+(require 'tree-sitter nil t)
+(require 'tree-sitter-hl nil t)
+(require 'tree-sitter-indent nil t)
+(require 'tree-sitter-langs nil t)
 
 (require 'csharp-compilation)
 
