@@ -38,6 +38,13 @@
 (defvar csharp-mode-syntax-table)
 (defvar csharp-mode-map)
 
+(defvar tree-sitter-indent-current-scopes)
+(defvar tree-sitter-indent-offset)
+(defvar tree-sitter-hl-default-patterns)
+(defvar tree-sitter-major-mode-language-alist)
+
+(declare-function tree-sitter-hl-mode "ext:tree-sitter-hl.el")
+
 ;;; Tree-sitter
 
 (defvar-local csharp-mode-tree-sitter-patterns
