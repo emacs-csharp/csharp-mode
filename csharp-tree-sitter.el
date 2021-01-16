@@ -298,20 +298,21 @@ Key bindings:
 \\{csharp-tree-sitter-mode-map}"
   :group 'csharp
   :syntax-table csharp-tree-sitter-mode-syntax-table
+  (if (not (featurep 'tree-sitter))
+      (user-error "Please install package `tree-sitter` for such support")
+    (setq-local tree-sitter-indent-current-scopes csharp-mode-indent-scopes)
+    (setq-local tree-sitter-indent-offset csharp-mode-indent-offset)
+    (setq-local indent-line-function #'tree-sitter-indent-line)
 
-  (setq-local tree-sitter-indent-current-scopes csharp-mode-indent-scopes)
-  (setq-local tree-sitter-indent-offset csharp-mode-indent-offset)
-  (setq-local indent-line-function #'tree-sitter-indent-line)
+    ;; https://github.com/ubolonton/emacs-tree-sitter/issues/84
+    (unless font-lock-defaults
+      (setq font-lock-defaults '(nil)))
+    (setq-local tree-sitter-hl-default-patterns csharp-mode-tree-sitter-patterns)
+    ;; Comments
+    (setq-local comment-start "// ")
+    (setq-local comment-end "")
 
-  ;; https://github.com/ubolonton/emacs-tree-sitter/issues/84
-  (unless font-lock-defaults
-    (setq font-lock-defaults '(nil)))
-  (setq-local tree-sitter-hl-default-patterns csharp-mode-tree-sitter-patterns)
-  ;; Comments
-  (setq-local comment-start "// ")
-  (setq-local comment-end "")
-
-  (tree-sitter-hl-mode))
+    (tree-sitter-hl-mode)))
 
 (add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp))
 
