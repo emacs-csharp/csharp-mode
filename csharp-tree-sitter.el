@@ -127,6 +127,10 @@
    (local_function_statement (void_keyword) @type (identifier) @function)
    (local_function_statement (generic_name) (identifier) @function)
 
+   ;; Lambda
+   (lambda_expression
+    (identifier) @variable)
+
    ;; Parameter
    (parameter
     type: (identifier) @type
@@ -169,6 +173,14 @@
    (predefined_type) @type
    (nullable_type) @type
    ["operator"] @type
+
+   ;; Type constraints
+   (type_parameter_constraints_clause
+    (identifier) @type)
+   (type_parameter_constraint
+    (identifier) @type)
+   (type_constraint
+    (identifier) @type)
 
    ;; Exprs
    (binary_expression (identifier) @variable (identifier) @variable)
