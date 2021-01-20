@@ -50,7 +50,15 @@
    [(real_literal) (integer_literal)] @number
    (null_literal) @constant
    (boolean_literal) @constant
-   (character_literal) @string
+   [(string_literal)
+    (verbatim_string_literal)
+    (interpolated_string_text)
+    (interpolated_verbatim_string_text)
+    (character_literal)
+    "\""
+    "$\""
+    "@$\""] @string
+
 
    ;; Keywords
    ["using" "namespace" "class" "if" "else" "throw" "new" "for"
@@ -68,11 +76,6 @@
    (order_by_clause)
    (select_clause (identifier) @variable)
    (query_continuation (identifier) @variable) @keyword
-
-   ;; String
-   (interpolation (identifier) (interpolation_format_clause) @variable)
-   (interpolation (identifier)* @variable)
-   [(string_literal) (verbatim_string_literal) (interpolated_string_expression)] @string
 
    ;; Enum
    (enum_member_declaration (identifier) @variable)
@@ -222,6 +225,8 @@
    (lock_statement (identifier) @variable)
 
    ;; Other
+   (argument_list
+    (identifier) @variable)
    (label_name) @variable
    (qualified_name (identifier) @type)
    (using_directive (identifier)* @type)
@@ -235,6 +240,12 @@
    (name_equals (identifier) @type)
    (field_declaration)
    (argument (identifier) @variable)
+
+   ;; Catch-alls
+   (identifier) @variable
+
+   ;; Interpolation
+   ;; (interpolated_string_expression) @string
    ]
   "Default patterns for tree-sitter support.")
 
