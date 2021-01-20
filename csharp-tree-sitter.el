@@ -155,6 +155,12 @@
    (object_creation_expression (identifier) @type)
    (initializer_expression (identifier) @variable)
 
+   ;; Typeof
+   (type_of_expression (identifier) @variable)
+
+   ;; Member access
+   (member_access_expression (identifier) @function)
+
    ;; Variable
    (variable_declaration (identifier) @type)
    (variable_declarator (identifier) @variable)
@@ -192,7 +198,6 @@
    (conditional_expression (identifier) @variable)
    (prefix_unary_expression (identifier)* @variable)
    (postfix_unary_expression (identifier)* @variable)
-   (type_of_expression (identifier) @variable)
    (assignment_expression (identifier) @variable)
    (cast_expression (identifier) @type)
 
@@ -236,7 +241,6 @@
    (element_access_expression (identifier) @variable)
    (conditional_access_expression (identifier) @variable)
    (member_binding_expression (identifier) @variable)
-   (member_access_expression (identifier) @function)
    (name_colon (identifier)* @variable)
    (name_equals (identifier) @type)
    (field_declaration)
