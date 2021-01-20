@@ -45,6 +45,7 @@
    (comment) @comment
    (modifier) @keyword
    (this_expression) @keyword
+   (escape_sequence) @keyword
 
    ;; Literals
    [(real_literal) (integer_literal)] @number
@@ -57,8 +58,8 @@
     (character_literal)
     "\""
     "$\""
-    "@$\""] @string
-
+    "@$\""
+    "$@\""] @string
 
    ;; Keywords
    ["using" "namespace" "class" "if" "else" "throw" "new" "for"
