@@ -206,9 +206,9 @@
    (preprocessor_call (identifier) @string)
 
    ;; Loop
-   (for_each_statement (identifier) @type (identifier) @variable)
    (for_each_statement (implicit_type) @type (identifier) @variable)
    (for_each_statement (predefined_type) @type (identifier) @variable)
+   (for_each_statement (identifier) @type (identifier) @variable)
 
    ;; Exception
    (catch_declaration (identifier) @type (identifier) @variable)
