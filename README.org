@@ -22,10 +22,11 @@ This is a mode for editing C# in emacs. It's using [[https://github.com/ubolonto
 ** tree-sitter support
 You can enable experimental tree sitter support for indentation and highlighting using
 #+begin_src elisp
-  (use-package tree-sitter)
-  (use-package tree-sitter-langs)
+  (use-package tree-sitter :ensure t)
+  (use-package tree-sitter-langs :ensure t)
 
   (use-package csharp-mode
+    :ensure t
     :config
     (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-tree-sitter-mode)))
 #+end_src
