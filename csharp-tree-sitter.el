@@ -104,6 +104,8 @@
    ;; Class
    (base_list (identifier) @type)
    (property_declaration
+    (generic_name))
+   (property_declaration
     type: (nullable_type) @type
     name: (identifier) @variable)
    (property_declaration
