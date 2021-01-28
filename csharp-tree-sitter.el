@@ -340,6 +340,7 @@ Key bindings:
   (setq-local tree-sitter-hl-default-patterns csharp-mode-tree-sitter-patterns)
   ;; Comments
   (setq-local comment-start "// ")
+  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
 
   (tree-sitter-hl-mode))
