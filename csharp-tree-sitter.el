@@ -276,6 +276,7 @@
                  parameter_list
                  conditional_expression
                  constructor_initializer
+                 argument_list
                  "."))
     (indent-rest . ;; if parent node is one of these and node is not first → indent
                  (
