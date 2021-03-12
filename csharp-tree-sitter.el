@@ -263,12 +263,12 @@
 (defgroup csharp-mode-indent nil "Indent lines using Tree-sitter as backend"
   :group 'tree-sitter)
 
-(defcustom csharp-mode-indent-offset 4
+(defcustom csharp-tree-sitter-indent-offset 4
   "Indent offset for csharp-mode"
   :type 'integer
   :group 'csharp)
 
-(defvar csharp-mode-indent-scopes
+(defvar tree-sitter-indent-csharp-tree-sitter-scopes
   '((indent-all . ;; these nodes are always indented
                 (accessor_declaration
                  break_statement
@@ -332,8 +332,6 @@ Key bindings:
   :group 'csharp
   :syntax-table csharp-tree-sitter-mode-syntax-table
 
-  (setq-local tree-sitter-indent-current-scopes csharp-mode-indent-scopes)
-  (setq-local tree-sitter-indent-offset csharp-mode-indent-offset)
   (setq-local indent-line-function #'tree-sitter-indent-line)
 
   ;; https://github.com/ubolonton/emacs-tree-sitter/issues/84
