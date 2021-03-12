@@ -140,8 +140,8 @@
    ;; Parameter
    (parameter
     type: (identifier) @type
-    name: (identifier) @variable)
-   (parameter (identifier) @variable)
+    name: (identifier) @variable.parameter)
+   (parameter (identifier) @variable.parameter)
 
    ;; Array
    (array_rank_specifier (identifier) @variable)
@@ -161,7 +161,9 @@
    (type_of_expression (identifier) @variable)
 
    ;; Member access
-   (member_access_expression (identifier) @function)
+   (invocation_expression (member_access_expression (generic_name (identifier) @method.call)))
+   (invocation_expression (member_access_expression (identifier)\? @method.call .))
+   (member_access_expression (identifier) @variable)
 
    ;; Variable
    (variable_declaration (identifier) @type)
@@ -178,7 +180,7 @@
    (type_parameter
     (identifier) @type)
    (type_argument_list
-    (identifier) @type)
+    (identifier) @type.argument)
    (generic_name
     (identifier) @type)
    (implicit_type) @type
@@ -236,15 +238,15 @@
    (argument_list
     (identifier) @variable)
    (label_name) @variable
-   (qualified_name (identifier) @type)
-   (using_directive (identifier)* @type)
+   (using_directive (identifier) @type.parameter)
+   (qualified_name (identifier) @type.parameter)
+   (using_directive (name_equals (identifier) @type.parameter))
    (await_expression (identifier)* @function)
    (invocation_expression (identifier) @function)
    (element_access_expression (identifier) @variable)
    (conditional_access_expression (identifier) @variable)
    (member_binding_expression (identifier) @variable)
-   (name_colon (identifier)* @variable)
-   (name_equals (identifier) @type)
+   (name_colon (identifier)* @variable.special)
    (field_declaration)
    (argument (identifier) @variable)
 
