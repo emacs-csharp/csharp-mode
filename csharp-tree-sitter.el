@@ -345,7 +345,8 @@ Key bindings:
   (setq-local comment-end "")
   (defvaralias 'csharp-tree-sitter-indent-offset 'csharp-indent-offset)
 
-  (tree-sitter-hl-mode))
+  (tree-sitter-hl-mode)
+  (tree-sitter-indent-mode))
 
 (add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp))
 
