@@ -310,7 +310,12 @@
     (outdent . ;; these nodes always outdent (1 shift in opposite direction)
              (;; "}"
               case_switch_label
+
               ))
+
+    (align-to-node-line . ;; these nodes are aligned to the first column of the
+                          ;; line where the first node contained in the list is found.
+             ((block . (lambda_expression))))
     )
   "Scopes for indenting in C#.")
 
