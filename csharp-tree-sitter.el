@@ -40,7 +40,7 @@
 
 ;;; Tree-sitter
 
-(defvar-local csharp-mode-tree-sitter-patterns
+(setq csharp-mode-tree-sitter-patterns
   [ ;; Various constructs
    (comment) @comment
    (modifier) @keyword
@@ -189,8 +189,8 @@
    ;; Type constraints
    (type_parameter_constraints_clause
     (identifier) @type)
-   (type_parameter_constraint
-    (identifier) @type)
+   ;; (type_parameter_constraint
+   ;;  (identifier) @type) ;; causes parsing error in tree-sitter
    (type_constraint
     (identifier) @type)
 
@@ -198,7 +198,7 @@
    (binary_expression (identifier) @variable (identifier) @variable)
    (binary_expression (identifier)* @variable)
    (conditional_expression (identifier) @variable)
-   (prefix_unary_expression (identifier)* @variable)
+   ;; (prefix_unary_expression (identifier)* @variable) ;; crashes tree-sitter c-code with SIGABRT
    (postfix_unary_expression (identifier)* @variable)
    (assignment_expression (identifier) @variable)
    (cast_expression (identifier) @type)
@@ -233,12 +233,12 @@
    (lock_statement (identifier) @variable)
 
    ;; Other
-   (argument_list
-    (identifier) @variable)
+   ;; (argument_list
+   ;;  (identifier) @variable) ;; causes parsing error in tree-sitter
    (label_name) @variable
    (qualified_name (identifier) @type)
    (using_directive (identifier)* @type)
-   (await_expression (identifier)* @function)
+   ;; (await_expression (identifier)* @function) ;; crashes tree-sitter c-code with sigabrt!
    (invocation_expression (identifier) @function)
    (element_access_expression (identifier) @variable)
    (conditional_access_expression (identifier) @variable)
@@ -254,7 +254,7 @@
    ;; Interpolation
    ;; (interpolated_string_expression) @string
    ]
-  "Default patterns for tree-sitter support.")
+  )
 
 ;;; Tree-sitter indentation
 
