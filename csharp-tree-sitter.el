@@ -311,6 +311,37 @@
     )
   "Scopes for indenting in C#.")
 
+;;; tree-sitter helper-functions. navigation, editing, etc.
+;;; may be subject to future upstreaming-effort
+
+(defun csharp-beginning-of-defun ()
+  "Replacement-function for `beginning-of-defun' for `csharp-tree-sitter-mode'."
+  (interactive)
+  (when-let ((method (tree-sitter-node-at-point 'method_declaration)))
+    (goto-char (tsc-node-start-position method))))
+
+(defun csharp-end-of-defun ()
+  "Replacement-function for `end-of-defun' for `csharp-tree-sitter-mode'."
+  (interactive)
+  (when-let ((method (tree-sitter-node-at-point 'method_declaration)))
+    (goto-char (tsc-node-end-position method))))
+
+(defun csharp-delete-method-at-point ()
+  "Deletes the method at point."
+  (interactive)
+  (when-let ((method (tree-sitter-node-at-point 'method_declaration)))
+    (delete-region (tsc-node-start-position method)
+                   (tsc-node-end-position method))))
+
+(defun csharp-change-string-at-point ()
+  "Change string at point."
+  (interactive)
+  (when-let ((method (tree-sitter-node-at-point 'string_literal)))
+    (delete-region (1+ (tsc-node-start-position method))
+                   (1- (tsc-node-end-position method)))))
+
+;;; end tree-sitter helper-functions.
+
 (defvar csharp-tree-sitter-mode-map
   (let ((map (make-sparse-keymap)))
     map)
@@ -333,6 +364,8 @@ Key bindings:
   (setq-local tree-sitter-indent-current-scopes csharp-mode-indent-scopes)
   (setq-local tree-sitter-indent-offset csharp-mode-indent-offset)
   (setq-local indent-line-function #'tree-sitter-indent-line)
+  (setq-local beginning-of-defun-function #'csharp-beginning-of-defun)
+  (setq-local end-of-defun-function #'csharp-end-of-defun)
 
   ;; https://github.com/ubolonton/emacs-tree-sitter/issues/84
   (unless font-lock-defaults
