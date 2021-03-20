@@ -313,9 +313,12 @@
 
               ))
 
-    (align-to-node-line . ;; these nodes are aligned to the first column of the
-                          ;; line where the first node contained in the list is found.
-             ((block . (lambda_expression))))
+    (align-to-node-line . ;; this group has lists of alist (node type . (node types... ))
+	                      ;; we move parentwise, searching for one of the node
+	                      ;; types associated with the key node type. if found,
+                          ;; align key node with line where the ancestor node
+	                      ;; was found.
+			 ((block . (lambda_expression))))
     )
   "Scopes for indenting in C#.")
 
