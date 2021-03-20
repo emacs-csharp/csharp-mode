@@ -26,6 +26,7 @@
 
 ;;; Code:
 (require 'cl-lib)
+(require 'cl-extra)
 (require 'seq)
 
 (require 'tree-sitter)
@@ -317,14 +318,26 @@
 (defun csharp-beginning-of-defun ()
   "Replacement-function for `beginning-of-defun' for `csharp-tree-sitter-mode'."
   (interactive)
-  (when-let ((method (tree-sitter-node-at-point 'method_declaration)))
-    (goto-char (tsc-node-start-position method))))
+  (when-let ((declaration
+              (cl-some (lambda (decl)
+                         (tree-sitter-node-at-point decl))
+                       '(method_declaration
+                         constructor_declaration
+                         class_declaration
+                         namespace_declaration))))
+    (goto-char (tsc-node-start-position declaration))))
 
 (defun csharp-end-of-defun ()
   "Replacement-function for `end-of-defun' for `csharp-tree-sitter-mode'."
   (interactive)
-  (when-let ((method (tree-sitter-node-at-point 'method_declaration)))
-    (goto-char (tsc-node-end-position method))))
+  (when-let ((declaration
+              (cl-some (lambda (decl)
+                         (tree-sitter-node-at-point decl))
+                       '(method_declaration
+                         constructor_declaration
+                         class_declaration
+                         namespace_declaration))))
+    (goto-char (tsc-node-end-position declaration))))
 
 (defun csharp-delete-method-at-point ()
   "Deletes the method at point."
