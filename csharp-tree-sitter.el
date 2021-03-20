@@ -314,11 +314,11 @@
               ))
 
     (align-to-node-line . ;; this group has lists of alist (node type . (node types... ))
-	                      ;; we move parentwise, searching for one of the node
-	                      ;; types associated with the key node type. if found,
+                          ;; we move parentwise, searching for one of the node
+                          ;; types associated with the key node type. if found,
                           ;; align key node with line where the ancestor node
-	                      ;; was found.
-			 ((block . (lambda_expression))))
+                          ;; was found.
+             ((block . (lambda_expression))))
     )
   "Scopes for indenting in C#.")
 
