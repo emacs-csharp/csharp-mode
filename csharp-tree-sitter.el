@@ -263,8 +263,8 @@
 (defgroup csharp-mode-indent nil "Indent lines using Tree-sitter as backend"
   :group 'tree-sitter)
 
-(defcustom csharp-indent-offset 4
-  "Indent offset for csharp-mode."
+(defcustom csharp-tree-sitter-indent-offset 4
+  "Indent offset for csharp-mode"
   :type 'integer
   :group 'csharp)
 
@@ -381,7 +381,6 @@ Key bindings:
   (setq-local comment-start "// ")
   (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
-  (defvaralias 'csharp-tree-sitter-indent-offset 'csharp-indent-offset)
 
   (tree-sitter-hl-mode)
   (tree-sitter-indent-mode))
