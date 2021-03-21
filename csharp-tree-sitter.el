@@ -141,8 +141,8 @@
    ;; Parameter
    (parameter
     type: (identifier) @type
-    name: (identifier) @variable)
-   (parameter (identifier) @variable)
+    name: (identifier) @variable.parameter)
+   (parameter (identifier) @variable.parameter)
 
    ;; Array
    (array_rank_specifier (identifier) @variable)
@@ -162,7 +162,9 @@
    (type_of_expression (identifier) @variable)
 
    ;; Member access
-   (member_access_expression (identifier) @function)
+   (invocation_expression (member_access_expression (generic_name (identifier) @method.call)))
+   (invocation_expression (member_access_expression (identifier)\? @method.call .))
+   (member_access_expression (identifier) @variable)
 
    ;; Variable
    (variable_declaration (identifier) @type)
@@ -179,7 +181,7 @@
    (type_parameter
     (identifier) @type)
    (type_argument_list
-    (identifier) @type)
+    (identifier) @type.argument)
    (generic_name
     (identifier) @type)
    (implicit_type) @type
@@ -237,15 +239,15 @@
    ;; (argument_list
    ;;  (identifier) @variable) ;; causes parsing error in tree-sitter
    (label_name) @variable
-   (qualified_name (identifier) @type)
-   (using_directive (identifier)* @type)
+   (using_directive (identifier) @type.parameter)
+   (qualified_name (identifier) @type.parameter)
+   (using_directive (name_equals (identifier) @type.parameter))
    ;; (await_expression (identifier)* @function) ;; crashes tree-sitter c-code with sigabrt!
    (invocation_expression (identifier) @function)
    (element_access_expression (identifier) @variable)
    (conditional_access_expression (identifier) @variable)
    (member_binding_expression (identifier) @variable)
-   (name_colon (identifier)* @variable)
-   (name_equals (identifier) @type)
+   (name_colon (identifier)* @variable.special)
    (field_declaration)
    (argument (identifier) @variable)
 
@@ -262,12 +264,12 @@
 (defgroup csharp-mode-indent nil "Indent lines using Tree-sitter as backend"
   :group 'tree-sitter)
 
-(defcustom csharp-mode-indent-offset 4
-  "Indent offset for csharp-mode"
+(defcustom csharp-tree-sitter-indent-offset 4
+  "Indent offset for csharp-tree-sitter-mode."
   :type 'integer
   :group 'csharp)
 
-(defvar csharp-mode-indent-scopes
+(defvar tree-sitter-indent-csharp-tree-sitter-scopes
   '((indent-all . ;; these nodes are always indented
                 (accessor_declaration
                  break_statement
@@ -275,6 +277,7 @@
                  parameter_list
                  conditional_expression
                  constructor_initializer
+                 argument_list
                  "."))
     (indent-rest . ;; if parent node is one of these and node is not first → indent
                  (
@@ -308,7 +311,15 @@
     (outdent . ;; these nodes always outdent (1 shift in opposite direction)
              (;; "}"
               case_switch_label
+
               ))
+
+    (align-to-node-line . ;; this group has lists of alist (node type . (node types... ))
+                          ;; we move parentwise, searching for one of the node
+                          ;; types associated with the key node type. if found,
+                          ;; align key node with line where the ancestor node
+                          ;; was found.
+             ((block . (lambda_expression))))
     )
   "Scopes for indenting in C#.")
 
@@ -374,8 +385,6 @@ Key bindings:
   :group 'csharp
   :syntax-table csharp-tree-sitter-mode-syntax-table
 
-  (setq-local tree-sitter-indent-current-scopes csharp-mode-indent-scopes)
-  (setq-local tree-sitter-indent-offset csharp-mode-indent-offset)
   (setq-local indent-line-function #'tree-sitter-indent-line)
   (setq-local beginning-of-defun-function #'csharp-beginning-of-defun)
   (setq-local end-of-defun-function #'csharp-end-of-defun)
@@ -389,7 +398,8 @@ Key bindings:
   (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
 
-  (tree-sitter-hl-mode))
+  (tree-sitter-hl-mode)
+  (tree-sitter-indent-mode))
 
 (add-to-list 'tree-sitter-major-mode-language-alist '(csharp-tree-sitter-mode . c-sharp))
 
