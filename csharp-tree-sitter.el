@@ -140,6 +140,8 @@
 
    ;; Parameter
    (parameter
+    type: (qualified_name) @type)
+   (parameter
     type: (identifier) @type
     name: (identifier) @variable.parameter)
    (parameter (identifier) @variable.parameter)
@@ -240,7 +242,7 @@
    ;;  (identifier) @variable) ;; causes parsing error in tree-sitter
    (label_name) @variable
    (using_directive (identifier) @type.parameter)
-   (qualified_name (identifier) @type.parameter)
+   (using_directive (qualified_name) @type.parameter)
    (using_directive (name_equals (identifier) @type.parameter))
    ;; (await_expression (identifier)* @function) ;; crashes tree-sitter c-code with sigabrt!
    (invocation_expression (identifier) @function)
