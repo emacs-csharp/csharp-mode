@@ -15,8 +15,8 @@ jobs:
     strategy: 
       matrix:
         emacs:
-        - emacs-26.1-travis-linux-xenial
-        - emacs-26.2-travis-linux-xenial
+        # - emacs-26.1-travis-linux-xenial
+        # - emacs-26.2-travis-linux-xenial
         - emacs-26.3-travis-linux-xenial
         - emacs-27.1-travis-linux-xenial
         - emacs-git-snapshot-travis-linux-xenial
