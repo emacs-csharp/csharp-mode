@@ -69,7 +69,7 @@
     "foreach" "in" "yield" "get" "set" "when" "as" "out"
     "is" "while" "continue" "this" "ref" "goto" "interface"
     "from" "where" "select" "lock" "base" "record" "init"
-    "with" "let"
+    "with" "let" "static"
     ] @keyword
 
    ;; Linq
