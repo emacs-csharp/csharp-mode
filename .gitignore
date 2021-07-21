@@ -22,6 +22,10 @@ tramp
 /eshell/history
 /eshell/lastdir
 
+# GNU ELPA generated files
+/csharp-mode-autoloads.el
+/csharp-mode-pkg.el
+
 # elpa packages
 /elpa/
 
