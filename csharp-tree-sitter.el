@@ -29,22 +29,10 @@
 (require 'cl-extra)
 (require 'seq)
 
-(when t
-  ;; In order for the package to be usable and installable (and hence
-  ;; compilable) without tree-sitter, wrap the `require's within a dummy `when'
-  ;; so they're only executed when loading this file but not when compiling it.
-  (require 'tree-sitter)
-  (require 'tree-sitter-hl)
-  (require 'tree-sitter-indent)
-  (require 'tree-sitter-langs))
-;; Vars and functions defined by the above packages:
-(defvar tree-sitter-major-mode-language-alist) ;From `tree-sitter-langs'.
-(declare-function tree-sitter-indent-mode "ext:tree-sitter-indent")
-(declare-function tree-sitter-indent-line "ext:tree-sitter-indent")
-(declare-function tree-sitter-hl-mode "ext:tree-sitter-hl")
-(declare-function tsc-node-end-position "ext:tree-sitter")
-(declare-function tsc-node-start-position "ext:tree-sitter")
-(declare-function tree-sitter-node-at-point "ext:tree-sitter")
+(require 'tree-sitter)
+(require 'tree-sitter-hl)
+(require 'tree-sitter-indent)
+(require 'tree-sitter-langs)
 
 (require 'csharp-compilation)
 
@@ -53,7 +41,7 @@
 
 ;;; Tree-sitter
 
-(defconst csharp-mode-tree-sitter-patterns
+(setq csharp-mode-tree-sitter-patterns
   [ ;; Various constructs
    (comment) @comment
    (modifier) @keyword
