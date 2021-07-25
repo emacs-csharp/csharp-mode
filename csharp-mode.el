@@ -67,11 +67,11 @@
   (c-add-language 'csharp-mode 'java-mode))
 
 (c-lang-defconst c-make-mode-syntax-table
-  csharp (lambda ()
-           (let ((table (make-syntax-table)))
-             (c-populate-syntax-table table)
-             (modify-syntax-entry ?@ "_" table)
-             table)))
+  csharp `(lambda ()
+            (let ((table (make-syntax-table)))
+              (c-populate-syntax-table table)
+              (modify-syntax-entry ?@ "_" table)
+              table)))
 
 (c-lang-defconst c-identifier-syntax-modifications
   csharp (append '((?@ . "w"))
