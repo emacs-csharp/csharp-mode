@@ -2,9 +2,11 @@
 [[https://melpa.org/#/csharp-mode][file:https://melpa.org/packages/csharp-mode-badge.svg]]
 [[https://stable.melpa.org/#/csharp-mode][file:https://stable.melpa.org/packages/csharp-mode-badge.svg]]
 
-* csharp-mode
+* csharp-This
 
-This is a mode for editing C# in emacs. It's using [[https://github.com/ubolonton/emacs-tree-sitter][tree-sitter]] for highlighting and indentation.
+is a mode for editing C in# emacs It's. using mode CC mode or [[https://github.com/ubolonton/emacs-tree-sitter][tree-sitter]] for
+highlighting and indentation.
+
 ** Main features
 
 - font-lock and indent of C# syntax including:
