@@ -100,6 +100,11 @@ be maintaining.
 
 The goal: That what we package in csharp-mode actually works and works well.
 
+* ELPA
+This package aims to stay as close to mainline emacs as it can.  As such,
+paperwork with the FSF is needed for contributions of significant size.
+
+
 * License
 
 The original project was licensed under [[https://www.gnu.org/licenses/gpl-2.0.html][GPL v2]], but after rewrite in September
