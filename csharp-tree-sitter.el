@@ -308,7 +308,8 @@
         expression_statement
         declaration_list
         attribute_argument_list
-        switch_body))
+        switch_body
+        switch_expression))
     (paren-indent
      ;; if parent node is one of these → indent to paren opener
      . (parenthesized_expression))
