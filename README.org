@@ -107,5 +107,5 @@ paperwork with the FSF is needed for contributions of significant size.
 
 * License
 
-The original project was licensed under [[https://www.gnu.org/licenses/gpl-2.0.html][GPL v2]], but after rewrite in September
-2020, it is relicensed to GPLv3
+The original project was licensed under [[https://www.gnu.org/licenses/gpl-2.0.html][GPL v2+]], but after a rewrite in September
+2020, it was relicensed to GPLv3+
