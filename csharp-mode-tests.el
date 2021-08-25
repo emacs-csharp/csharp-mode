@@ -1,5 +1,7 @@
 ;;; csharp-mode-tests.el --- Tests for csharp-mode.el            -*- lexical-binding: t; -*-
 
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
+
 ;; Author: Josten Kjønigsen <jostein@gmail.com>
 ;; Keywords: tests
 
