@@ -24,6 +24,8 @@
 (require 'package)
 
 ;; development only packages, not declared as a package-dependency
+;; FIXME: loading a .el file from `load-path' should not change user's settings
+;; like that.  It can happen without the user explicitly requesting it!
 (package-initialize)
 (add-to-list 'package-archives '("melpa" . "https://stable.melpa.org/packages/"))
 
