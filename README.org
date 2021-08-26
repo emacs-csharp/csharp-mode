@@ -1,7 +1,7 @@
 [[https://github.com/emacs-csharp/csharp-mode/actions][file:https://github.com/emacs-csharp/csharp-mode/workflows/Build%20&%20Test/badge.svg?branch=master]]
 [[https://melpa.org/#/csharp-mode][file:https://melpa.org/packages/csharp-mode-badge.svg]]
 [[https://stable.melpa.org/#/csharp-mode][file:https://stable.melpa.org/packages/csharp-mode-badge.svg]]
-
+file:https://elpa.gnu.org/packages/csharp-mode.svg
 * csharp-mode
 
 This is a mode for editing C# in emacs. It's using CC mode or [[https://github.com/ubolonton/emacs-tree-sitter][tree-sitter]] for
@@ -58,7 +58,7 @@ So the development cycle is:
 
 ** Usage
 
-This package is currently available on MELPA. Install using ~M-x
+This package is currently available on both ELPA and MELPA. Install using ~M-x
 package-install<RET>csharp-mode~.
 
 Once installed the package should be automatically used for files with a '.cs'-extension.
