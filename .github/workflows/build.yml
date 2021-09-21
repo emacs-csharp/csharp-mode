@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  unix-build:
     runs-on: ${{ matrix.os }}
     name: Emacs - ${{ matrix.emacs }}
     strategy:
@@ -37,6 +37,34 @@ jobs:
       - name: paths
         run: |
           echo "$HOME/.cask/bin" >> $GITHUB_PATH
+
+      - name: Run a multi-line script
+        run: |
+          emacs --version
+          make test
+
+  windows-build:
+    runs-on: windows-latest
+    name: Emacs - ${{ matrix.emacs }}
+    strategy:
+      matrix:
+        emacs: [26.1, 26.2, 26.3, 27.1, 27.2, snapshot]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.6"
+          architecture: "x64"
+
+      - uses: jcs090218/setup-emacs-windows@master
+        with:
+          version: ${{ matrix.emacs }}
+
+      - uses: conao3/setup-cask@master
+        with:
+          version: 0.8.4
 
       - name: Run a multi-line script
         run: |
