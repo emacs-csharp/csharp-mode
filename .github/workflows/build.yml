@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        emacs: [26.1, 26.2, 26.3, 27.1, 27.2 snapshot]
+        emacs: [26.1, 26.2, 26.3, 27.1, 27.2, snapshot]
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
