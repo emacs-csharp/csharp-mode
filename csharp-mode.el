@@ -95,6 +95,21 @@
 (c-lang-defconst c-multiline-string-start-char
   csharp ?@)
 
+(c-lang-defconst c-ml-string-opener-re
+  csharp "\\(?:\\=\\|[^\"]\\)\\(?:\"\"\\)*\\(\\(\"\\)\\)\\(?:[^\"]\\|\\'\\)")
+
+(c-lang-defconst c-ml-string-max-opener-len
+  csharp 2)
+
+(c-lang-defconst c-ml-string-max-closer-len
+  csharp 2)
+
+(c-lang-defconst c-ml-string-any-closer-re
+  csharp "\\(?:\"\"\\)*\\(\\(\"\\)\\)\\(?:[^\"]\\|\\'\\)")
+
+(c-lang-defconst c-ml-string-back-closer-re
+  csharp "\\(:?\\`\\|[^\"]\\)\"*")
+
 (c-lang-defconst c-type-prefix-kwds
   csharp '("class" "interface" "struct"))
 
