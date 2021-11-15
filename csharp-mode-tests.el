@@ -78,6 +78,16 @@
                         "true"       'font-lock-constant-face
                         ))
 
+(when (and (>= emacs-major-version 29)
+           (string-lessp "5.35.0" c-version))
+  (ert-deftest fontification-of-multiline-strings ()
+    (assess-face-in-file= "./test-files/multiline-strings.cs"
+                          "Literal0" 'font-lock-variable-name-face
+                          "Literal1" 'font-lock-variable-name-face
+                          "Literal2" 'font-lock-variable-name-face
+                          "Literal3" 'font-lock-variable-name-face
+                          "Literal4" 'font-lock-variable-name-face)))
+
 (ert-deftest fontification-of-constants ()
   (require 'assess)
   (assess-face-in-text=
@@ -108,20 +118,21 @@
    "var import = true;"
    "import" 'font-lock-variable-name-face))
 
-(ert-deftest fontification-of-literals-allows-multi-line-strings ()
-  (require 'assess)
-  (should (assess-face-at=
-           "string Literal = \"multi-line\nstring\";"
-           'csharp-mode
-           ;; should be interpreted as error
-           18 'font-lock-warning-face
-           ))
-  (should (assess-face-at=
-           "string Literal = @\"multi-line\nstring\";"
-           'csharp-mode
-           ;; should not be interpreted as error because of @
-           19 'font-lock-string-face
-           )))
+;; TODO: Should we really behave like this? The new CC Mode multiline strings doesn't
+;; (ert-deftest fontification-of-literals-allows-multi-line-strings ()
+;;   (require 'assess)
+;;   (should (assess-face-at=
+;;            "string Literal = \"multi-line\nstring\";"
+;;            'csharp-mode
+;;            ;; should be interpreted as error
+;;            18 'font-lock-warning-face
+;;            ))
+;;   (should (assess-face-at=
+;;            "string Literal = @\"multi-line\nstring\";"
+;;            'csharp-mode
+;;            ;; should not be interpreted as error because of @
+;;            19 'font-lock-string-face
+;;            )))
 
 ;; (ert-deftest fontification-of-compiler-directives ()
 ;;   ;; this replaces the manual test of
