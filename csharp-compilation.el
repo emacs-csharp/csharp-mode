@@ -7,7 +7,7 @@
 ;;              Theodor Thornhill <theo@thornhill.no>
 ;; Created    : September 2020
 ;; Modified   : 2020
-;; Version    : 1.0.2
+;; Version    : 1.1.0
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/emacs-csharp/csharp-mode
 
