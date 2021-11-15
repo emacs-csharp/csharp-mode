@@ -78,6 +78,15 @@
                         "true"       'font-lock-constant-face
                         ))
 
+(when (string-lessp "5.35.0" c-version)
+  (ert-deftest fontification-of-multiline-strings ()
+    (assess-face-in-file= "./test-files/multiline-strings.cs"
+                          "Literal0" 'font-lock-variable-name-face
+                          "Literal1" 'font-lock-variable-name-face
+                          "Literal2" 'font-lock-variable-name-face
+                          "Literal3" 'font-lock-variable-name-face
+                          "Literal4" 'font-lock-variable-name-face)))
+
 (ert-deftest fontification-of-constants ()
   (require 'assess)
   (assess-face-in-text=
