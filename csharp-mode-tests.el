@@ -78,7 +78,8 @@
                         "true"       'font-lock-constant-face
                         ))
 
-(when (string-lessp "5.35.0" c-version)
+(when (and (>= emacs-major-version 28)
+           (string-lessp "5.35.0" c-version))
   (ert-deftest fontification-of-multiline-strings ()
     (assess-face-in-file= "./test-files/multiline-strings.cs"
                           "Literal0" 'font-lock-variable-name-face
