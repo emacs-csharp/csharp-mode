@@ -86,7 +86,10 @@
                           "Literal1" 'font-lock-variable-name-face
                           "Literal2" 'font-lock-variable-name-face
                           "Literal3" 'font-lock-variable-name-face
-                          "Literal4" 'font-lock-variable-name-face)))
+                          "Literal4" 'font-lock-variable-name-face
+                          "Literal5" 'font-lock-variable-name-face
+                          "Literal6" 'font-lock-variable-name-face
+                          "Literal7" 'font-lock-variable-name-face)))
 
 (ert-deftest fontification-of-constants ()
   (require 'assess)
@@ -118,21 +121,20 @@
    "var import = true;"
    "import" 'font-lock-variable-name-face))
 
-;; TODO: Should we really behave like this? The new CC Mode multiline strings doesn't
-;; (ert-deftest fontification-of-literals-allows-multi-line-strings ()
-;;   (require 'assess)
-;;   (should (assess-face-at=
-;;            "string Literal = \"multi-line\nstring\";"
-;;            'csharp-mode
-;;            ;; should be interpreted as error
-;;            18 'font-lock-warning-face
-;;            ))
-;;   (should (assess-face-at=
-;;            "string Literal = @\"multi-line\nstring\";"
-;;            'csharp-mode
-;;            ;; should not be interpreted as error because of @
-;;            19 'font-lock-string-face
-;;            )))
+(ert-deftest fontification-of-literals-allows-multi-line-strings ()
+  (require 'assess)
+  (should (assess-face-at=
+           "string Literal = \"multi-line\nstring\";"
+           'csharp-mode
+           ;; should be interpreted as error
+           18 'font-lock-warning-face
+           ))
+  (should (assess-face-at=
+           "string Literal = @\"multi-line\nstring\";"
+           'csharp-mode
+           ;; should not be interpreted as error because of @
+           19 'font-lock-string-face
+           )))
 
 ;; (ert-deftest fontification-of-compiler-directives ()
 ;;   ;; this replaces the manual test of
