@@ -17,7 +17,7 @@ highlighting and indentation.
   - instance initializers
   - anonymous functions and methods
   - verbatim literal strings (those that begin with @)
-  - generics 
+  - generics
 - intelligent insertion of matched pairs of curly braces.
 - compilation-mode support for msbuild, devenv and xbuild.
 
@@ -26,6 +26,7 @@ You can enable experimental tree sitter support for indentation and highlighting
 #+begin_src elisp
   (use-package tree-sitter :ensure t)
   (use-package tree-sitter-langs :ensure t)
+  (use-package tree-sitter-indent :ensure t)
 
   (use-package csharp-mode
     :ensure t
@@ -44,7 +45,7 @@ wrong syntax highlighting, look at how the patterns are written in
 =csharp-tree-sitter-mode.el=, then submit a pr with a couple new ones added.  When
 testing and debugging this, it is actually as simple as =M-x eval-buffer= on
 =csharp-tree-sitter-mode.el=, then =M-x revert-buffer= in the file you are testing.
-It should update and show the correct syntax highlighting. 
+It should update and show the correct syntax highlighting.
 
 
 So the development cycle is:
