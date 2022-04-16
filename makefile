@@ -1,20 +1,20 @@
 EMACS ?= emacs
-CASK ?= cask
+EASK ?= eask
 
 TESTHOME=/tmp/emacs
 
 package: build
-	$(CASK) package
+	$(EASK) package
 
 build: test
-	$(CASK) build
+	$(EASK) build
 
 test:
 	@echo "Testing..."
-	@$(CASK) $(EMACS) -Q -batch -L . -l csharp-mode-tests.el -f ert-run-tests-batch-and-exit
+	$(EMACS) -Q -batch -L . -l csharp-mode-tests.el -f ert-run-tests-batch-and-exit
 
 clean:
-	$(CASK) clean-elc
+	$(EASK) clean-elc
 	rm -rf dist
 	rm -rf $(TESTHOME)
 
