@@ -23,22 +23,6 @@
 (require 'csharp-mode)
 (require 'package)
 
-;; development only packages, not declared as a package-dependency
-;; FIXME: loading a .el file from `load-path' should not change user's settings
-;; like that.  It can happen without the user explicitly requesting it!
-(package-initialize)
-(add-to-list 'package-archives '("melpa" . "https://stable.melpa.org/packages/"))
-
-;; required to resolve SEQ (or anything on elpa) on Emacs25.
-(setq package-check-signature nil)
-
-;; assess depends on dash 2.12.1, which is no longer available
-;; installing dash, resolves 2.13.0, and fixes this broken dependency.
-(dolist (p '(dash assess))
-  (when (not (package-installed-p p))
-    (package-refresh-contents)
-    (package-install p)))
-
 ;;; test-helper functions
 
 (defmacro assess-face-in-text= (testee &rest assessments)
