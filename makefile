@@ -11,7 +11,7 @@ build: test
 
 test:
 	@echo "Testing..."
-	$(EMACS) -Q -batch -L . -l csharp-mode-tests.el -f ert-run-tests-batch-and-exit
+	$(EASK) ert csharp-mode-tests.el
 
 clean:
 	$(EASK) clean-elc
