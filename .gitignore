@@ -39,6 +39,8 @@ tramp
 .cask/
 dist/
 
+# eask packages
+.eask/
 
 ### Elisp ###
 # Compiled
