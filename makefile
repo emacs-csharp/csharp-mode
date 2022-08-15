@@ -14,7 +14,7 @@ build: package
 test:
 	@echo "Testing..."
 	$(EASK) install --dev
-	$(EASK) ert csharp-mode-tests.el
+	$(EASK) test ert csharp-mode-tests.el
 
 clean:
 	$(EASK) clean-elc
