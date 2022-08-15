@@ -1,6 +1,6 @@
 ;;; csharp-mode.el --- C# mode derived mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2022  Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
@@ -68,16 +68,12 @@
 (eval-and-compile
   (c-add-language 'csharp-mode 'java-mode))
 
-(defun csharp--make-mode-syntax-table ()
-  (let ((table (make-syntax-table)))
-    (c-populate-syntax-table table)
-    (modify-syntax-entry ?@ "_" table)
-    table))
-(defvar csharp--make-mode-syntax-table #'csharp--make-mode-syntax-table
-  "Workaround for Emacs bug#57065.")
-
 (c-lang-defconst c-make-mode-syntax-table
-  csharp (symbol-function #'csharp--make-mode-syntax-table))
+  csharp `(lambda ()
+            (let ((table (make-syntax-table)))
+              (c-populate-syntax-table table)
+              (modify-syntax-entry ?@ "_" table)
+              table)))
 
 (c-lang-defconst c-identifier-syntax-modifications
   csharp (append '((?@ . "w"))
@@ -567,14 +563,14 @@ compilation and evaluation time conflicts."
 
 (defvar csharp-mode-syntax-table
   (funcall (c-lang-const c-make-mode-syntax-table csharp))
-  "Syntax table used in `csharp-mode' buffers.")
+  "Syntax table used in csharp-mode buffers.")
 
 (defvar csharp-mode-map
   (let ((map (c-make-inherited-keymap)))
     map)
-  "Keymap used in `csharp-mode' buffers.")
+  "Keymap used in csharp-mode buffers.")
 
-(easy-menu-define csharp-mode-menu csharp-mode-map "C# Mode Commands."
+(easy-menu-define csharp-mode-menu csharp-mode-map "C# Mode Commands"
   (cons "C#" (c-lang-const c-mode-menu csharp)))
 
 ;;;###autoload
