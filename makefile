@@ -13,8 +13,7 @@ build: package
 
 test:
 	@echo "Testing..."
-	$(EASK) install --dev
-	$(EASK) test ert csharp-mode-tests.el
+	$(EMACS) -Q -batch -L . -l csharp-mode-tests.el -f ert-run-tests-batch-and-exit
 
 clean:
 	$(EASK) clean-elc
