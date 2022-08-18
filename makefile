@@ -3,7 +3,7 @@ EASK ?= eask
 
 TESTHOME=/tmp/emacs
 
-ci: build compile test
+ci: build test
 
 package:
 	$(EASK) package
