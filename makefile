@@ -10,8 +10,6 @@ package:
 
 build: package
 	$(EASK) install
-
-compile:
 	$(EASK) compile
 
 test:
