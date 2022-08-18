@@ -3,13 +3,16 @@ EASK ?= eask
 
 TESTHOME=/tmp/emacs
 
-ci: build test
+ci: build compile test
 
 package:
 	$(EASK) package
 
 build: package
 	$(EASK) install
+
+compile:
+	$(EASK) compile
 
 test:
 	@echo "Testing..."
