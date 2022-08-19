@@ -66,15 +66,15 @@
     declaration."))
 
 (eval-and-compile
-  (c-add-language 'csharp-mode 'java-mode))
+  (c-add-language 'csharp-mode 'java-mode)
 
-(defun csharp--make-mode-syntax-table ()
-  (let ((table (make-syntax-table)))
-    (c-populate-syntax-table table)
-    (modify-syntax-entry ?@ "_" table)
-    table))
-(defvar csharp--make-mode-syntax-table #'csharp--make-mode-syntax-table
-  "Workaround for Emacs bug#57065.")
+  (defun csharp--make-mode-syntax-table ()
+    (let ((table (make-syntax-table)))
+      (c-populate-syntax-table table)
+      (modify-syntax-entry ?@ "_" table)
+      table))
+  (defvar csharp--make-mode-syntax-table #'csharp--make-mode-syntax-table
+    "Workaround for Emacs bug#57065."))
 
 (c-lang-defconst c-make-mode-syntax-table
   csharp #'csharp--make-mode-syntax-table)
