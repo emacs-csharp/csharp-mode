@@ -10,6 +10,7 @@ package:
 
 build: package
 	$(EASK) install
+	$(EASK) compile
 
 test:
 	@echo "Testing..."
