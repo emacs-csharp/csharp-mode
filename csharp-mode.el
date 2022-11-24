@@ -482,7 +482,7 @@ compilation and evaluation time conflicts."
      (save-excursion
        ;; 'new' should be part of the line
        (goto-char (c-point 'iopl))
-       (looking-at ".*\\s *new\\s *.*"))
+       (looking-at ".*new.*"))
      ;; Line should not already be terminated
      (save-excursion
        (goto-char (c-point 'eopl))

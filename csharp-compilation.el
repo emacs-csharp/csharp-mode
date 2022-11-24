@@ -78,7 +78,7 @@
    "\\([^(\r\n)]+\\)(\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?"
    ;; handle weird devenv output format with 4 numbers, not 2 by having optional
    ;; extra capture-groups.
-   "\\(?:,\\([0-9]+\\)\\)?*): "
+   "\\(?:,\\([0-9]+\\)\\)*): "
    "warning [[:alnum:]]+: .+$")
   "Regexp to match compilation warning from xbuild.")
 
