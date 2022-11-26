@@ -37,6 +37,10 @@
 
 (require 'csharp-compilation)
 
+(eval-and-compile
+  (when (version< "29" emacs-version)
+    (warn "csharp-mode is part of Emacs as of Emacs 29 - please delete this package.")))
+
 (defgroup csharp nil
   "Major mode for editing C# code."
   :group 'prog-mode)
@@ -563,8 +567,6 @@ compilation and evaluation time conflicts."
 
 ;;; End of fix for strings on version 27.1
 
-
-
 (defvar csharp-mode-syntax-table
   (funcall (c-lang-const c-make-mode-syntax-table csharp))
   "Syntax table used in `csharp-mode' buffers.")
@@ -588,6 +590,8 @@ compilation and evaluation time conflicts."
 Key bindings:
 \\{csharp-mode-map}"
   :after-hook (c-update-modeline)
+  (when (version< "29" emacs-version)
+    (warn "csharp-mode is part of Emacs as of Emacs 29 - please delete this package."))
   (c-initialize-cc-mode t)
   (c-init-language-vars csharp-mode)
   (c-common-init 'csharp-mode)
