@@ -7,8 +7,9 @@
 This mode is now strictly in maintenance mode.  That means that /no/ new features
 will be added, and the mode itself will be moved into core.  Thus development of
 support for C# will continue in core Emacs.  However, this repo will continue
-being available from (M)ELPA for some time for backwards compatibility.  If you
-are running Emacs 29 or larger you are advised to remove this package and rely
+being available from (M)ELPA for some time for backwards compatibility.
+
+If you are running Emacs 29 or later you are advised to remove this package and rely
 on what's in core.  Bug reports should be directed to the Emacs bug tracker
 after Emacs 29 is released.
 
