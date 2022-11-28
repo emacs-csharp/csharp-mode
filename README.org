@@ -3,10 +3,12 @@
 [[https://stable.melpa.org/#/csharp-mode][file:https://stable.melpa.org/packages/csharp-mode-badge.svg]]
 [[https://elpa.gnu.org/packages/csharp-mode.html][file:https://elpa.gnu.org/packages/csharp-mode.svg]]
 
-* Development status of this mode
-This mode is now strictly in maintenance mode.  That means that /no/ new features
-will be added, and the mode itself will be moved into core.  Thus development of
-support for C# will continue in core Emacs.  However, this repo will continue
+* Obsoletion warning
+
+This mode is effectively no longer maintained. /No/ new features
+will be added, and the mode itself has been moved into Emacs core.
+
+Thus development of support for C# will continue in core Emacs.  However, this repo will continue
 being available from (M)ELPA for some time for backwards compatibility.
 
 If you are running Emacs 29 or later you are advised to remove this package and rely
