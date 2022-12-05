@@ -2,6 +2,9 @@
          "1.1.1"
          "C# mode derived mode")
 
+(website-url "https://github.com/emacs-csharp/csharp-mode")
+(keywords "c#" "languages" "oop" "mode")
+
 (package-file "csharp-mode.el")
 
 (source "gnu")
